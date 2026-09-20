@@ -1,0 +1,11 @@
+schema_version: "1.0"
+name: not-fired
+description: A question about pricing is not a request to audit caching.
+tags: [negative]
+execution:
+  prompt: |
+    Roughly how many tokens is a page of English text?
+  max_turns: 5
+  timeout_seconds: 180
+  allowed_tools: [Read, Glob, Grep]
+runs: 1

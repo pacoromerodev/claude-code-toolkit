@@ -1,0 +1,34 @@
+{
+  "$comment": "Reference project settings, committed to the repository. This is a statement about the team, not about you — personal preferences belong in ~/.claude/settings.json, and machine-specific ones in .claude/settings.local.json, which is gitignored.",
+
+  "permissions": {
+    "allow": [
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)"
+    ],
+    "deny": [
+      "Read(./secrets/**)",
+      "Read(./config/production.*)",
+      "Bash(git push --force:*)"
+    ]
+  },
+
+  "hooks": {
+    "$comment": "Use $CLAUDE_PROJECT_DIR, never a relative path — a relative one resolves against whatever directory the session started in.",
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/format-changed.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

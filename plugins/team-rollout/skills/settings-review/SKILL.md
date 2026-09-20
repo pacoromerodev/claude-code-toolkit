@@ -1,0 +1,69 @@
+---
+name: settings-review
+description: Reviews a Claude Code settings file for permissions that are wider than intended, unpinned plugin marketplaces, literal credentials and hooks that will not resolve. Use when writing or reviewing settings.json or a managed policy, when deciding what a team may run without prompting, or when a hook does not fire.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+---
+
+# Reviewing settings
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py" .claude/settings.json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py" managed.json --managed
+```
+
+`--managed` holds the file to the stricter bar a policy file needs.
+
+## The four locations
+
+Managed policy → user (`~/.claude/settings.json`) → project
+(`.claude/settings.json`) → local (`.claude/settings.local.json`, gitignored).
+More specific wins, except that a managed policy cannot be overridden — which
+is what makes it the right place for the few rules that must hold, and the
+wrong place for preferences.
+
+**A project file is a statement about the team.** Personal preferences go in
+the user file. This is the most common misuse: someone's editor habit committed
+into a repository where it now applies to everyone.
+
+## What the checker finds, and why each matters
+
+**A blanket allow.** `Bash` grants every command; `Bash(npm test:*)` grants
+one. Broad entries get added to stop a prompt during one frustrating afternoon
+and are never narrowed afterwards, because nothing prompts again to remind you.
+
+**No deny list.** An allow list says what is permitted. A deny list holds even
+when a project file widens things, which is why credentials, history files and
+production config belong in it.
+
+**Unpinned marketplaces.** A plugin runs code with the user's privileges and
+its hooks stack with everyone else's. `strictKnownMarketplaces` with an
+explicit list is the difference between a reviewed supply chain and whatever a
+developer pasted from a link.
+
+**A literal credential.** Settings files get committed, shared and synced.
+Anything matching a key pattern in one should be treated as leaked and rotated.
+
+**A relative hook path.** `./scripts/hook.sh` resolves against whatever
+directory the session started in, so the hook silently does not run. Use
+`$CLAUDE_PROJECT_DIR` or `${CLAUDE_PLUGIN_ROOT}`.
+
+**A hook with no timeout** on `Stop`, `PreCompact` or `SessionStart`. Those
+events can block the session, and a hook that hangs there leaves it unable to
+finish.
+
+**Invalid JSON.** Claude Code ignores a settings file it cannot parse — and it
+does so silently, so every rule in it stops applying with no message anywhere.
+Worth checking first when rules appear to be ignored.
+
+## Starting from the templates
+
+`settings/managed-settings.json` and `settings/project-settings.json` in this
+plugin are reference files with every choice commented. Copy and narrow; do not
+copy and widen.
+
+## Reporting
+
+Lead with anything granting more than intended, then anything that will not
+work at all — a relative hook path, unparseable JSON. Say which file each rule
+belongs in: a surprising number of problems are a correct rule in the wrong one
+of the four locations.

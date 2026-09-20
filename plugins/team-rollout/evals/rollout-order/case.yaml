@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: rollout-order
+description: >-
+  A spend question asked first. The answer must surface the decisions that
+  come before it, and the ones that are hard to undo.
+tags: [plan-rollout, skill]
+execution:
+  prompt: |
+    We're rolling Claude out to about 300 engineers next month. What spend
+    limits should we set per person?
+  max_turns: 12
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 1

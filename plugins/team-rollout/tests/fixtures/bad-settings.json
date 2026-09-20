@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": ["Bash", "Write", "Read(*)"]
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": "sk-ant-api03-RealLookingKey1234567890abcdefgh",
+    "PROXY_TOKEN": "a-long-literal-value-here"
+  },
+  "dangerouslySkipPermissions": true,
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "./scripts/gate.sh" }
+        ]
+      }
+    ]
+  }
+}

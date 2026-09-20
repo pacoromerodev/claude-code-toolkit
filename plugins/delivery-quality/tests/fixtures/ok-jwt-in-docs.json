@@ -1,0 +1,1 @@
+{"tool_name":"Write","tool_input":{"file_path":"docs/auth.md","content":"A JWT looks like eyJhbGciOiJIUzI1NiJ9.<PAYLOAD>.<SIGNATURE>"}}

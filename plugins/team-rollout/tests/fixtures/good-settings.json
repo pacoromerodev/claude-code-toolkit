@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "allow": ["Read", "Glob", "Grep", "Bash(npm test:*)", "Bash(git diff:*)"],
+    "deny": ["Read(**/.env)", "Write(**/.aws/**)"]
+  },
+  "strictKnownMarketplaces": true,
+  "knownMarketplaces": ["https://github.com/example-org/marketplace"],
+  "model": "claude-sonnet-5",
+  "env": { "DISABLE_TELEMETRY": "0" },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/gate.sh",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}

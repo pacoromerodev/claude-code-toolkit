@@ -1,0 +1,11 @@
+{
+  "name": "skill-forge",
+  "description": "Write skills that actually fire, and find out why the ones that don't. A scaffolding skill, a mechanical auditor for the faults that stop a skill loading, and a subagent that writes and compares candidate descriptions.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Francisco Romero Porras",
+    "url": "https://github.com/pacoromerodev"
+  },
+  "homepage": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "keywords": ["skills", "authoring", "audit", "meta", "tooling"]
+}

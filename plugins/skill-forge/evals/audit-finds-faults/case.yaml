@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: audit-finds-faults
+description: >-
+  A skills directory with planted faults: the audit must find them and explain
+  the consequence, not just list them.
+tags: [audit-skills, skill]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    One of my skills isn't triggering and I can't work out which. Can you check
+    the skills folder?
+  max_turns: 16
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 1

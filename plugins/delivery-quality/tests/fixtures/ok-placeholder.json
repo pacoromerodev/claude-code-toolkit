@@ -1,0 +1,1 @@
+{"tool_name":"Write","tool_input":{"file_path":"config.yml","content":"token: ${GITHUB_TOKEN}\napi_key: <YOUR_KEY_HERE>"}}

@@ -1,0 +1,11 @@
+{
+  "name": "api-patterns",
+  "description": "Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, the workflow-or-agent decision, and a reviewer for tool schemas.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Francisco Romero Porras",
+    "url": "https://github.com/pacoromerodev"
+  },
+  "homepage": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "keywords": ["claude-api", "evals", "prompt-caching", "rag", "agents", "tool-use"]
+}

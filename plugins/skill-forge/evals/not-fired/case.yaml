@@ -1,0 +1,12 @@
+schema_version: "1.0"
+name: not-fired
+description: >-
+  A question about skills in general is not a request to audit or author one.
+tags: [negative]
+execution:
+  prompt: |
+    What's the difference between a skill and a slash command in Claude Code?
+  max_turns: 6
+  timeout_seconds: 180
+  allowed_tools: [Read, Glob, Grep]
+runs: 1

@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: stateless-tradeoff
+description: >-
+  Asking to scale a server that uses progress and sampling. The answer must
+  name what stateless mode silently removes.
+tags: [choose-transport, skill]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    We need to run this MCP server behind a load balancer with several
+    replicas. How do I set that up?
+  max_turns: 14
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 1

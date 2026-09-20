@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: verify-fires
+description: >-
+  A green test suite hiding a broken change: the verification skill must catch
+  that an assertion was weakened rather than trusting the passing run.
+tags: [verify-changes, skill]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    I just finished this change and I'm about to commit it. Can you
+    double-check it's actually correct first?
+  max_turns: 20
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 1

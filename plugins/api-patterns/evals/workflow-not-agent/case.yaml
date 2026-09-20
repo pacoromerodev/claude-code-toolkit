@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: workflow-not-agent
+description: >-
+  A task with fully known steps. The answer must be a workflow, not an agent.
+tags: [agent-or-workflow, skill]
+execution:
+  prompt: |
+    I want to build an agent that takes a support email, works out which of
+    our six categories it belongs to, pulls the matching template, fills in
+    the customer's name and order number, and sends the reply. How should I
+    structure the agent loop?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 1

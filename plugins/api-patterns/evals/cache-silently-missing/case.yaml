@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: cache-silently-missing
+description: >-
+  Caching configured with a timestamp in the prefix. The diagnosis must be
+  that it is worse than not caching at all.
+tags: [prompt-cache-audit, skill]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    I added prompt caching last week but the bill hasn't moved. Can you see
+    why?
+  max_turns: 14
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 1

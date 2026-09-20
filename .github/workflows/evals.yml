@@ -1,0 +1,63 @@
+name: evals
+
+# Eval runs cost money and need a credential, so they are not part of the
+# pull-request gate. Trigger them by hand before a release, or let the weekly
+# run catch drift in how the model responds to the same prompts.
+on:
+  workflow_dispatch:
+    inputs:
+      plugin:
+        description: Plugin directory to evaluate
+        required: true
+        default: plugins/delivery-quality
+      threshold:
+        description: Fail below this score (0..1)
+        required: false
+        default: "0.8"
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  eval:
+    name: Eval suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run the eval suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo "::error::ANTHROPIC_API_KEY is not set — add it as a repository secret"
+            exit 1
+          fi
+          claude plugin eval "${{ inputs.plugin || 'plugins/delivery-quality' }}" \
+            --scaffold \
+            --allow-tools Bash \
+            --trust-plugin \
+            --no-publish \
+            --threshold "${{ inputs.threshold || '0.8' }}" \
+            --json eval-result.json
+
+      - name: Publish the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: |
+            eval-result.json
+            plugins/*/evals/results/**
+          if-no-files-found: warn

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog>
+    <changeSet id="7" author="team">
+        <dropColumn tableName="orders" columnName="legacy_reference"/>
+    </changeSet>
+</databaseChangeLog>

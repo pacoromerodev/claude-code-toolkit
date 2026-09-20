@@ -1,0 +1,46 @@
+{
+  "$comment": "Reference organisation policy. Managed settings sit above user and project files and cannot be overridden locally — which is the point, and the reason to keep this file short. Deploy it to the managed-settings path for the platform.",
+
+  "permissions": {
+    "defaultMode": "default",
+
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(mvn -q test:*)"
+    ],
+
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/credentials)",
+      "Read(**/.aws/**)",
+      "Read(**/.ssh/**)",
+      "Read(**/*.pem)",
+      "Read(**/id_rsa)",
+      "Write(**/.env)",
+      "Write(**/.aws/**)",
+      "Write(**/.ssh/**)",
+      "Bash(curl * | sh:*)",
+      "Bash(curl * | bash:*)"
+    ]
+  },
+
+  "strictKnownMarketplaces": true,
+  "knownMarketplaces": [
+    "https://github.com/your-org/your-marketplace"
+  ],
+
+  "$comment_model": "Pin the organisation default. Without one, every user's own default applies, which is the usual source of unplanned spend — a group running an expensive model on routine work looks like a capacity problem and is a configuration one.",
+  "model": "claude-sonnet-5",
+
+  "env": {
+    "DISABLE_TELEMETRY": "0"
+  }
+}

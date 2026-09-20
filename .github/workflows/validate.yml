@@ -1,0 +1,78 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  manifests:
+    name: Manifests and consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Validate the marketplace manifest
+        run: claude plugin validate .
+
+      - name: Validate every plugin manifest
+        run: |
+          status=0
+          for dir in plugins/*/; do
+            echo "::group::${dir}"
+            claude plugin validate "${dir}" || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+      - name: Every plugin has a marketplace entry, with matching versions
+        run: python3 .github/scripts/check_consistency.py
+
+  hooks:
+    name: Hook scripts
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Scripts compile
+        run: python3 -m compileall -q plugins/*/scripts/
+
+      - name: Scripts use only the standard library
+        run: python3 .github/scripts/check_stdlib_only.py
+
+      - name: Fixture tests
+        run: |
+          status=0
+          for runner in plugins/*/tests/run.sh; do
+            [ -f "$runner" ] || continue
+            echo "::group::${runner}"
+            bash "$runner" || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+  shell:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          find plugins .github -name '*.sh' -print0 | xargs -0 -r shellcheck -S warning

@@ -1,0 +1,114 @@
+{
+  "name": "pacoromerodev",
+  "owner": {
+    "name": "Francisco Romero Porras",
+    "url": "https://github.com/pacoromerodev"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for real software delivery workflows.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "delivery-quality",
+      "source": "./plugins/delivery-quality",
+      "description": "Verification before you trust a change: a verify skill that runs the tests and reads the diff, a read-only review subagent, guards against writing secrets and running destructive commands, and a test gate on session stop.",
+      "version": "0.2.0",
+      "category": "quality",
+      "keywords": [
+        "review",
+        "testing",
+        "verification",
+        "hooks",
+        "guardrails",
+        "secrets"
+      ]
+    },
+    {
+      "name": "skill-forge",
+      "source": "./plugins/skill-forge",
+      "description": "Write skills that actually fire, and find out why the ones that don't. A scaffolding skill, a mechanical auditor for the faults that stop a skill loading, and a subagent that writes and compares candidate descriptions.",
+      "version": "0.1.0",
+      "category": "authoring",
+      "keywords": [
+        "skills",
+        "authoring",
+        "audit",
+        "meta",
+        "tooling"
+      ]
+    },
+    {
+      "name": "java-spring",
+      "source": "./plugins/java-spring",
+      "description": "Backend conventions for Java and Spring Boot that hold at any company: service and transaction structure, Kafka consumers that survive redelivery, modern Java with the cases where it is the wrong answer, test shape, and a migration reviewer that asks what breaks during a rolling deploy.",
+      "version": "0.1.0",
+      "category": "backend",
+      "keywords": [
+        "java",
+        "spring-boot",
+        "kafka",
+        "migrations",
+        "testing",
+        "backend"
+      ]
+    },
+    {
+      "name": "context-discipline",
+      "source": "./plugins/context-discipline",
+      "description": "Keep the working state that compaction blurs: a snapshot of the tree taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored.",
+      "version": "0.1.0",
+      "category": "workflow",
+      "keywords": [
+        "context",
+        "compaction",
+        "hooks",
+        "claude-md",
+        "planning"
+      ]
+    },
+    {
+      "name": "mcp-builder",
+      "source": "./plugins/mcp-builder",
+      "description": "Build MCP servers a model can actually use: the right primitive for each capability, tool descriptions that draw the boundary against their neighbours, bounded results, enforced roots, and a transport choice that names what it takes away.",
+      "version": "0.1.0",
+      "category": "integration",
+      "keywords": [
+        "mcp",
+        "model-context-protocol",
+        "fastmcp",
+        "tools",
+        "servers"
+      ]
+    },
+    {
+      "name": "api-patterns",
+      "source": "./plugins/api-patterns",
+      "description": "Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, the workflow-or-agent decision, and a reviewer for tool schemas.",
+      "version": "0.1.0",
+      "category": "api",
+      "keywords": [
+        "claude-api",
+        "evals",
+        "prompt-caching",
+        "rag",
+        "agents",
+        "tool-use"
+      ]
+    },
+    {
+      "name": "team-rollout",
+      "source": "./plugins/team-rollout",
+      "description": "Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference managed and project settings, and a checker for permissions wider than intended, unpinned marketplaces and hooks that never fire.",
+      "version": "0.1.0",
+      "category": "governance",
+      "keywords": [
+        "rollout",
+        "governance",
+        "settings",
+        "permissions",
+        "enterprise"
+      ]
+    }
+  ]
+}

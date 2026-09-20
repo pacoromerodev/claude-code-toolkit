@@ -1,0 +1,13 @@
+schema_version: "1.0"
+name: not-fired
+description: A small, well-specified request must not trigger a scoping ceremony.
+tags: [negative]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    There's a typo in the README — "recieve" should be "receive". Can you fix it?
+  max_turns: 8
+  timeout_seconds: 240
+  allowed_tools: [Read, Glob, Grep, Edit, Write]
+runs: 1

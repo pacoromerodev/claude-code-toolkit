@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local Claude Code state
+.claude/settings.local.json
+.claude/test-gate
+.claude/test-gate.sh
+
+# Logs
+*.log
+
+# Eval run output
+plugins/*/evals/results/
+eval-result.json
+
+# Session state snapshots (written by context-discipline).
+# The ** prefix matters: a pattern with an inner slash is anchored to this
+# file's directory, so a bare `.claude/state/` would miss the copies that
+# testing leaves under plugins/.
+**/.claude/state/
+**/.claude/handoff.md

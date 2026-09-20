@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: settings-too-wide
+description: >-
+  A settings file with a blanket allow, a literal key and a relative hook
+  path. All three must be found, with the right one called urgent.
+tags: [settings-review, skill]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    We're about to roll this settings file out to the whole backend team. Does
+    it look right to you?
+  max_turns: 14
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 1

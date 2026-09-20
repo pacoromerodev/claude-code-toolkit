@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: scope-before-code
+description: >-
+  A vague, wide request. The response must explore and agree a plan before
+  editing anything.
+tags: [scope-task, skill]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    This codebase is a mess, can you clean up the payment module?
+  max_turns: 16
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill, TodoWrite]
+runs: 1

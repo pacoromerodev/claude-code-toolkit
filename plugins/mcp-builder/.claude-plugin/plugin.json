@@ -1,0 +1,11 @@
+{
+  "name": "mcp-builder",
+  "description": "Build MCP servers a model can actually use: the right primitive for each capability, tool descriptions that draw the boundary against their neighbours, bounded results, enforced roots, and a transport choice that names what it takes away.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Francisco Romero Porras",
+    "url": "https://github.com/pacoromerodev"
+  },
+  "homepage": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "keywords": ["mcp", "model-context-protocol", "fastmcp", "tools", "servers"]
+}

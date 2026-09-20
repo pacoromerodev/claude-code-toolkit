@@ -1,0 +1,11 @@
+schema_version: "1.0"
+name: not-fired
+description: A general Java question is not a request to apply house conventions.
+tags: [negative]
+execution:
+  prompt: |
+    What's the difference between a checked and an unchecked exception in Java?
+  max_turns: 5
+  timeout_seconds: 180
+  allowed_tools: [Read, Glob, Grep]
+runs: 1
