@@ -39,6 +39,10 @@ jobs:
       - name: Eval cases are runnable and graded both ways
         run: python3 .github/scripts/check_eval_cases.py
 
+      # The auditor this repository ships, turned on the skills it ships.
+      - name: Skills pass our own auditor
+        run: python3 plugins/skill-forge/scripts/audit_skills.py plugins/*/skills
+
       # Not a hook, so it may use a dependency; the schema itself is vendored.
       - name: Settings files match the published schema
         run: |
