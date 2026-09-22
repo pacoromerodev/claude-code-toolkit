@@ -7,23 +7,70 @@ on:
   workflow_dispatch:
     inputs:
       plugin:
-        description: Plugin directory to evaluate
-        required: true
-        default: plugins/delivery-quality
+        description: One plugin name, or empty for all of them
+        required: false
+        default: ""
       threshold:
         description: Fail below this score (0..1)
         required: false
         default: "0.8"
+      runs:
+        description: Runs per case (the weekly run uses 1)
+        required: false
+        default: "1"
+      max_cost_usd:
+        description: Hard ceiling per plugin, in USD
+        required: false
+        default: "5"
   schedule:
     - cron: "0 6 * * 1"
 
+# Nothing here needs to write to the repository, and the eval sandbox runs
+# model-written commands: a token in the checkout would be inside it.
+permissions:
+  contents: read
+
 jobs:
-  eval:
-    name: Eval suite
+  plan:
+    name: Which plugins
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    outputs:
+      plugins: ${{ steps.pick.outputs.plugins }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - id: pick
+        env:
+          ONLY: ${{ inputs.plugin }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, pathlib, sys
+          only = (os.environ.get("ONLY") or "").strip().strip("/")
+          only = only[len("plugins/"):] if only.startswith("plugins/") else only
+          names = sorted(p.name for p in pathlib.Path("plugins").iterdir() if p.is_dir())
+          if only:
+              if only not in names:
+                  print(f"::error::no plugin called {only!r}", file=sys.stderr)
+                  raise SystemExit(1)
+              names = [only]
+          print("plugins=" + json.dumps(names))
+          PY
+
+  eval:
+    name: ${{ matrix.plugin }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: ${{ fromJSON(needs.plan.outputs.plugins) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -39,31 +86,39 @@ jobs:
       - name: Install what the scaffolds need
         run: python3 -m pip install --quiet pytest
 
+      # Pinned: an eval measures the plugin, so the thing measuring it should
+      # not change between runs without someone deciding it should.
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.278
 
       - name: Run the eval suite
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PLUGIN: ${{ matrix.plugin }}
+          THRESHOLD: ${{ inputs.threshold || '0.8' }}
+          RUNS: ${{ inputs.runs || '1' }}
+          MAX_COST: ${{ inputs.max_cost_usd || '5' }}
         run: |
           if [ -z "${ANTHROPIC_API_KEY}" ]; then
             echo "::error::ANTHROPIC_API_KEY is not set — add it as a repository secret"
             exit 1
           fi
-          claude plugin eval "${{ inputs.plugin || 'plugins/delivery-quality' }}" \
+          claude plugin eval "plugins/${PLUGIN}" \
             --scaffold \
             --allow-tools Bash \
             --trust-plugin \
             --no-publish \
-            --threshold "${{ inputs.threshold || '0.8' }}" \
-            --json eval-result.json
+            --runs "${RUNS}" \
+            --max-cost-usd "${MAX_COST}" \
+            --threshold "${THRESHOLD}" \
+            --json "eval-${PLUGIN}.json"
 
       - name: Publish the report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: eval-report
+          name: eval-report-${{ matrix.plugin }}
           path: |
-            eval-result.json
+            eval-*.json
             plugins/*/evals/results/**
           if-no-files-found: warn
