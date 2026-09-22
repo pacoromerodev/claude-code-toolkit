@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: review-against-criteria
+description: >-
+  A change that meets three of four stated criteria, with green tests. The
+  review must find the fourth.
+tags: [code-reviewer, subagent, needs-bash]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    Review my change. The task is in TASK.md.
+  max_turns: 18
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Task]
+runs: 3

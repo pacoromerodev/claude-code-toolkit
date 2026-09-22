@@ -18,6 +18,14 @@ All notable changes to `delivery-quality`. Format follows
   and the fixture sent a payload the Edit tool does not produce.
 
 ### Added
+- `verify-changes` checks that a dependency the change introduces actually
+  resolves, against the lockfile or the registry, and says which it checked.
+  A package name that looks right is not a package that exists, and a
+  plausible unclaimed name is also how a dependency gets taken over later.
+- `code-reviewer` checks the change against stated acceptance criteria when
+  the task, issue or pull request has them, by name, and reports the ones it
+  could not check. A passing suite is not evidence for a criterion nobody
+  implemented: the tests came from the same reading of the task.
 - `guard_secrets` can redact instead of blocking, per project, behind
   `.claude/secret-guard-redact`. A shell command carrying a secret comes back
   with the value replaced by a placeholder and goes to the user to confirm,

@@ -58,6 +58,28 @@ Read every hunk, not the summary. You are looking for what the change does beyon
 - Changes to files nobody asked you to touch
 - Behaviour changes not covered by any test
 
+## 2a. If the change adds a dependency
+
+A package name that looks right is not a package that exists. A generated
+import, a name half-remembered from another ecosystem, and a typo all read the
+same in a diff — and a plausible name that nobody owns is also how a
+dependency gets taken over later.
+
+For each package the change introduces, confirm it resolves:
+
+| Ecosystem | Check |
+|---|---|
+| npm | it is in `package-lock.json`, or `npm view <name> version` answers |
+| Python | it is in the lockfile (`poetry.lock`, `uv.lock`, `requirements.txt` with a pin), or `pip index versions <name>` answers |
+| Maven / Gradle | the coordinates appear in the lockfile, or resolve from the declared repositories |
+| Go | `go mod download <module>` succeeds |
+| Cargo | it is in `Cargo.lock`, or `cargo search <name>` answers |
+
+Report a package that does not resolve as a finding, with the name and where
+it was introduced. Say what you checked against — the lockfile, or the
+registry — because "it installs on my machine" and "it is in the lockfile" are
+different facts.
+
 ## 2b. If the change touches a workflow
 
 A workflow runs with nobody watching, and a change to one is not covered by

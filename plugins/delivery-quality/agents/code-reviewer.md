@@ -27,6 +27,17 @@ For a branch review, use `git diff $(git merge-base HEAD main)...HEAD`.
 
 Read the surrounding file for every hunk. A diff alone hides whether a change is safe — a removed null check looks fine until you see the caller that relies on it.
 
+## Against what was asked for
+
+When the task, the issue or the pull request states acceptance criteria — a
+list of what the change must do, or the behaviour it must produce — read them
+first and check the diff against each one, by name. A criterion nobody
+implemented is a finding, and a passing test suite does not cover it: the
+tests were written from the same misunderstanding.
+
+Say which criteria you checked and which you could not, rather than reporting
+on the code in general and leaving the reader to map it back.
+
 ## What counts as a finding
 
 Report something only when you can name the input or the state that makes it fail. "This could be cleaner" is not a finding. In rough order of what tends to matter:
