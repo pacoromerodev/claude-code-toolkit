@@ -6,15 +6,32 @@ All notable changes to `context-discipline`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- The `/handoff` note is read live at restore time, attributed to the
+  assistant with its date, rather than frozen into the snapshot and labelled
+  as outranking everything measured. Output is capped at 8,000 characters,
+  with the note first, so nothing is silently dropped into a file.
+
 ### Fixed
 - `not-fired` eval grader states what a correct answer looks like, not only
   what scores badly.
+- `restore_state` only restores the snapshot of the session that was compacted,
+  and only through SessionStart with the `compact` matcher. It used to fall
+  back to any recent snapshot, and to label whatever it found as "restored
+  after compaction" even at a fresh session start.
+  The PostCompact registration is gone: that event has no way to add context.
+  A snapshot of a directory that is not a git repository says so instead of
+  reporting a clean tree, and "before compaction compaction" is fixed.
 
 ### Security
 - Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
   grants tools without a prompt on the turn a skill fires; it restricts
   nothing. Read tools stay pre-approved, and Bash only for the plugin's own
   script, as an exact prefix. Everything else goes through the normal prompt.
+- The snapshot is written to the plugin's data directory, keyed by repository,
+  instead of `.claude/state/` inside the repository. A state file committed to
+  a repository is no longer read back: it could have been written by anyone,
+  and a fresh clone makes it look current.
 
 ## [0.1.0] — 2026-09-20
 

@@ -21,30 +21,32 @@ working tree before compaction and hand it back afterwards.
 | Component | Type | Runs on |
 |---|---|---|
 | `save_state` | PreCompact hook | Every compaction, manual or automatic |
-| `restore_state` | PostCompact + SessionStart hook | After compaction, and on a new or resumed session |
+| `restore_state` | SessionStart hook, `compact` matcher | Right after a compaction, in the session that was compacted |
 | `scope-task` | Skill | A wide, vague or open-ended request |
 | `claude-md-doctor` | Skill | Rules in CLAUDE.md are being ignored, or one needs writing |
 | `/handoff`, `/context` | Commands | Typed |
 
 ## The state cycle
 
-`save_state` writes `.claude/state/<session_id>.md` holding the branch, the
-uncommitted and staged files, the diffstat, the last five commits, and any
-stashes. `restore_state` reads it back and emits it as
-`hookSpecificOutput.additionalContext`.
+`save_state` records the branch, the uncommitted and staged files, the
+diffstat, the last five commits and any stashes. `restore_state` reads it back
+and emits it as `hookSpecificOutput.additionalContext`.
 
-Three decisions worth knowing:
+Four decisions worth knowing:
 
-- **Namespaced by session id.** Two sessions in one repository would otherwise
-  overwrite each other's snapshot, and the second one would restore the first
-  one's tree.
-- **A snapshot over 24 hours old is not restored.** It describes a tree that has
-  moved on, and presenting it as current would be worse than silence. The hook
-  mentions the file exists and stops there.
-- **A `/handoff` note outranks everything measured.** A person wrote it on
-  purpose; git status is just the truth about files.
-
-Add `.claude/state/` to your `.gitignore`.
+- **The snapshot lives outside the repository**, in the plugin's own data
+  directory (`${CLAUDE_PLUGIN_DATA}`), keyed by repository and session id. A
+  file written inside a working tree gets committed and cloned, and would then
+  be read back as if this session had produced it. Nothing to gitignore.
+- **Only the session that was compacted gets its snapshot back**, and only
+  through `SessionStart` with the `compact` matcher. `PostCompact` receives the
+  summary but has no way to add context, so a hook there is discarded.
+- **A snapshot over 24 hours old is not restored**, and one from another
+  session is never restored at all.
+- **The `/handoff` note is read live at restore time**, not frozen into the
+  snapshot, and it is labelled as written by the assistant, with its date. It
+  is reasoning git cannot show — not a measurement, and not more trustworthy
+  than one.
 
 ## CLAUDE.md auditing
 
@@ -75,12 +77,14 @@ costs.
 plugins/context-discipline/tests/run.sh
 ```
 
-20 assertions. The auditor must find every planted fault in the bad fixture and
+26 assertions. The auditor must find every planted fault in the bad fixture and
 **report nothing at all** on the good one. The save → restore cycle runs end to
-end in a throwaway git repository: snapshot written, branch and untracked files
-and commits recorded, handoff note picked up, context emitted with its caveat,
-both hooks surviving a malformed payload, and restore staying silent when there
-is nothing to restore.
+end in throwaway repositories: snapshot written outside the repository and
+nothing written inside it, branch and untracked files and commits recorded, the
+live handoff note attributed, the output kept inside the context cap, a
+directory that is not a repository reported as such, and restore staying silent
+for another session, at a fresh start, and for a state file planted inside the
+repository.
 
 ## Evals
 
@@ -97,5 +101,5 @@ claude plugin eval plugins/context-discipline --scaffold --allow-tools Bash
 
 ## Requirements
 
-Python 3.8+ on `PATH`. Standard library only. `PostCompact` requires Claude
-Code 2.1 or later.
+Python 3.8+ on `PATH`. Standard library only. The `compact` matcher on
+`SessionStart` requires Claude Code 2.1 or later.
