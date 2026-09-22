@@ -1,0 +1,1 @@
+{"tool_name": "Bash", "tool_input": {"command": "install -m 600 deploy_key ~/.ssh/id_rsa"}, "cwd": "/home/user/app"}

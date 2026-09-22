@@ -63,16 +63,23 @@ check guard_secrets.py secret-azure-storage.json  2 "Azure storage key"
 check guard_secrets.py secret-jwt.json            2 "signed JWT"
 check guard_secrets.py secret-basic-auth.json     2 "Basic auth header"
 check guard_secrets.py secret-npm-token.json      2 "npm token"
-check guard_secrets.py edge-multiedit.json        2 "Anthropic API key"
+check guard_secrets.py secret-notebook-source.json 2 "AWS access key id"
+check guard_secrets.py secret-github-fine-grained.json 2 "GitHub fine-grained token"
+check guard_secrets.py secret-bash-append.json    2 "this command line"
 
 echo
 echo "== guard_secrets: blocked paths =="
-check guard_secrets.py path-dotenv.json           2 "credentials"
-check guard_secrets.py path-ssh-key.json          2 "credentials"
-check guard_secrets.py path-aws-credentials.json  2 "credentials"
-check guard_secrets.py path-pem-write.json        2 "credentials"
-check guard_secrets.py path-bash-redirect-env.json 2 "credentials"
-check guard_secrets.py path-bash-tee-credentials.json 2 "credentials"
+check guard_secrets.py path-dotenv.json           2 "credential file"
+check guard_secrets.py path-ssh-key.json          2 "credential file"
+check guard_secrets.py path-aws-credentials.json  2 "credential file"
+check guard_secrets.py path-pem-write.json        2 "credential file"
+check guard_secrets.py path-bash-redirect-env.json 2 "credential file"
+check guard_secrets.py path-bash-tee-credentials.json 2 "credential file"
+check guard_secrets.py path-noclobber-env.json    2 "credential file"
+check guard_secrets.py path-install-ssh-key.json  2 "credential file"
+check guard_secrets.py path-windows-env.json      2 "credential file"
+check guard_secrets.py path-guard-allow-write.json 2 "exception list"
+check guard_secrets.py path-destructive-allow-bash.json 2 "exception list"
 
 echo
 echo "== guard_secrets: must let through =="
@@ -83,6 +90,10 @@ check guard_secrets.py ok-variable-named-token.json 0
 check guard_secrets.py ok-plain-edit.json         0
 check guard_secrets.py ok-jwt-in-docs.json        0
 check guard_secrets.py ok-bash-normal-redirect.json 0
+check guard_secrets.py ok-grep-literal-key.json   0
+check guard_secrets.py ok-git-log-search.json     0
+check guard_secrets.py ok-env-example.json        0
+check guard_secrets.py ok-url-with-at-path.json   0
 
 echo
 echo "== guard_secrets: must fail open =="

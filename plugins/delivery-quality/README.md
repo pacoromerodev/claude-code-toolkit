@@ -46,7 +46,17 @@ connection strings carrying a password.
 
 **Paths:** `.env` and its variants, `credentials`, `.aws/credentials`,
 `id_rsa`, `id_ed25519`, `.npmrc`, `.pypirc`, `secrets.yaml`,
-`application-prod.yaml`.
+`application-prod.yaml` — whether they are named by a Write, a redirect, `tee`,
+`cp`, `mv` or `install`, with `/` or `\` separators. `.env.example` and its
+siblings are templates, so only their content is checked.
+
+**Also blocked:** `.claude/secret-guard-allow` and
+`.claude/destructive-guard-allow`. Both guards' exception lists are the user's
+to edit; an agent that can write them can switch the guard off.
+
+**Not scanned:** a shell command that only reads or searches — `grep`, `rg`,
+`git log -S`, `cat` — and writes no file. Looking for a leaked key is not
+leaking it. Anything that writes, including `aws configure set`, is scanned.
 
 **Allowed through:** values that are obviously not real — `EXAMPLE`,
 `PLACEHOLDER`, `REDACTED`, `CHANGEME`, `DUMMY`, `FAKE`, `YOUR_*`, `<angle
@@ -133,7 +143,7 @@ Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT`.
 plugins/delivery-quality/tests/run.sh
 ```
 
-77 fixture cases across both guards and the gate: secrets that must block,
+88 fixture cases across both guards and the gate: secrets that must block,
 paths that must block, destructive commands that must block, legitimate values
 and commands that must pass, and malformed input that must fail open. Adding a
 pattern without a fixture — in both directions — is not done.

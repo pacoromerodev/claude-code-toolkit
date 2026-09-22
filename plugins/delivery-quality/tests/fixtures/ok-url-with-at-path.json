@@ -1,0 +1,1 @@
+{"tool_name": "Write", "tool_input": {"file_path": "/home/user/app/client.py", "content": "BASE = 'http://localhost:8080/api/users/@me'\n"}}

@@ -19,6 +19,15 @@ All notable changes to `delivery-quality`. Format follows
 - `reset --hard` and `checkout .` were blocked by untracked files, which they
   do not touch. `git clean -n` (a dry run) was blocked. A heredoc written to a
   file and a quoted commit message were read as commands.
+- A shell command that only reads or searches (grep, rg, git log -S) and
+  writes nothing is no longer scanned for secrets: searching for a leaked key
+  was blocked. `.env.example` and its siblings are no longer blocked by name.
+  A URL with a port and an at-sign in its path is no longer read as a
+  connection string with a password.
+
+### Removed
+- Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
+  and the fixture sent a payload the Edit tool does not produce.
 
 ### Security
 - `guard_destructive` parses the command instead of matching one pattern
@@ -26,6 +35,12 @@ All notable changes to `delivery-quality`. Format follows
   force-push with `--force` first, `-f` or `+main`, `rm -Rf`, flags after the
   target, `$HOME` targets, chained, `sudo`, `bash -c` and `$(…)` forms, `DROP`
   followed by `2>/dev/null`, and `kubectl delete --all` all passed.
+- `guard_secrets` scans `new_source`, so a NotebookEdit carrying a key is
+  blocked; the hook also runs on PowerShell. Writing either guard's
+  `.claude/*-guard-allow` file is blocked: switching a guard off is the
+  user's decision, and the block message no longer points the model at it.
+  Redirect targets are read properly, including `>|` and the real
+  destination of install, cp and mv, and Windows path separators count.
 
 ## [0.2.0] — 2026-09-20
 
