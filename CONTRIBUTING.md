@@ -83,6 +83,7 @@ python3 .github/scripts/check_eval_cases.py   # every eval case can pass
 python3 .github/scripts/check_hooks.py        # hooks point at scripts that exist
 python3 .github/scripts/check_names.py        # no two components share a name
 python3 .github/scripts/check_workflows.py    # workflows scoped, pinned, no interpolated shell
+python3 .github/scripts/check_course_wording.py # no sentence lifted from the notes
 python3 .github/scripts/check_eval_coverage.py  # two cases per skill, one negative
 python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
 plugins/<name>/tests/run.sh                   # fixture tests
@@ -145,3 +146,15 @@ Employer names, internal hostnames or URLs, repository or ticket identifiers,
 client-specific branch conventions. Real credentials in fixtures — use the
 `EXAMPLE` and `${PLACEHOLDER}` forms the guard already recognises. Text copied
 from Anthropic Academy: the concepts are free to use, the wording is not.
+
+`check_course_wording.py` checks the last one against
+`.github/scripts/data/course-shingles.txt` — hashes of every five-word run in
+the notes, no text, so the check works without the notes being public.
+Regenerate it from a local checkout when the notes change:
+
+```bash
+python3 .github/scripts/check_course_wording.py --update --notes <notes dir>
+```
+
+It sees verbatim English only. A paraphrase, and anything translated out of
+the Spanish prose, stays a manual read before publication.
