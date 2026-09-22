@@ -42,6 +42,9 @@ jobs:
       - name: The CI scripts pass their own fixtures
         run: bash .github/scripts/tests/run.sh
 
+      - name: The local eval runner skips what it cannot run, and says so
+        run: bash scripts/tests/run-evals.test.sh
+
   hooks:
     name: Hook scripts
     runs-on: ubuntu-latest
@@ -99,4 +102,4 @@ jobs:
       - name: shellcheck
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          find plugins .github -name '*.sh' -print0 | xargs -0 -r shellcheck -S warning
+          find plugins .github scripts -name '*.sh' -print0 | xargs -0 -r shellcheck -S warning

@@ -71,6 +71,7 @@ claude plugin validate .                      # marketplace manifest
 claude plugin validate plugins/<name>         # plugin manifest
 python3 .github/scripts/check_consistency.py  # entries and versions agree
 python3 .github/scripts/check_stdlib_only.py  # no third-party imports
+python3 .github/scripts/check_eval_cases.py   # every eval case can pass
 plugins/<name>/tests/run.sh                   # fixture tests
 ```
 
@@ -78,8 +79,15 @@ CI runs all of these. Eval suites are not part of the pull-request gate —
 they cost money and need a credential — so run them by hand before a release:
 
 ```bash
-claude plugin eval plugins/<name> --scaffold --allow-tools Bash
+scripts/run-evals.sh [plugin ...]             # results outside the repo, never published
 ```
+
+The runner evaluates the working copy, one case at a time. `claude plugin
+eval` refuses any Bash-granting run while the Docker credential store holds a
+symbolic link (common on WSL with Docker Desktop). When that is the case the
+runner skips the cases tagged `needs-bash` and lists them as NOT RUN. It never
+works around the check: move the store's contents into a plain directory if
+you need those cases.
 
 ## Writing a skill
 
