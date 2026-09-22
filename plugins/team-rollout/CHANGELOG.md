@@ -15,6 +15,11 @@ All notable changes to `team-rollout`. Format follows
   answer to `/team-rollout:plan-rollout` and `/team-rollout:settings-review`.
 
 ### Added
+- `plan-rollout` covers four things it was missing: the deployment objective
+  that breaks ties before any setting is touched, who decides each of the five
+  decisions and what they need from you, connectors — three gates, inherited
+  user permissions, read before write, sign-off by whoever owns the risk — and
+  the spend levers that move the bill without touching a limit.
 - `check_settings.py` checks the marketplace allowlist itself: a
   `strictKnownMarketplaces` that is not an array, an entry that is not a source
   object, an unknown source type, an empty list (reported as the lockdown it
@@ -22,6 +27,9 @@ All notable changes to `team-rollout`. Format follows
   registered with no `ref`.
 
 ### Changed
+- The worked example at the end of `plan-rollout` is rewritten in this
+  repository's own terms; it had followed the shape of the course's own
+  example too closely.
 - `settings-review` describes what Claude Code actually does with a broken
   settings file: an interactive session opens with a Settings Error dialog,
   while a `-p` run skips the file with no dialog — which is how a rule stops

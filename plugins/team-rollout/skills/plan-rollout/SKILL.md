@@ -13,6 +13,33 @@ taking them out of sequence means redoing the earlier ones.
 Structure and Identity → Access → Governance → Spend → Visibility
 ```
 
+## Before the first decision: what success is
+
+Settle the objective before touching a setting, because it is what breaks
+ties. It has two halves: one ambition for the whole organisation, concrete
+enough to be measured and short enough to repeat, and the constraints that are
+genuinely yours.
+
+A useful shape: *every unit using it weekly by the end of the quarter, with no
+security escalation from the regulated one.* When an option speeds up adoption
+and risks that second clause, the objective has already chosen for you.
+
+## Who decides each one
+
+A decision with no owner is the fastest way to stall a rollout. Look for the
+characteristic, not the job title:
+
+| Decision | Decided with | What they need from you |
+|---|---|---|
+| Structure and Identity | Whoever runs the identity provider | The proposed group structure and the directory groups it maps to |
+| Access | The team leads, plus whoever answers for data risk | Which groups get what, in which phase, and the workflow behind every write permission |
+| Governance | Whoever runs enablement, plus security | The posture options and what each one implies |
+| Spend | Whoever commits the budget | Proposed limits and the usage that justifies them |
+| Visibility | Whoever answers for data risk | The options, a recommendation, and what changing it later costs |
+
+Two of them routinely escalate past the person running the rollout: **spend**,
+to whoever owns the budget, and **visibility**, to whoever owns the risk.
+
 ## Take these knowing they are hard to undo
 
 Four choices are expensive to reverse. Decide them deliberately, with the
@@ -64,6 +91,35 @@ Surfaces have two gates: the organisation switch, and the per-role grant.
 Turning something on for the organisation does not give it to anyone until a
 role grants it.
 
+### Connectors
+
+A connector is where access stops being abstract: it is the single biggest
+driver of early adoption and the single biggest change in what a mistake can
+reach. **Three gates, all of which must be open** for anyone to use one:
+
+| Gate | Controls | Opened by |
+|---|---|---|
+| Organisation | Whether it exists here at all | Whoever administers the organisation |
+| Role | Whether this group's role includes it | Whoever administers the organisation |
+| Member | Whether the person has connected their own account | The person |
+
+Claude acts with **that user's own permissions** in the connected system — it
+does not widen access, it inherits it. Which is why the interesting decision
+is depth, not existence:
+
+- **Read is where the value starts.** Most groups whose work lives in a system
+  need to read it and nothing more, and read-only is a different conversation
+  with security than write.
+- **Write means changing data as that person.** It gets phased, it gets
+  announced, and it gets **signed off by whoever owns the risk** — not by the
+  team who wants it. Write and delete tools are individually set to allowed,
+  needing approval, or blocked.
+- Granting is cheap; **withdrawing breaks a workflow someone now depends on**,
+  so announce a removal the way you announced the grant.
+
+Where the identity provider supports it, provision connector access centrally
+rather than per person, so scope follows the group someone is in.
+
 ## 3. Governance
 
 Anything people create — skills, plugins, projects, organisation instructions —
@@ -107,6 +163,24 @@ that group.** A group running an expensive model on routine work will look like
 a capacity problem and is a configuration one. That is the most common false
 alarm in the whole rollout.
 
+Consumption moves the bill, not headcount, and the agentic surfaces consume
+several times what chat does per task. Four levers move it without touching a
+single limit:
+
+- **The default model and the effort ceiling** for routine work. This moves
+  more than most limit changes.
+- **Instructions at the point of use** — short answers unless more is asked
+  for, read only the files needed — as guidance rather than enforcement.
+- **Reuse**: a skill loads only when it fires; a shared project keeps the
+  context once instead of per person.
+- **Scheduled and background work**, which consumes while nobody is watching.
+  Bound it and review what is still scheduled.
+
+Repeated overrides are a signal, not an exception: if several people in a
+group need one, the group is wrong. And decide the escalation path at the same
+time as the limits — what gets approved in the day, and what goes to the
+budget owner.
+
 ## 5. Visibility
 
 Decide what you need to be able to answer later, then pick the mechanism:
@@ -141,7 +215,10 @@ Three questions, in order:
 3. **Does it move the risk position?** If yes, it goes to a pilot group first,
    with the identity, alerting and limits worked out there.
 
-A worked example: a new chat-surface integration gets its own identity per
-channel, alerts at 75% and 95% of its limit, is blocked in channels containing
-external guests, and stays off for the group handling payment data until that
-group's own review is done.
+Worked through on a request to enable a scheduled-task surface: it runs
+unattended, so it gets its own identity rather than borrowing a person's, a
+limit of its own with alerts before that limit rather than at it, no access to
+any connector granted with write depth, and a two-week window in one
+volunteer group before anyone else sees it. The group under external audit
+gets it last, after that audit's own reviewer has read the same four
+answers.

@@ -103,6 +103,9 @@ claude plugin eval plugins/team-rollout --scaffold --allow-tools Bash
   credential treated as the urgent one.
 - **rollout-order** — a spend question asked first; the answer must surface
   what comes before it.
+- **connector-with-write** — one team asking for a write-capable connector.
+  The answer must reach the three gates, read before write, and whose
+  signature it needs.
 - **not-fired** — "how do I switch permission modes", which deserves one line.
 
 ## Requirements
