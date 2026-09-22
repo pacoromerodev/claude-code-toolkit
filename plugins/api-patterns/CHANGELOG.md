@@ -14,6 +14,12 @@ All notable changes to `api-patterns`. Format follows
   typed or fired on its own. `/eval` and `/cache-audit`; the skills answer to
   `/api-patterns:eval-harness` and `/api-patterns:prompt-cache-audit`.
 
+### Added
+- `agent-or-workflow` covers the decision that follows "this is an agent":
+  your own loop, the SDK's tool runner, or managed agents. The skill stopped
+  at the classification, which left the expensive half of the choice — who
+  operates the loop — unmade.
+
 ### Changed
 - `eval-harness` credits the score jump to the right technique. The move from
   about 3.9 to about 7.9 comes from explicit output guidelines — a length, a

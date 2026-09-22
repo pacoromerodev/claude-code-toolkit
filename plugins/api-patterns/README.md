@@ -95,6 +95,9 @@ claude plugin eval plugins/api-patterns --scaffold --allow-tools Bash
   say it is worse than not caching, and how to verify the fix.
 - **workflow-not-agent** — a task with fully known steps, asked as "how should
   I structure the agent loop". The answer must push back.
+- **agent-that-must-resume** — a multi-hour clean-up agent that died mid-run.
+  The answer must reach managed agents, and must not offer the tool runner as
+  the fix for resumption.
 - **not-fired** — "how many tokens is a page of text", which must not start an
   audit.
 
