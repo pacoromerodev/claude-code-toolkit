@@ -35,10 +35,29 @@ and are never narrowed afterwards, because nothing prompts again to remind you.
 when a project file widens things, which is why credentials, history files and
 production config belong in it.
 
-**Unpinned marketplaces.** A plugin runs code with the user's privileges and
-its hooks stack with everyone else's. `strictKnownMarketplaces` with an
-explicit list is the difference between a reviewed supply chain and whatever a
-developer pasted from a link.
+**An allowlist that allows everything.** A plugin runs code with the user's
+privileges and its hooks stack with everyone else's, so the list of
+marketplaces people may install from is a supply-chain decision. Two keys, and
+they do different jobs:
+
+| Key | Where | What it does |
+|---|---|---|
+| `strictKnownMarketplaces` | managed policy only | Array of source objects. Restricts what may be added; an empty array blocks every marketplace, the official one included. |
+| `extraKnownMarketplaces` | any file | Object keyed by name. Registers a marketplace so nobody adds it by hand. Restricts nothing. |
+
+```json
+"strictKnownMarketplaces": [
+  { "source": "github", "repo": "your-org/your-marketplace", "ref": "v1.0.0" }
+]
+```
+
+Two ways this goes wrong quietly. `strictKnownMarketplaces: true` reads as
+"locked down" and is a type the schema rejects, so the whole entry is dropped
+and nothing is restricted — the checker reports it as an error. And
+`knownMarketplaces` is not a setting at all: nothing reads that key.
+
+**A git marketplace with no `ref`.** Whatever the default branch holds today is
+what the team installs tomorrow, hooks included. Pin a tag.
 
 **A literal credential.** Settings files get committed, shared and synced.
 Anything matching a key pattern in one should be treated as leaked and rotated.

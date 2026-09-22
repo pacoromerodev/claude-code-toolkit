@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Read"
+    ],
+    "deny": [
+      "Read(**/.env)"
+    ]
+  },
+  "strictKnownMarketplaces": true,
+  "knownMarketplaces": [
+    "https://github.com/example-org/marketplace"
+  ],
+  "extraKnownMarketplaces": {
+    "community": {
+      "source": {
+        "source": "github",
+        "repo": "someone/plugins"
+      }
+    },
+    "internal": {
+      "source": {
+        "source": "git",
+        "url": "https://git.example.com/plugins.git"
+      }
+    }
+  },
+  "model": "claude-sonnet-5",
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  }
+}

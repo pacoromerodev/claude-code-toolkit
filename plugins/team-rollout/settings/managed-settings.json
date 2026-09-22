@@ -32,15 +32,21 @@
     ]
   },
 
-  "strictKnownMarketplaces": true,
-  "knownMarketplaces": [
-    "https://github.com/your-org/your-marketplace"
+  "$comment_marketplaces": "strictKnownMarketplaces is the allowlist: an array of source objects, where an empty array blocks every marketplace including the official one. It registers nothing, so pair it with extraKnownMarketplaces, which makes the same marketplace available without each person adding it. Pin git sources with ref, or an update moves what your team runs.",
+  "strictKnownMarketplaces": [
+    { "source": "github", "repo": "your-org/your-marketplace", "ref": "v1.0.0" }
   ],
+  "extraKnownMarketplaces": {
+    "your-marketplace": {
+      "source": { "source": "github", "repo": "your-org/your-marketplace", "ref": "v1.0.0" }
+    }
+  },
 
   "$comment_model": "Pin the organisation default. Without one, every user's own default applies, which is the usual source of unplanned spend — a group running an expensive model on routine work looks like a capacity problem and is a configuration one.",
   "model": "claude-sonnet-5",
 
+  "$comment_env": "Environment variables every session inherits. Telemetry is a visibility decision: turn it off here, or leave it on and send OpenTelemetry to your own collector.",
   "env": {
-    "DISABLE_TELEMETRY": "0"
+    "DISABLE_TELEMETRY": "1"
   }
 }

@@ -1,13 +1,29 @@
 {
   "permissions": {
     "defaultMode": "default",
-    "allow": ["Read", "Glob", "Grep", "Bash(npm test:*)", "Bash(git diff:*)"],
-    "deny": ["Read(**/.env)", "Write(**/.aws/**)"]
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(npm test:*)",
+      "Bash(git diff:*)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Write(**/.aws/**)"
+    ]
   },
-  "strictKnownMarketplaces": true,
-  "knownMarketplaces": ["https://github.com/example-org/marketplace"],
+  "strictKnownMarketplaces": [
+    {
+      "source": "github",
+      "repo": "example-org/marketplace",
+      "ref": "v1.2.0"
+    }
+  ],
   "model": "claude-sonnet-5",
-  "env": { "DISABLE_TELEMETRY": "0" },
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  },
   "hooks": {
     "Stop": [
       {
@@ -20,5 +36,14 @@
         ]
       }
     ]
+  },
+  "extraKnownMarketplaces": {
+    "example": {
+      "source": {
+        "source": "github",
+        "repo": "example-org/marketplace",
+        "ref": "v1.2.0"
+      }
+    }
   }
 }

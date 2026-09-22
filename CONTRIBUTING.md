@@ -35,7 +35,9 @@ so the model sees the reason and can correct itself. Exit 1 does not block.
 Anything else is non-blocking.
 
 **Standard library only.** Hooks run on a machine where nothing has been
-installed. CI enforces this; widening the allowed set is a deliberate edit to
+installed. This binds `plugins/*/scripts`; a CI script under `.github/scripts`
+runs only on a runner and may install what it needs, as the settings schema
+check does. CI enforces this; widening the allowed set is a deliberate edit to
 `.github/scripts/check_stdlib_only.py`, not an accident.
 
 **Every rule is checkable.** "Handle errors properly" is not a rule. "Do not
@@ -72,6 +74,7 @@ claude plugin validate plugins/<name>         # plugin manifest
 python3 .github/scripts/check_consistency.py  # entries and versions agree
 python3 .github/scripts/check_stdlib_only.py  # no third-party imports
 python3 .github/scripts/check_eval_cases.py   # every eval case can pass
+python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
 plugins/<name>/tests/run.sh                   # fixture tests
 ```
 

@@ -16,8 +16,8 @@
     ]
   },
 
+  "$comment_hooks": "Use $CLAUDE_PROJECT_DIR, never a relative path — a relative one resolves against whatever directory the session started in. The hooks object itself takes event names only: a comment inside it makes the whole file fail validation.",
   "hooks": {
-    "$comment": "Use $CLAUDE_PROJECT_DIR, never a relative path — a relative one resolves against whatever directory the session started in.",
     "PostToolUse": [
       {
         "matcher": "Write|Edit",

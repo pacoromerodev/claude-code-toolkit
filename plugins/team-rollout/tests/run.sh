@@ -66,6 +66,19 @@ else
 fi
 
 echo
+echo "== the marketplace allowlist =="
+bool_output="$("$PY" "$CHECK" "$FIXTURES/bad-marketplace-bool.json" --managed 2>&1)"
+bool_code=$?
+for probe in "strict-not-a-list:strictKnownMarketplaces is bool" \
+             "unknown-setting:there is no knownMarketplaces setting" \
+             "unpinned-marketplace:registered from a git source with no ref"; do
+  label="${probe%%:*}"; needle="${probe#*:}"
+  [[ "$bool_output" == *"$needle"* ]] && ok finds "$label" || bad finds "$label"
+done
+[[ "$bool_code" == 1 ]] && ok exit "a rejected allowlist is an error (1)" \
+                        || bad exit "wanted 1, got $bool_code"
+
+echo
 echo "== invalid JSON =="
 [[ "$invalid_output" == *"invalid-json"* ]] \
   && ok finds "a settings file that cannot be parsed" || bad finds "invalid json"
