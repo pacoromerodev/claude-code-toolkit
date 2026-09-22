@@ -1,0 +1,1 @@
+{"tool_name": "Bash", "tool_input": {"command": "rm -f build.log; rm -rf ~/projects"}, "cwd": "/home/user/app"}

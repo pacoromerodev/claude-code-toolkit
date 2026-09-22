@@ -1,0 +1,1 @@
+{"tool_name": "Bash", "tool_input": {"command": "psql -c \"DELETE FROM users\" -d prod"}, "cwd": "/home/user/app"}

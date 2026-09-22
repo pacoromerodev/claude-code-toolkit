@@ -97,10 +97,33 @@ check guard_destructive.py destr-rm-root.json         2 "outside the project"
 check guard_destructive.py destr-force-push-main.json 2 "rewrites history"
 check guard_destructive.py destr-git-clean.json       2 "untracked"
 check guard_destructive.py destr-branch-D.json        2 "unmerged"
-check guard_destructive.py destr-drop-table.json      2 "test database"
+check guard_destructive.py destr-drop-table.json      2 "test or local database"
 check guard_destructive.py destr-chmod-777.json       2 "world-writable"
 check guard_destructive.py destr-terraform.json       2 "auto-approve"
 check guard_destructive.py destr-mkfs.json            2 "block device"
+
+echo
+echo "== guard_destructive: the forms the first version missed =="
+check guard_destructive.py destr-force-push-flag-first.json 2 "rewrites history"
+check guard_destructive.py destr-force-push-short.json      2 "rewrites history"
+check guard_destructive.py destr-force-push-plus.json       2 "rewrites history"
+check guard_destructive.py destr-force-with-lease-main.json 2 "not an alternative"
+check guard_destructive.py destr-push-mirror.json           2 "--mirror"
+check guard_destructive.py destr-push-delete-main.json      2 "deletes the remote branch main"
+check guard_destructive.py destr-rm-uppercase.json          2 "outside the project"
+check guard_destructive.py destr-rm-flags-after.json        2 "outside the project"
+check guard_destructive.py destr-rm-home-var.json           2 "outside the project"
+check guard_destructive.py destr-rm-chained.json            2 "outside the project"
+check guard_destructive.py destr-rm-sudo.json               2 "outside the project"
+check guard_destructive.py destr-rm-bash-c.json             2 "outside the project"
+check guard_destructive.py destr-rm-substitution.json       2 "outside the project"
+check guard_destructive.py destr-rm-shell-heredoc.json      2 "outside the project"
+check guard_destructive.py destr-find-delete.json           2 "outside the project"
+check guard_destructive.py destr-drop-devnull.json          2 "test or local database"
+check guard_destructive.py destr-drop-developer.json        2 "test or local database"
+check guard_destructive.py destr-delete-mid-command.json    2 "DELETE FROM users"
+check guard_destructive.py destr-sql-heredoc.json           2 "TRUNCATE orders"
+check guard_destructive.py destr-kubectl-all.json           2 "bulk-deletes"
 
 echo
 echo "== guard_destructive: must let through =="
@@ -109,6 +132,43 @@ check guard_destructive.py ok-rm-in-project.json      0
 check guard_destructive.py ok-drop-test-db.json       0
 check guard_destructive.py ok-normal-build.json       0
 check guard_destructive.py ok-git-status.json         0
+check guard_destructive.py ok-heredoc-to-file.json    0
+check guard_destructive.py ok-commit-message-rm.json  0
+check guard_destructive.py ok-commit-message-sql.json 0
+check guard_destructive.py ok-git-clean-dry-run.json  0
+check guard_destructive.py ok-delete-with-where.json  0
+check guard_destructive.py ok-force-push-feature.json 0
+
+echo
+echo "== guard_destructive: against a real repository =="
+# reset --hard and checkout . only lose tracked changes. An untracked file —
+# such as a state snapshot another hook wrote — must not block them.
+repo="$(mktemp -d)"
+(
+  cd "$repo" || exit 1
+  git init -q -b main . && git config user.email t@example.invalid && git config user.name T
+  echo one > tracked.txt && git add -A && git commit -qm init
+  echo scratch > untracked.txt
+) >/dev/null 2>&1
+reset_payload="$(printf '{"tool_name":"Bash","tool_input":{"command":"git reset --hard"},"cwd":"%s"}' "$repo")"
+code_of() { printf '%s' "$1" | CLAUDE_PROJECT_DIR="$2" "$PY" "$SCRIPTS/guard_destructive.py" >/dev/null 2>&1; echo $?; }
+[[ "$(code_of "$reset_payload" "$repo")" == 0 ]] && { printf 'ok    %-28s %s\n' guard_destructive.py "reset --hard with only untracked files"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_destructive.py "reset --hard blocked by an untracked file"; ((fail++)); }
+echo two > "$repo/tracked.txt"
+[[ "$(code_of "$reset_payload" "$repo")" == 2 ]] && { printf 'ok    %-28s %s\n' guard_destructive.py "reset --hard over a tracked change"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_destructive.py "reset --hard over a tracked change not blocked"; ((fail++)); }
+
+# An allow rule exempts the command it matches, not the line it is chained into.
+proj="$(mktemp -d)"
+mkdir -p "$proj/.claude"
+printf '^rm -rf /tmp/build-cache$\n' > "$proj/.claude/destructive-guard-allow"
+allowed="$(printf '{"tool_name":"Bash","tool_input":{"command":"rm -r%s /tmp/build-cache"},"cwd":"%s"}' f "$proj")"
+chained="$(printf '{"tool_name":"Bash","tool_input":{"command":"rm -r%s /tmp/build-cache && rm -r%s ~/projects"},"cwd":"%s"}' f f "$proj")"
+[[ "$(code_of "$allowed" "$proj")" == 0 ]] && { printf 'ok    %-28s %s\n' guard_destructive.py "allow rule exempts its own command"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_destructive.py "allow rule ignored"; ((fail++)); }
+[[ "$(code_of "$chained" "$proj")" == 2 ]] && { printf 'ok    %-28s %s\n' guard_destructive.py "allow rule does not cover a chained command"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_destructive.py "allow rule exempted the whole chained line"; ((fail++)); }
+rm -r -f "$repo" "$proj"
 
 echo
 echo "== guard_destructive: must fail open =="
