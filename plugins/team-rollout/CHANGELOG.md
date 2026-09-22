@@ -6,6 +6,14 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `settings-review` reports a literal credential first — the file is shared,
+  so the key is leaked and must be rotated — then grants wider than intended.
+
+### Fixed
+- `not-fired` eval grader says what a correct answer looks like; it had failed
+  a correct Shift+Tab answer.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

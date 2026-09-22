@@ -94,19 +94,26 @@ def tokens(text):
 
 
 def find_skills(target):
-    """Every SKILL.md under this path, plus the directories that look like a
-    skill but have none."""
+    """Every SKILL.md under this path, the directories that look like a skill
+    but have none, and any SKILL.md sitting loose in a skills root."""
     target = Path(target)
-    found, missing = [], []
-
-    if (target / "SKILL.md").is_file():
-        return [target / "SKILL.md"], []
+    found, missing, loose = [], [], []
 
     if target.is_file() and target.name == "SKILL.md":
-        return [target], []
+        return [target], [], []
 
     if not target.is_dir():
-        return [], []
+        return [], [], []
+
+    # A directory holding SKILL.md is one skill, unless it also holds skill
+    # directories: then it is a skills root, and its SKILL.md is loose.
+    has_children = any(
+        (entry / "SKILL.md").is_file()
+        for entry in target.iterdir()
+        if entry.is_dir() and not entry.name.startswith(".")
+    )
+    if (target / "SKILL.md").is_file() and not has_children:
+        return [target / "SKILL.md"], [], []
 
     for entry in sorted(target.iterdir()):
         if not entry.is_dir() or entry.name.startswith("."):
@@ -119,12 +126,12 @@ def find_skills(target):
             if stray or (entry / "scripts").is_dir() or (entry / "references").is_dir():
                 missing.append(entry)
 
-    # A SKILL.md sitting loose in the directory: a real and common mistake,
+    # A SKILL.md sitting loose in the skills root: a real and common mistake,
     # because the skill silently never loads.
     if (target / "SKILL.md").is_file():
-        found.append(target / "SKILL.md")
+        loose.append(target / "SKILL.md")
 
-    return found, missing
+    return found, missing, loose
 
 
 def audit_one(path, findings):
@@ -272,7 +279,13 @@ def main():
     findings, skills, audited = [], [], 0
 
     for target in args.paths:
-        found, missing = find_skills(target)
+        found, missing, loose = find_skills(target)
+        for path in loose:
+            findings.append(Finding(
+                "error", f"{path.parent.name}/SKILL.md",
+                "SKILL.md sits loose in the skills root, so it never loads",
+                "Move it into a directory named after the skill: "
+                f"{path.parent.name}/<name>/SKILL.md."))
         for directory in missing:
             findings.append(Finding(
                 "error", directory.name,

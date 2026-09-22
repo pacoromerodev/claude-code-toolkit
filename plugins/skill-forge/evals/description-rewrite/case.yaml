@@ -12,4 +12,4 @@ execution:
   max_turns: 14
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Task, Skill]
-runs: 1
+runs: 3

@@ -6,6 +6,16 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `audit-finds-faults` eval plants a loose `SKILL.md` (never loads) instead of a
+  name that differs from its directory, which Claude Code still loads.
+
+### Fixed
+- `audit_skills.py` treated a skills root holding a loose `SKILL.md` as a
+  single skill: it audited only that file, misreported it as a name mismatch,
+  and never looked at the real skills beside it. The loose file is now an
+  error of its own and the rest of the root is audited.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

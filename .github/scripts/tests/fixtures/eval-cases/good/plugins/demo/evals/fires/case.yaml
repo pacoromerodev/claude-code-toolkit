@@ -1,0 +1,13 @@
+schema_version: "1.0"
+name: fires
+description: Fixture.
+tags: [demo-skill, skill, needs-bash]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    Fixture prompt.
+  max_turns: 4
+  timeout_seconds: 60
+  allowed_tools: [Read, Bash, Skill]
+runs: 3

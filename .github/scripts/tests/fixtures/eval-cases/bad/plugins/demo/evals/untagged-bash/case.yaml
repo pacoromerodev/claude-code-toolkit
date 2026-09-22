@@ -1,0 +1,11 @@
+schema_version: "1.0"
+name: untagged-bash
+description: Fixture.
+tags: [demo-skill, skill]
+execution:
+  prompt: |
+    Fixture prompt.
+  max_turns: 4
+  timeout_seconds: 60
+  allowed_tools: [Read, Bash]
+runs: 3

@@ -3,7 +3,7 @@ name: stateless-tradeoff
 description: >-
   Asking to scale a server that uses progress and sampling. The answer must
   name what stateless mode silently removes.
-tags: [choose-transport, skill]
+tags: [choose-transport, skill, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -13,4 +13,4 @@ execution:
   max_turns: 14
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Skill]
-runs: 1
+runs: 3

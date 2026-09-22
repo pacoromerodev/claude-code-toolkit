@@ -6,6 +6,10 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- `review-format` and `verify-not-fired` evals had no fixture and could never
+  pass; both are now `case.yaml` cases with a scaffold.
+
 ## [0.2.0] — 2026-09-20
 
 ### Added

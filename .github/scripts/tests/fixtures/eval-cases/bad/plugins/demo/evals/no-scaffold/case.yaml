@@ -1,0 +1,13 @@
+schema_version: "1.0"
+name: no-scaffold
+description: Fixture.
+tags: [negative]
+context:
+  scaffold_script: missing.sh
+execution:
+  prompt: |
+    Fixture prompt.
+  max_turns: 4
+  timeout_seconds: 60
+  allowed_tools: [Read]
+runs: 1

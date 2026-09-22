@@ -3,7 +3,7 @@ name: claude-md-rewrite
 description: >-
   A CLAUDE.md full of unfollowable rules. The review must rewrite them into
   checkable ones, not merely list what is wrong.
-tags: [claude-md-doctor, skill]
+tags: [claude-md-doctor, skill, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -12,4 +12,4 @@ execution:
   max_turns: 16
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Skill]
-runs: 1
+runs: 3

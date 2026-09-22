@@ -3,7 +3,7 @@ name: settings-too-wide
 description: >-
   A settings file with a blanket allow, a literal key and a relative hook
   path. All three must be found, with the right one called urgent.
-tags: [settings-review, skill]
+tags: [settings-review, skill, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -13,4 +13,4 @@ execution:
   max_turns: 14
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Skill]
-runs: 1
+runs: 3

@@ -6,6 +6,10 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- `not-fired` eval grader states what a correct answer looks like, not only
+  what scores badly.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

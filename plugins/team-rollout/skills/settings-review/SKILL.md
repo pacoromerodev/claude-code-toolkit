@@ -63,7 +63,8 @@ copy and widen.
 
 ## Reporting
 
-Lead with anything granting more than intended, then anything that will not
-work at all — a relative hook path, unparseable JSON. Say which file each rule
-belongs in: a surprising number of problems are a correct rule in the wrong one
-of the four locations.
+Lead with any literal credential: the file is shared, so the key is already
+leaked — say to rotate it, not only to move it. Then anything granting more
+than intended, then anything that will not work at all — a relative hook path,
+unparseable JSON. Say which file each rule belongs in: a surprising number of
+problems are a correct rule in the wrong one of the four locations.

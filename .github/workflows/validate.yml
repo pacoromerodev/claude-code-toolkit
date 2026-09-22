@@ -36,6 +36,12 @@ jobs:
       - name: Every plugin has a marketplace entry, with matching versions
         run: python3 .github/scripts/check_consistency.py
 
+      - name: Eval cases are runnable and graded both ways
+        run: python3 .github/scripts/check_eval_cases.py
+
+      - name: The CI scripts pass their own fixtures
+        run: bash .github/scripts/tests/run.sh
+
   hooks:
     name: Hook scripts
     runs-on: ubuntu-latest

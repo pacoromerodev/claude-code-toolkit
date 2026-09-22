@@ -73,6 +73,25 @@ finds "unreferenced reference file"      "never mentioned in SKILL.md"
 finds "overlapping descriptions"         "overlaps"
 
 echo
+echo "== a SKILL.md loose in a skills root =="
+# The root also holds a real skill. Both must be audited: the loose file as an
+# error, the real skill as clean. It must not be mistaken for one skill whose
+# directory is the root.
+loose_output="$("$PY" "$AUDIT" "$FIXTURES/loose" 2>&1)"
+loose_code=$?
+if [[ "$loose_output" == *"sits loose in the skills root"* ]]; then
+  printf 'ok    loose   reported as never loading\n'; ((pass++))
+else
+  printf 'FAIL  loose   not reported: %s\n' "${loose_output%%$'\n'*}"; ((fail++))
+fi
+if [[ "$loose_output" != *"but the directory is"* ]]; then
+  printf 'ok    loose   not misread as a name mismatch\n'; ((pass++))
+else
+  printf 'FAIL  loose   misread as a name mismatch\n'; ((fail++))
+fi
+code "loose file is an error" "$loose_code" 1
+
+echo
 echo "== the clean tree must stay quiet =="
 quiet "no errors"        "ERROR"
 quiet "no warnings"      "warn "

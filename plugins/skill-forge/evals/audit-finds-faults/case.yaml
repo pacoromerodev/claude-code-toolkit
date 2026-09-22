@@ -3,7 +3,7 @@ name: audit-finds-faults
 description: >-
   A skills directory with planted faults: the audit must find them and explain
   the consequence, not just list them.
-tags: [audit-skills, skill]
+tags: [audit-skills, skill, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -13,4 +13,4 @@ execution:
   max_turns: 16
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Skill]
-runs: 1
+runs: 3
