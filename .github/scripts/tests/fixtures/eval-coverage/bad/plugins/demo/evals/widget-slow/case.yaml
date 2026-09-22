@@ -1,0 +1,6 @@
+schema_version: "1.0"
+name: widget-slow
+tags: [widget-check, skill]
+execution:
+  prompt: |
+    Do the thing.

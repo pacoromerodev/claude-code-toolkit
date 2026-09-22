@@ -76,6 +76,7 @@ python3 .github/scripts/check_stdlib_only.py  # no third-party imports
 python3 .github/scripts/check_eval_cases.py   # every eval case can pass
 python3 .github/scripts/check_hooks.py        # hooks point at scripts that exist
 python3 .github/scripts/check_names.py        # no two components share a name
+python3 .github/scripts/check_eval_coverage.py  # two cases per skill, one negative
 python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
 plugins/<name>/tests/run.sh                   # fixture tests
 ```
@@ -108,6 +109,11 @@ Every skill needs at least three eval cases: two prompts that should trigger it,
 worded differently from the description, and one in the same domain that should
 not. The negative case is not optional — a skill that fires on everything costs
 context on every unrelated turn.
+
+`check_eval_coverage.py` counts them, from the tags: the component's name plus
+`skill`, `subagent` or `hooks`, and `negative` for the case where nothing
+should fire. A tag naming no component in the plugin is a typo, and it is
+reported as one — a mistyped tag is a case that counts towards nothing.
 
 ## Writing a hook
 
