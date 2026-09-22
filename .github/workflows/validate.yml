@@ -6,19 +6,26 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read is all any of this needs. Stated rather than inherited, so widening it
+# is a visible change to this file.
+permissions:
+  contents: read
+
 jobs:
   manifests:
     name: Manifests and consistency
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.278
 
       - name: Validate the marketplace manifest
         run: claude plugin validate .
@@ -41,6 +48,9 @@ jobs:
 
       - name: No two components answer to one name
         run: python3 .github/scripts/check_names.py
+
+      - name: Workflows are scoped, pinned and free of interpolated shell
+        run: python3 .github/scripts/check_workflows.py
 
       # Report-only until the suites of ROADMAP-v2 Phase 12 land, then
       # --enforce. Reporting a gap nobody can close yet only teaches people to
@@ -79,6 +89,8 @@ jobs:
         python-version: ["3.8", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
@@ -124,6 +136,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: shellcheck
         run: |

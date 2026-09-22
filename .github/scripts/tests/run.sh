@@ -92,6 +92,17 @@ expect_text "stdlib bad" "$out" "imports 'requests', which is not in the allowed
 expect_text "stdlib bad" "$out" "the matrix starts at 3.12, this script's floor is 3.8"
 
 echo
+echo "== check_workflows.py =="
+out="$("$PY" "$SCRIPTS/check_workflows.py" "$FIXTURES/workflows/good" 2>&1)"
+expect_exit "workflows good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_workflows.py" "$FIXTURES/workflows/bad" 2>&1)"
+expect_exit "workflows bad" "$?" 1
+expect_text "workflows bad" "$out" "no permissions: block"
+expect_text "workflows bad" "$out" "checkout without persist-credentials: false"
+expect_text "workflows bad" "$out" "inside a run: block"
+expect_text "workflows bad" "$out" "@acme/tool is installed unpinned"
+
+echo
 echo "== check_hooks.py =="
 out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
 expect_exit "hooks good" "$?" 0
