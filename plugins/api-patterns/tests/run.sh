@@ -60,6 +60,22 @@ fi
   || bad quiet "measured source length instead of value length"
 
 echo
+echo "== caching: a breakpoint on the newest turn is the normal pattern =="
+growing="$("$PY" "$SCRIPTS/check_caching.py" "$FIXTURES/growing_conversation.py" 2>&1)"
+growing_code=$?
+[[ "$growing_code" == 0 && "$growing" == *"Clean —"* ]] \
+  && ok quiet "a cached newest message raises nothing" \
+  || bad quiet "reported: $(printf '%s' "$growing" | head -2 | tr '\n' ' ')"
+[[ "$growing" != *"automatic"* ]] \
+  && ok quiet "top-level cache_control is not called uncached" \
+  || bad quiet "hinted at automatic caching for a request that uses it"
+
+varying="$("$PY" "$SCRIPTS/check_caching.py" "$FIXTURES/varying_tail.py" 2>&1)"
+[[ "$varying" == *"volatile-breakpoint"* ]] \
+  && ok finds "a timestamp in the block the breakpoint sits on" \
+  || bad finds "volatile breakpoint"
+
+echo
 echo "== caching: exit codes =="
 [[ "$bad_code" == 1 ]] && ok exit "errors present (1)" || bad exit "wanted 1, got $bad_code"
 [[ "$good_code" == 0 ]] && ok exit "nothing wrong (0)" || bad exit "wanted 0, got $good_code"

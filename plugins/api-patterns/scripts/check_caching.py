@@ -4,19 +4,21 @@
     python3 check_caching.py client.py
     python3 check_caching.py src/ --json
 
-Caching is not automatic and it fails quietly: a request with a breakpoint in
-the wrong place simply misses, every time, and the only evidence is
-`cache_read_input_tokens` staying at zero on a bill that does not go down.
+Caching fails quietly: a request with a breakpoint in the wrong place simply
+misses, every time, and the only evidence is `cache_read_input_tokens` staying
+at zero on a bill that does not go down.
 
 The rules checked here:
 
   - Breakpoints are placed on a prefix, and the prefix order is
     tools → system → messages. Anything before a breakpoint must be byte
     identical across calls.
-  - At most 4 breakpoints per request.
-  - A cached prefix under the minimum is never stored at all.
+  - At most 4 explicit breakpoints per request.
+  - A cached prefix under the model's minimum is never stored at all, and no
+    error is returned.
   - Anything that changes per call — a timestamp, a user id, a random value —
-    inside a cached prefix invalidates it on every request.
+    inside a cached prefix invalidates it on every request. That is true
+    wherever the breakpoint sits, including on the newest message.
 
 Parses with `ast`. Exit 1 on an error, 0 otherwise.
 """
@@ -28,6 +30,11 @@ import sys
 from pathlib import Path
 
 MAX_BREAKPOINTS = 4
+
+# The minimum cacheable prefix is per model: 512 tokens on the smallest floor,
+# 4,096 on the largest, 1,024 on most. Below it the breakpoint is accepted,
+# nothing is stored, and no error comes back. The hint uses the common figure
+# and says to check the model.
 MIN_TOKENS_HINT = 1024
 
 # Values that differ between two otherwise identical requests. Any of these
@@ -117,8 +124,10 @@ def check_call(node, file, source, findings):
                     f"system prompt of roughly {known} characters with no "
                     f"cache_control",
                     "If this prefix is identical across calls, a breakpoint on "
-                    "it is the cheapest change available. Caching is never "
-                    "automatic."))
+                    "it is the cheapest change available. For a growing "
+                    "conversation, one cache_control at the top level of the "
+                    "request caches automatically and moves the breakpoint "
+                    "forward as the history grows."))
         return
 
     if total > MAX_BREAKPOINTS:
@@ -165,19 +174,29 @@ def check_call(node, file, source, findings):
             findings.append(Finding(
                 "warning", file, node.lineno, "short-prefix",
                 f"cached system prompt is only about {known} characters",
-                f"A prefix under roughly {MIN_TOKENS_HINT} tokens is not "
-                f"stored at all. The breakpoint is inert — check "
-                f"`cache_creation_input_tokens` before trusting it."))
+                f"A prefix under the model's minimum is not stored at all, "
+                f"and no error says so — the breakpoint is simply inert. Most "
+                f"models sit at {MIN_TOKENS_HINT} tokens; the range across "
+                f"models runs from 512 to 4,096, so check the one you call. "
+                f"Then check `cache_creation_input_tokens`."))
 
-    # --- caching the last message ---
+    # --- a breakpoint on a message that varies ---
+    # A breakpoint on the newest message is the normal pattern for a growing
+    # conversation: everything before it is unchanged, so the next request
+    # still hits. It only fails when that block itself varies per request,
+    # which is the same fault as a volatile system prompt.
     if messages is not None and has_cache_control(messages):
         text = source_of(messages, source)
-        if "[-1]" in text or "append" in text:
+        match = VOLATILE.search(text)
+        if match:
             findings.append(Finding(
-                "warning", file, node.lineno, "cache-on-tail",
-                "a breakpoint appears to sit on the newest message",
-                "Only the prefix up to a breakpoint is cached. Put it after "
-                "the stable history, not on the turn that just arrived."))
+                "error", file, node.lineno, "volatile-breakpoint",
+                f"the cached message block contains {match.group(0)!r}, which "
+                f"changes between calls",
+                "The hash at that breakpoint differs every request, so the "
+                "lookback finds nothing and you pay the write premium each "
+                "time. Put the breakpoint at the end of the part that does "
+                "not change, and let the varying text follow it."))
 
 
 def check_usage_reporting(tree, file, source, findings):

@@ -15,6 +15,19 @@ All notable changes to `api-patterns`. Format follows
   `/api-patterns:eval-harness` and `/api-patterns:prompt-cache-audit`.
 
 ### Changed
+- `prompt-cache-audit` and `check_caching.py` match the API as documented
+  today. Caching is not "never automatic": one `cache_control` at the top
+  level of a request caches the growing history by itself, and the skill now
+  says when to use that instead of explicit breakpoints. The minimum cacheable
+  prefix is per model — 512 to 4,096 tokens — not a single figure. The
+  five-minute lifetime is named as the default, with the one-hour option and
+  what it costs.
+- The `cache-on-tail` warning is gone, and `volatile-breakpoint` replaces it.
+  A breakpoint on the newest message is the normal pattern for a conversation:
+  everything before it is unchanged, so the next request still hits. The fault
+  is a block that varies — a timestamp in the message the breakpoint sits on
+  behaves exactly like one in the system prompt. Two new fixtures,
+  `growing_conversation.py` and `varying_tail.py`, hold the distinction.
 - `rag-retriever`: the contextual-retrieval prompt now carries the document,
   not only the chunk. Generating context from the chunk alone cannot recover a
   heading the chunk does not contain, which is the case the technique exists

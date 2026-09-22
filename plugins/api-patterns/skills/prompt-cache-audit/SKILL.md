@@ -6,10 +6,16 @@ allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/chec
 
 # Auditing prompt caching
 
-Caching is **never automatic**, and when it is configured wrongly it fails
-**silently**. The request succeeds, the output is fine, and you pay full price
-plus a write premium on every call. The only evidence is
-`cache_read_input_tokens` staying at zero.
+Caching fails **silently** when it is configured wrongly. The request
+succeeds, the output is fine, and you pay full price plus a write premium on
+every call. The only evidence is `cache_read_input_tokens` staying at zero.
+
+Two ways to ask for it:
+
+| | How | Use it for |
+|---|---|---|
+| **Automatic** | one `cache_control` at the top level of the request | A conversation that grows. The breakpoint lands on the last cacheable block and moves forward by itself |
+| **Explicit** | `cache_control` on the blocks you choose, up to four | A prefix you control: tools, a long system prompt, a document |
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_caching.py <path>
@@ -24,12 +30,14 @@ API.
 everything *before* it. Caching a later segment while an earlier one varies
 achieves nothing — the prefix no longer matches.
 
-**At most four breakpoints** per request. More is rejected. Put them on the
-longest stable prefixes, not on every block.
+**At most four explicit breakpoints** per request. More is rejected. Put them
+on the longest stable prefixes, not on every block.
 
-**A prefix under about 1024 tokens is not stored at all.** The breakpoint is
-accepted and inert. (Smaller models have a higher floor — check the current
-figure for the model you are using rather than assuming.)
+**A prefix under the model's minimum is not stored at all**, and no error says
+so: the breakpoint is simply inert. The floor is per model — 512 tokens on the
+lowest, 1,024 on most, 4,096 on some — so look up the one you call instead of
+assuming. `cache_creation_input_tokens` at zero on the first call is how you
+find out.
 
 **Everything before a breakpoint must be byte identical across calls.** This
 is where caching actually dies:
@@ -48,9 +56,17 @@ user id, a session id, a random seed, a formatted date: same result.
 
 Move the varying part after the breakpoint, into the messages.
 
-**The cache entry expires on a timer, refreshed on each hit.** A prefix used
-once an hour is written and expired repeatedly, never read. Caching pays off
-under sustained traffic, not occasional calls.
+**A breakpoint on the newest message is normal**, and not a mistake. In a
+growing conversation everything before it is unchanged, so the next request
+still matches. What breaks it is a *varying* block: a timestamp or a
+per-request note in the block the breakpoint sits on has the same effect as
+one in the system prompt.
+
+**The entry lives five minutes by default, refreshed on every hit.** A prefix
+used once an hour is written and expired repeatedly, never read. A one-hour
+lifetime can be asked for — `"cache_control": {"type": "ephemeral", "ttl":
+"1h"}` — and the write costs twice the base input price, so it pays off for a
+prefix reused across a gap, not for one already hit every few minutes.
 
 ## Verify it worked
 

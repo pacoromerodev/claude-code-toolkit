@@ -40,8 +40,8 @@ fine, and you pay full price plus a write premium every call.
 |---|---|
 | A timestamp, uuid or random value inside a cached prefix | **Worse than no caching** — written every call, read never |
 | More than four breakpoints | Request rejected |
-| Prefix under the minimum | Breakpoint accepted and inert |
-| Breakpoint on the newest message | Only the prefix before it is cached |
+| Prefix under the model's minimum (512–4,096 tokens) | Breakpoint accepted and inert, with no error |
+| Breakpoint on a block that varies per request | The hash differs every time: written, never read |
 | `cache_control` with usage never read | A cache that never hits looks exactly like one that works |
 
 `cache_read_input_tokens` above zero is the only proof.
@@ -80,7 +80,7 @@ have an agent, and you now know which part needs the freedom.
 plugins/api-patterns/tests/run.sh
 ```
 
-15 assertions. The caching fixtures come in both directions, and the RRF tests
+18 assertions. The caching fixtures come in both directions, and the RRF tests
 check the property the whole choice rests on: `s2` at semantic#1 and bm25#2
 must outrank `s7` at bm25#1. Plus duplicates, single lists, tie determinism,
 `k=0` and `limit`.
