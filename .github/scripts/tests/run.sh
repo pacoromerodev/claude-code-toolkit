@@ -43,6 +43,20 @@ expect_text "eval-cases bad" "$out" "no-scaffold: scaffold_script 'missing.sh' d
 expect_text "eval-cases bad" "$out" "misnamed: name is 'something-else'"
 
 echo
+echo "== check_consistency.py =="
+out="$("$PY" "$SCRIPTS/check_consistency.py" "$FIXTURES/consistency/good" 2>&1)"
+expect_exit "consistency good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_consistency.py" "$FIXTURES/consistency/bad" 2>&1)"
+expect_exit "consistency bad" "$?" 1
+expect_text "consistency bad" "$out" "plugins/halfway: no .claude-plugin/plugin.json"
+# plugins/notes holds nothing plugin-shaped, so it is scratch, not a mistake.
+if [[ "$out" != *"plugins/notes"* ]]; then
+  ok "consistency bad" "leaves a non-plugin directory alone"
+else
+  bad "consistency bad" "reports plugins/notes, which is not a plugin"
+fi
+
+echo
 echo "-------------------------------"
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [[ "$fail" -eq 0 ]] || exit 1
