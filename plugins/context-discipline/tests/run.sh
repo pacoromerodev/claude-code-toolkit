@@ -52,6 +52,26 @@ else
 fi
 
 echo
+echo "== a rule only a hook can hold =="
+hook_output="$("$PY" "$SCRIPTS/check_claude_md.py" "$FIXTURES/hook-rule-CLAUDE.md" 2>&1)"
+hook_code=$?
+[[ "$hook_output" == *"hook-candidate"* && "$hook_output" == *"PreToolUse"* ]] \
+  && ok finds "\"never push to main\" is offered a hook" \
+  || bad finds "no hook suggestion for an enforceable rule"
+[[ "$hook_output" != *"no-alternative"* ]] \
+  && ok quiet "an alternative in the next sentence counts" \
+  || bad quiet "asked for an alternative the line already gives"
+[[ "$hook_code" == 0 ]] && ok exit "a note does not fail the file (0)" \
+  || bad exit "wanted 0, got $hook_code"
+
+echo
+echo "== what must hold, buried in the middle =="
+buried_output="$("$PY" "$SCRIPTS/check_claude_md.py" "$FIXTURES/buried-rule-CLAUDE.md" 2>&1)"
+[[ "$buried_output" == *"placement"* && "$buried_output" == *"middle"* ]] \
+  && ok finds "the only emphasised rule sits in the middle" \
+  || bad finds "no placement warning"
+
+echo
 echo "== exit codes =="
 [[ "$bad_code" == 1 ]] && ok exit "error present (1)" || bad exit "wanted 1, got $bad_code"
 [[ "$good_code" == 0 ]] && ok exit "nothing wrong (0)" || bad exit "wanted 0, got $good_code"

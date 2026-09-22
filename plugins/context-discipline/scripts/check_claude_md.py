@@ -48,9 +48,23 @@ ALTERNATIVE = re.compile(
     r"|\bin favour of\b|\bunless\b|\bexcept when\b|\bif one is\b"
     r"|\bif it is\b|\bwithout\s+(?:either\s+)?[\w-]+"
     r"|\b(?:use|prefer|read|return|writ|call|put|keep|mov|extract|add|set"
-    r"|ask|rais|re-rais|logg?|pass|inject|wrap)\w*)", re.I)
+    r"|ask|rais|re-rais|logg?|pass|inject|wrap|open|send|route)\w*)", re.I)
 
 IMPORT_LINE = re.compile(r"^\s*@([^\s]+)\s*$")
+
+# A prohibition about an action a hook can see before it happens. CLAUDE.md is
+# read by a model that may or may not follow it; a PreToolUse hook is not.
+ENFORCEABLE = re.compile(
+    r"\b(?:never|don't|do\s+not|under\s+no\s+circumstances)\b[^.]{0,80}?"
+    r"\b(push|force[- ]push|commit|merge|rebase|rm\b|delete|drop|truncate"
+    r"|deploy|publish|release|chmod|curl|pip\s+install|npm\s+install)\b",
+    re.I)
+
+# Where the file's own emphasis sits. A rule that must hold belongs at the top,
+# and is worth repeating at the end: the middle of a long file is where
+# instructions go quiet.
+PLACEMENT_MIN_LINES = 60
+EDGE_FRACTION = 0.2
 
 
 class Finding:
@@ -138,13 +152,44 @@ def audit(path, findings):
         # carve-out in "never X without either Y or Z".
         rest = line[match.start(1):].split()
         tail = " ".join(rest[4:])
-        window = " ".join([tail] + lines[i + 1:i + 3])
+        # A second sentence on the same line is the alternative more often
+        # than not ("Never push to main. Open a pull request."), and the
+        # four-word skip above would eat its opening verb.
+        sentences = line[match.start(1):].split(". ")
+        following = ". ".join(sentences[1:]) if len(sentences) > 1 else ""
+        window = " ".join([tail, following] + lines[i + 1:i + 3])
         if not ALTERNATIVE.search(window):
             findings.append(Finding(
                 "warning", i + 1, "no-alternative",
                 "prohibition with no alternative named",
                 "A rule that closes one door and opens none gets worked "
                 "around. Say what to do instead, on the same line."))
+
+    # --- rules a hook could enforce ---
+    for i, line in enumerate(lines):
+        if fenced[i]:
+            continue
+        match = ENFORCEABLE.search(line)
+        if match:
+            findings.append(Finding(
+                "info", i + 1, "hook-candidate",
+                f"a rule about {match.group(1).lower()!r} that only asks",
+                "This file is advice the model weighs against everything else "
+                "in its context. If it must hold every time, a PreToolUse "
+                "hook that exits 2 is what holds it — and the rule can then "
+                "come out of here."))
+
+    # --- placement of what must hold ---
+    if count >= PLACEMENT_MIN_LINES and hits:
+        edge = max(1, int(len(lines) * EDGE_FRACTION))
+        if all(edge < number < len(lines) - edge for number, _ in hits):
+            findings.append(Finding(
+                "warning", hits[0][0], "placement",
+                f"every emphasised rule sits in the middle of a "
+                f"{count}-line file",
+                "The opening and the closing lines are the parts that survive "
+                "a long turn. Put what must hold first, and repeat it at the "
+                "end; the middle is where instructions go quiet."))
 
     # --- imports ---
     for i, line in enumerate(lines):
@@ -237,20 +282,25 @@ def main():
         }, indent=2))
         return 1 if errors else 0
 
-    for finding in sorted(findings, key=lambda f: (f.level != "error", f.line)):
-        mark = "ERROR" if finding.level == "error" else "warn "
+    order = {"error": 0, "warning": 1, "info": 2}
+    for finding in sorted(findings, key=lambda f: (order.get(f.level, 1), f.line)):
+        mark = {"error": "ERROR", "info": "note "}.get(finding.level, "warn ")
         where = f"line {finding.line}" if finding.line else "file"
         print(f"{mark}  {where}  [{finding.rule}]")
         print(f"        {finding.message}")
         if finding.hint:
             print(f"        → {finding.hint}")
 
+    notes = [f for f in findings if f.level == "info"]
     print()
     if not findings:
         print(f"Clean — {total} lines, nothing to report.")
+    elif not errors and len(notes) == len(findings):
+        print(f"Clean — {total} lines, {len(notes)} note(s) worth a look.")
     else:
         print(f"{total} lines: {len(errors)} error(s), "
-              f"{len(findings) - len(errors)} warning(s)")
+              f"{len(findings) - len(errors) - len(notes)} warning(s), "
+              f"{len(notes)} note(s)")
 
     return 1 if errors else 0
 

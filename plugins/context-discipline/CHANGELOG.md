@@ -6,6 +6,22 @@ All notable changes to `context-discipline`. Format follows
 
 ## [Unreleased]
 
+### Added
+- `check_claude_md.py` reports a rule a hook could enforce — a prohibition
+  about pushing, committing, deleting, deploying and the like — as a note with
+  what to do about it: CLAUDE.md asks, a `PreToolUse` hook that exits 2
+  refuses. It also warns when every emphasised rule sits in the middle of a
+  long file, where instructions go quiet, rather than at the ends.
+- `claude-md-doctor` says the two things that come before any rewriting: move
+  what must never be broken into a hook, and start with no CLAUDE.md at all,
+  adding a line only when the same correction repeats.
+
+### Fixed
+- The `no-alternative` rule accepts an alternative given in the next sentence
+  ("Never push to main. Open a pull request."), which it used to miss because
+  it skipped the first four words after the prohibition.
+
+
 ### Changed
 - The `/handoff` note is read live at restore time, attributed to the
   assistant with its date, rather than frozen into the snapshot and labelled

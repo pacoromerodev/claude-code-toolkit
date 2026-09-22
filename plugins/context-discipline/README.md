@@ -77,7 +77,7 @@ costs.
 plugins/context-discipline/tests/run.sh
 ```
 
-26 assertions. The auditor must find every planted fault in the bad fixture and
+30 assertions. The auditor must find every planted fault in the bad fixture and
 **report nothing at all** on the good one. The save → restore cycle runs end to
 end in throwaway repositories: snapshot written outside the repository and
 nothing written inside it, branch and untracked files and commits recorded, the
