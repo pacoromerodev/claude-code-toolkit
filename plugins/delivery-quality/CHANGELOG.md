@@ -6,9 +6,26 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `--force-with-lease` to a protected branch is now blocked too: it only
+  guards against unfetched work, and still rewrites shared history.
+  Deleting a protected remote branch and `git push --mirror` are blocked.
+  Allow rules exempt only the command they match, not a whole chained line.
+  Block messages are written for the model and name what to do instead.
+
 ### Fixed
 - `review-format` and `verify-not-fired` evals had no fixture and could never
   pass; both are now `case.yaml` cases with a scaffold.
+- `reset --hard` and `checkout .` were blocked by untracked files, which they
+  do not touch. `git clean -n` (a dry run) was blocked. A heredoc written to a
+  file and a quoted commit message were read as commands.
+
+### Security
+- `guard_destructive` parses the command instead of matching one pattern
+  against it. The first version caught one spelling of each threat: a
+  force-push with `--force` first, `-f` or `+main`, `rm -Rf`, flags after the
+  target, `$HOME` targets, chained, `sudo`, `bash -c` and `$(…)` forms, `DROP`
+  followed by `2>/dev/null`, and `kubectl delete --all` all passed.
 
 ## [0.2.0] — 2026-09-20
 
