@@ -156,7 +156,7 @@ printed.
 plugins/delivery-quality/tests/run.sh
 ```
 
-99 fixture cases across both guards and the gate: secrets that must block,
+102 fixture cases across both guards and the gate: secrets that must block,
 paths that must block, destructive commands that must block, legitimate values
 and commands that must pass, and malformed input that must fail open. Adding a
 pattern without a fixture — in both directions — is not done.

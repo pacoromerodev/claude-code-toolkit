@@ -46,7 +46,16 @@ BLOCKED_PATHS = re.compile(
 )
 
 # The guards' own exception lists. The agent is the party they constrain.
-GUARD_FILES = re.compile(r"(^|[/\\])\.claude[/\\](secret|destructive)-guard-allow$")
+GUARD_FILES = re.compile(
+    r"(^|[/\\])\.claude[/\\](secret|destructive)-guard-allow$"
+    r"|(^|[/\\])\.claude[/\\]secret-guard-redact$")
+
+# Opt-in: with this file present, a secret in a shell command is replaced by a
+# placeholder and the call goes to the user for confirmation, instead of being
+# refused outright. Only for the shell, and only for the command line: a file
+# written with a placeholder in place of a value would be a silent corruption.
+REDACT_MARKER = "secret-guard-redact"
+PLACEHOLDER = "${REDACTED_BY_GUARD}"
 
 # Literal secrets. Each pattern is specific enough that a match is a real
 # finding, not a variable named "token".
@@ -237,6 +246,56 @@ def written_paths(tool_input):
     return [p.strip("\"'") for p in paths]
 
 
+def redaction_enabled(root):
+    return (root / ".claude" / REDACT_MARKER).exists()
+
+
+def merge(spans):
+    """Overlapping matches become one span.
+
+    Two patterns often cover the same value — a Bearer header and the key
+    inside it — and replacing both in turn would eat the text between them.
+    """
+    merged = []
+    for start, end in sorted(spans):
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return [(start, end) for start, end in merged]
+
+
+def redact(command, spans):
+    """The command with each secret replaced, right to left so offsets hold."""
+    for start, end in sorted(merge(spans), reverse=True):
+        command = command[:start] + PLACEHOLDER + command[end:]
+    return command
+
+
+def ask_with(tool_input, command, labels):
+    """Hand the rewritten call back for the user to confirm.
+
+    `updatedInput` replaces the tool's input outright rather than merging, so
+    every field of the original goes back with it.
+    """
+    updated = dict(tool_input)
+    updated["command"] = command
+    kinds = ", ".join(sorted(set(labels)))
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "ask",
+            "permissionDecisionReason": (
+                f"guard_secrets replaced what looked like a real {kinds} "
+                f"with {PLACEHOLDER}. Run it only if the "
+                f"placeholder is resolved from the environment."
+            ),
+            "updatedInput": updated,
+        }
+    }))
+    return 0
+
+
 def clip(text, limit=200):
     return text if len(text) <= limit else text[:limit - 1] + "…"
 
@@ -280,7 +339,22 @@ def main():
     if not body:
         return 0
 
-    allowlist = project_allowlist(working_directory(payload))
+    root = working_directory(payload)
+    allowlist = project_allowlist(root)
+
+    if tool_name in SHELL_TOOLS and redaction_enabled(root):
+        spans, labels = [], []
+        for label, pattern in SECRETS:
+            for match in pattern.finditer(body):
+                snippet = match.group(0)
+                if ALLOW.search(snippet):
+                    continue
+                if any(rule.search(snippet) for rule in allowlist):
+                    continue
+                spans.append((match.start(), match.end()))
+                labels.append(label)
+        if spans:
+            return ask_with(tool_input, redact(body, spans), labels)
 
     for label, pattern in SECRETS:
         for match in pattern.finditer(body):

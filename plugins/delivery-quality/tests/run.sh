@@ -182,6 +182,86 @@ chained="$(printf '{"tool_name":"Bash","tool_input":{"command":"rm -r%s /tmp/bui
 rm -r -f "$repo" "$proj"
 
 echo
+echo "== guard_secrets: opt-in redaction =="
+# Without the marker the guard blocks; with it, the command comes back
+# rewritten for the user to confirm. The key is built here rather than written
+# out, so no fixture on disk holds a string shaped like a live credential.
+redact_probe() {  # redact_probe <project dir>
+  "$PY" - "$SCRIPTS/guard_secrets.py" "$1" <<'PY'
+import json
+import subprocess
+import sys
+
+guard, root = sys.argv[1], sys.argv[2]
+key = "sk-" + "ant-api03-" + "".join(
+    ["Qw3r", "Ty7u", "Iop2", "Asd4", "Fgh6", "Jkl8", "Zxc0", "Vbn1"])
+payload = {
+    "cwd": root,
+    "tool_name": "Bash",
+    "tool_input": {
+        "command": f"curl -H 'Authorization: Bearer {key}' https://api.example.com/v1/x",
+        "description": "call the API",
+        "timeout": 30,
+    },
+}
+result = subprocess.run([sys.executable, guard], input=json.dumps(payload),
+                        capture_output=True, text=True)
+print(result.returncode)
+print(json.dumps({"stdout": result.stdout, "leaked": key in result.stdout}))
+PY
+}
+
+secret_code_of() { printf '%s' "$1" | "$PY" "$SCRIPTS/guard_secrets.py" >/dev/null 2>&1; echo $?; }
+
+redact_project="$(mktemp -d)"
+mkdir -p "$redact_project/.claude"
+
+out="$(redact_probe "$redact_project")"
+[[ "$(printf '%s' "$out" | head -1)" == 2 ]] \
+  && { printf 'ok    %-28s %s\n' guard_secrets.py "blocks when redaction is not enabled"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_secrets.py "did not block without the marker"; ((fail++)); }
+
+touch "$redact_project/.claude/secret-guard-redact"
+out="$(redact_probe "$redact_project")"
+code="$(printf '%s' "$out" | head -1)"
+body="$(printf '%s' "$out" | tail -1)"
+verdict="$("$PY" - "$body" <<'PY'
+import json
+import sys
+
+result = json.loads(sys.argv[1])
+if result["leaked"]:
+    print("the key came back in the hook's own output")
+    raise SystemExit
+data = json.loads(result["stdout"])
+hook = data.get("hookSpecificOutput", {})
+updated = hook.get("updatedInput", {})
+problems = []
+if hook.get("hookEventName") != "PreToolUse":
+    problems.append("hookEventName missing")
+if hook.get("permissionDecision") not in {"ask", "allow"}:
+    problems.append(f"permissionDecision is {hook.get('permissionDecision')!r}")
+if "REDACTED" not in updated.get("command", ""):
+    problems.append("the command was not redacted")
+if sorted(updated) != ["command", "description", "timeout"]:
+    problems.append(f"updatedInput is partial: {sorted(updated)}")
+if "https://api.example.com/v1/x" not in updated.get("command", ""):
+    problems.append("redaction ate the rest of the command")
+print("; ".join(problems))
+PY
+)"
+[[ "$code" == 0 && -z "$verdict" ]] \
+  && { printf 'ok    %-28s %s\n' guard_secrets.py "redacts and hands the call back whole"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_secrets.py "exit $code: ${verdict:-no JSON}"; ((fail++)); }
+
+# The marker is a guard file: writing one is the user's decision, not the
+# model's.
+marker_write="$(printf '{"tool_name":"Write","tool_input":{"file_path":"%s/.claude/secret-guard-redact","content":""},"cwd":"%s"}' "$redact_project" "$redact_project")"
+[[ "$(secret_code_of "$marker_write")" == 2 ]] \
+  && { printf 'ok    %-28s %s\n' guard_secrets.py "will not enable its own redaction"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' guard_secrets.py "let the model create the redaction marker"; ((fail++)); }
+rm -r -f "$redact_project"
+echo
 echo "== guard_destructive: must fail open =="
 check guard_destructive.py destr-malformed.json       0
 check guard_destructive.py destr-no-command.json      0

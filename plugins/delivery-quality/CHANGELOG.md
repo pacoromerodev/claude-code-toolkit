@@ -18,6 +18,13 @@ All notable changes to `delivery-quality`. Format follows
   and the fixture sent a payload the Edit tool does not produce.
 
 ### Added
+- `guard_secrets` can redact instead of blocking, per project, behind
+  `.claude/secret-guard-redact`. A shell command carrying a secret comes back
+  with the value replaced by a placeholder and goes to the user to confirm,
+  through `updatedInput` — which replaces the tool's input outright, so every
+  other field is returned with it. Shell only: a file written with a
+  placeholder in place of a value is a silent corruption. The marker is a
+  guard file, so the model cannot enable this for itself.
 - `verify-changes` checks a workflow change as what it is: code that runs with
   nobody watching. When the diff touches `.github/workflows/`, it reports on
   the declared permissions, whether checkout keeps the token, anything
