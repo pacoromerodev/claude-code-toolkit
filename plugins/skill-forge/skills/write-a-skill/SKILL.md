@@ -1,7 +1,7 @@
 ---
 name: write-a-skill
 description: Create a new Claude Code skill, or fix one that never fires. Use when the user asks to write, create, scaffold or add a skill, when they want to turn a repeated procedure into a reusable one, or when an existing skill is not triggering and the description needs rewriting.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py *)
 ---
 
 # Writing a skill
@@ -41,13 +41,27 @@ sit inside that directory. A file loose in the skills root silently never loads.
 ---
 name: verify-changes            # ≤64, lowercase, hyphens, == directory name
 description: Verify that a ...  # ≤1024, what it does AND when to use it
-allowed-tools: Read, Bash       # optional: narrows what it may use
+allowed-tools: Read, Grep       # optional: pre-approved, see below
 model: inherit                  # optional: haiku | sonnet | opus | inherit
 ---
 ```
 
 Only `name` and `description` are required, and only those two load at startup.
 Everything else in the file is read after the skill fires.
+
+`allowed-tools` **grants**; it does not restrict. Every tool listed runs
+without a permission prompt on the turn the skill fires, and tools not listed
+stay available through the normal prompt. So list read tools freely. List
+`Bash` only scoped to the script the skill runs, written exactly as the body
+invokes it:
+
+```yaml
+allowed-tools: Read, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check.py *)
+```
+
+A bare `Bash` lets any command run unprompted whenever the skill matches a
+prompt. Leave `Write` and `Edit` out: file changes should go through the
+user's normal permission flow. The auditor reports both.
 
 ## The description is the skill
 
@@ -95,7 +109,7 @@ complete whether or not it is.
 ## Before calling it done
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py" <skills-dir>
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py <skills-dir>
 ```
 
 Then write the eval cases — at least three:

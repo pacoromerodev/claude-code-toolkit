@@ -6,6 +6,12 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
+### Added
+- `audit_skills.py` reports a bare `Bash` in `allowed-tools` as an error and
+  pre-approved `Write`/`Edit` as a warning, in every form the field accepts
+  (comma- or space-separated, flow list, YAML list). `--json` findings carry a
+  `rule` field.
+
 ### Changed
 - `audit-finds-faults` eval plants a loose `SKILL.md` (never loads) instead of a
   name that differs from its directory, which Claude Code still loads.
@@ -15,6 +21,14 @@ All notable changes to `skill-forge`. Format follows
   single skill: it audited only that file, misreported it as a name mismatch,
   and never looked at the real skills beside it. The loose file is now an
   error of its own and the rest of the root is audited.
+- `write-a-skill` described `allowed-tools` as narrowing what a skill may use.
+  It grants; the skill now says so and shows a scoped Bash rule.
+
+### Security
+- Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
+  grants tools without a prompt on the turn a skill fires; it restricts
+  nothing. Read tools stay pre-approved, and Bash only for the plugin's own
+  script, as an exact prefix. Everything else goes through the normal prompt.
 
 ## [0.1.0] — 2026-09-20
 

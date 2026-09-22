@@ -1,7 +1,7 @@
 ---
 name: claude-md-doctor
 description: Reviews a CLAUDE.md and rewrites the rules that get ignored — vague standards, prohibitions with no alternative, emphasis on everything, and length that pushes rules out of attention. Use when instructions in CLAUDE.md are not being followed, when writing or trimming one, or when the user asks to review their project instructions.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_claude_md.py *)
 ---
 
 # Fixing a CLAUDE.md
@@ -15,7 +15,7 @@ That is the whole frame. Most fixes follow from it.
 ## Run the mechanical pass first
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_claude_md.py" CLAUDE.md
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_claude_md.py CLAUDE.md
 ```
 
 It finds length, emphasis inflation, vague standards, prohibitions with no

@@ -1,7 +1,7 @@
 ---
 name: kafka-consumer
 description: Rules for writing or reviewing a Kafka consumer, listener or producer — acknowledgement, idempotency, retries, dead letter topics and consumer group configuration. Use when adding or changing a @KafkaListener, when messages are being reprocessed or lost, when a partition is stuck, or when setting up retry and DLT handling.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Kafka consumers

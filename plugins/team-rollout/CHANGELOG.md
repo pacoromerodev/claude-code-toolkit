@@ -14,6 +14,12 @@ All notable changes to `team-rollout`. Format follows
 - `not-fired` eval grader says what a correct answer looks like; it had failed
   a correct Shift+Tab answer.
 
+### Security
+- Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
+  grants tools without a prompt on the turn a skill fires; it restricts
+  nothing. Read tools stay pre-approved, and Bash only for the plugin's own
+  script, as an exact prefix. Everything else goes through the normal prompt.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

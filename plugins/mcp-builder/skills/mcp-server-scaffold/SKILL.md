@@ -1,7 +1,7 @@
 ---
 name: mcp-server-scaffold
 description: Builds an MCP server with the right primitive for each job — tools, resources and prompts — using FastMCP. Use when the user asks to create or extend an MCP server, to expose an API or a database to Claude, or when deciding whether something should be a tool, a resource or a prompt.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_mcp_server.py *)
 ---
 
 # Building an MCP server
@@ -136,7 +136,7 @@ harder to diagnose.
 Then audit it:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_mcp_server.py" server.py
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_mcp_server.py server.py
 ```
 
 ## Further detail

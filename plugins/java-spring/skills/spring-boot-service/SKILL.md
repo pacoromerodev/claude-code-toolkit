@@ -1,7 +1,7 @@
 ---
 name: spring-boot-service
 description: Conventions for writing or reviewing a Spring Boot service class, REST controller or configuration. Use when adding an endpoint, a service or a repository, when wiring configuration, when deciding where a transaction boundary goes, or when the user asks how something should be structured in a Spring Boot application.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Spring Boot services

@@ -1,7 +1,7 @@
 ---
 name: plan-rollout
 description: Sequences the decisions in rolling Claude out to a team or an organisation — identity, access, governance, spend, visibility — and flags the ones that are hard to undo. Use when planning a deployment, onboarding a group, deciding who gets which surface, or when the user asks how to set Claude up for their company.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Rolling out to an organisation

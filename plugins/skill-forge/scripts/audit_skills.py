@@ -43,15 +43,17 @@ KNOWN_MODELS = {"haiku", "sonnet", "opus", "inherit"}
 
 
 class Finding:
-    def __init__(self, level, skill, message, hint=None):
+    def __init__(self, level, skill, message, hint=None, rule=None):
         self.level = level
         self.skill = skill
         self.message = message
         self.hint = hint
+        self.rule = rule
 
     def as_dict(self):
         return {
             "level": self.level,
+            "rule": self.rule,
             "skill": self.skill,
             "message": self.message,
             "hint": self.hint,
@@ -91,6 +93,37 @@ def parse_frontmatter(text):
 
 def tokens(text):
     return {w for w in re.findall(r"[a-z]{4,}", text.lower())}
+
+
+def tool_entries(raw):
+    """Split an `allowed-tools` value into entries, in any of the forms Claude
+    Code accepts: comma- or space-separated, a flow list `[a, b]`, or a block
+    list (which the frontmatter parser flattens to `- a - b`). Parentheses are
+    respected, so `Bash(git add *)` stays one entry."""
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        raw = raw[1:-1]
+    entries, current, depth = [], "", 0
+    for char in raw:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        if depth == 0 and (char == "," or char.isspace()):
+            if current:
+                entries.append(current)
+            current = ""
+            continue
+        current += char
+    if current:
+        entries.append(current)
+    return [e.strip("\"'") for e in entries if e not in {"-", ""}]
+
+
+# A grant, not a restriction: every tool listed runs without a prompt on the
+# turn the skill fires. These entries hand over the whole tool.
+BARE_SHELL = {"Bash", "Bash(*)", "Bash(:*)", "PowerShell", "PowerShell(*)"}
+WRITE_TOOLS = {"Write", "Edit", "NotebookEdit"}
 
 
 def find_skills(target):
@@ -206,12 +239,30 @@ def audit_one(path, findings):
     # --- optional fields ---
     allowed = data.get("allowed-tools", "")
     if allowed:
-        declared = {t.strip() for t in re.split(r"[,\s]+", allowed) if t.strip()}
-        unknown = declared - KNOWN_TOOLS
+        entries = tool_entries(allowed)
+        declared = {entry.split("(", 1)[0] for entry in entries}
+        unknown = declared - KNOWN_TOOLS - {"PowerShell"}
         if unknown:
             findings.append(Finding(
                 "warning", label,
                 f"`allowed-tools` names unknown tool(s): {', '.join(sorted(unknown))}"))
+        bare = sorted(set(entries) & BARE_SHELL)
+        if bare:
+            findings.append(Finding(
+                "error", label,
+                f"`allowed-tools` pre-approves every shell command ({', '.join(bare)})",
+                "The field grants, it does not restrict: whenever the skill fires, "
+                "any command runs without a prompt. Scope it to the script the "
+                "skill runs, e.g. Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check.py *).",
+                rule="bare-bash"))
+        writes = sorted(set(entries) & WRITE_TOOLS)
+        if writes:
+            findings.append(Finding(
+                "warning", label,
+                f"`allowed-tools` pre-approves file writes ({', '.join(writes)})",
+                "Every write on the turn the skill fires goes through without a "
+                "prompt. Leave writes to the normal permission flow.",
+                rule="write-grant"))
 
     model = data.get("model", "")
     if model and model not in KNOWN_MODELS:
