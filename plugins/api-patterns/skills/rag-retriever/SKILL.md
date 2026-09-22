@@ -1,7 +1,7 @@
 ---
 name: rag-retriever
 description: Designs retrieval for a RAG system — chunking, embeddings, keyword search and fusing the two — and says which failure each part fixes. Use when building or debugging retrieval, when search misses documents that obviously match, or when deciding how to chunk a corpus.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fuse.py *)
 ---
 
 # Retrieval that finds the right thing
@@ -60,7 +60,7 @@ over each retriever `r` where document `d` appears, rank starting at 1, `k`
 around 60.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/fuse.py" rankings.json
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fuse.py rankings.json
 ```
 
 Two properties are why this is the default:

@@ -71,6 +71,11 @@ finds "description with no trigger"      "never says when to use"
 finds "description opening with 'this skill'" 'opens with "this skill"'
 finds "unreferenced reference file"      "never mentioned in SKILL.md"
 finds "overlapping descriptions"         "overlaps"
+finds "bare Bash, comma-separated"       "grant-bare-comma: \`allowed-tools\` pre-approves every shell command"
+finds "bare Bash, space-separated"       "grant-bare-space: \`allowed-tools\` pre-approves every shell command"
+finds "bare Bash, flow list"             "grant-bare-flow: \`allowed-tools\` pre-approves every shell command"
+finds "bare Bash, YAML block list"       "grant-bare-block: \`allowed-tools\` pre-approves every shell command"
+finds "pre-approved file writes"         "grant-write: \`allowed-tools\` pre-approves file writes"
 
 echo
 echo "== a SKILL.md loose in a skills root =="

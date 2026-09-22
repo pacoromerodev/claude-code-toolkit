@@ -1,7 +1,7 @@
 ---
 name: release-notes
 description: Writes release notes from the commit range since the last tag, grouped by type and with breaking changes called out first. Use when the user is cutting a release, asks what changed since the last version, or asks to draft release notes or a changelog entry.
-allowed-tools: Read, Bash, Grep
+allowed-tools: Read, Grep, Bash(${CLAUDE_SKILL_DIR}/scripts/collect.sh *)
 ---
 
 # Release notes

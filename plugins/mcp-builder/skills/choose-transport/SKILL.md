@@ -1,7 +1,7 @@
 ---
 name: choose-transport
 description: Chooses between stdio, StreamableHTTP and stateless HTTP for an MCP server, and names what each choice gives up. Use when deciding how to run or deploy an MCP server, when a server needs to scale behind a load balancer, or when sampling, progress reporting or subscriptions have stopped working.
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Choosing a transport

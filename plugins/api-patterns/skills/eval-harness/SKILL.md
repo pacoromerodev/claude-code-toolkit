@@ -1,7 +1,7 @@
 ---
 name: eval-harness
 description: Builds a dataset, grader and scoring pipeline for a prompt, so changes are measured instead of eyeballed. Use when a prompt is being tuned, when the user asks whether a change made things better, when output quality is inconsistent, or before shipping anything that depends on a model's output.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Evaluating a prompt

@@ -1,14 +1,14 @@
 ---
 name: settings-review
 description: Reviews a Claude Code settings file for permissions that are wider than intended, unpinned plugin marketplaces, literal credentials and hooks that will not resolve. Use when writing or reviewing settings.json or a managed policy, when deciding what a team may run without prompting, or when a hook does not fire.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py *)
 ---
 
 # Reviewing settings
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py" .claude/settings.json
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py" managed.json --managed
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py .claude/settings.json
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py managed.json --managed
 ```
 
 `--managed` holds the file to the stricter bar a policy file needs.
