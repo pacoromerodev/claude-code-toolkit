@@ -68,6 +68,20 @@ expect_text "names bad" "$out" "beta:verify: Claude Code already ships a command
 expect_text "names bad" "$out" "audit-widgets: used by alpha and beta"
 
 echo
+echo "== check_eval_coverage.py =="
+out="$("$PY" "$SCRIPTS/check_eval_coverage.py" --enforce "$FIXTURES/eval-coverage/good" 2>&1)"
+expect_exit "coverage good" "$?" 0
+expect_text "coverage good" "$out" "every skill has two positive cases"
+out="$("$PY" "$SCRIPTS/check_eval_coverage.py" "$FIXTURES/eval-coverage/bad" 2>&1)"
+expect_exit "coverage bad, report-only" "$?" 0
+out="$("$PY" "$SCRIPTS/check_eval_coverage.py" --enforce "$FIXTURES/eval-coverage/bad" 2>&1)"
+expect_exit "coverage bad, --enforce" "$?" 1
+expect_text "coverage bad" "$out" "demo:widget-check has 1 of 2"
+expect_text "coverage bad" "$out" "demo:widget-reviewer has 0 of 1"
+expect_text "coverage bad" "$out" "demo has no negative case"
+expect_text "coverage bad" "$out" "is tagged 'widgit-check'"
+
+echo
 echo "== check_hooks.py =="
 out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
 expect_exit "hooks good" "$?" 0

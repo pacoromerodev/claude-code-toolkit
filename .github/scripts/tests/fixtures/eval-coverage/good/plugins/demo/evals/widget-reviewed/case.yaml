@@ -1,0 +1,6 @@
+schema_version: "1.0"
+name: widget-reviewed
+tags: [widget-reviewer, subagent]
+execution:
+  prompt: |
+    Do the thing.
