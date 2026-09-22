@@ -6,6 +6,15 @@ All notable changes to `java-spring`. Format follows
 
 ## [Unreleased]
 
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/new-endpoint`; the skill answers to `/java-
+  spring:spring-boot-service`. `/review-migration` stays, because it launches
+  the subagent.
+
 ### Fixed
 - `not-fired` eval grader states what a correct answer looks like, not only
   what scores badly.

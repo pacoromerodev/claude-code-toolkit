@@ -14,7 +14,7 @@ Build MCP servers a model can actually use.
 | `choose-transport` | Skill | Deciding how to run a server; scaling it; sampling or progress stopped working |
 | `mcp-roots-check` | Skill | A server reads or writes files, or takes a path parameter |
 | `mcp-review` | Subagent | A server changes, or a tool is never called |
-| `/mcp-new`, `/mcp-review` | Commands | Typed |
+| `/mcp-review` | Command | Typed, to launch the subagent |
 
 ## Pick the primitive by who is in control
 

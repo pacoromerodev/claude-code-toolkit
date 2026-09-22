@@ -15,7 +15,7 @@ Verification before you trust a change.
 | `guard_secrets` | PreToolUse hook | Always, on `Write`, `Edit`, `NotebookEdit`, `Bash` and `PowerShell` |
 | `guard_destructive` | PreToolUse hook | Always, on `Bash` |
 | `test_gate` | Stop hook | Only in projects that opt in |
-| `/verify`, `/review` | Commands | Typed |
+| `/review` | Command | Typed, to launch the subagent |
 
 ## verify-changes
 

@@ -6,6 +6,14 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/verify`; the skill answers to `/delivery-
+  quality:verify-changes`. `/review` stays, because it launches the subagent.
+
 ### Changed
 - `--force-with-lease` to a protected branch is now blocked too: it only
   guards against unfetched work, and still rewrites shared history.

@@ -15,6 +15,9 @@ plus a write premium on every call. The only evidence is
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_caching.py <path>
 ```
 
+With no path given, audit every file in the repository that calls the Messages
+API.
+
 ## The rules
 
 **The prefix order is `tools` → `system` → `messages`.** A breakpoint caches

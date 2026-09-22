@@ -6,6 +6,14 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/new-skill`; the skill answers to `/skill-
+  forge:write-a-skill`.
+
 ### Added
 - The overlap check reaches past the skills directory. Given a plugin's
   `skills/`, `audit_skills.py` also reads the descriptions of the agents and

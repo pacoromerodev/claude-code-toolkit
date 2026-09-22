@@ -7,7 +7,11 @@ allowed-tools: Read, Glob, Grep
 # Spring Boot services
 
 Rules that hold at any company. Where a project's own conventions differ, the
-project wins — read its existing code first.
+project wins — read its existing controllers and services first, and follow
+what they already do.
+
+Tests come from the `test-shape` skill, and they cover the failure path and
+the boundary, not only the case that works.
 
 ## Dependency injection
 

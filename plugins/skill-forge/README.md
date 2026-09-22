@@ -22,7 +22,6 @@ everything here is built around that fact.
 | `write-a-skill` | Skill | You ask to write, create or scaffold a skill, or an existing one is not triggering |
 | `audit-skills` | Skill | You ask to check, review or audit skills, or a skill is not triggering. Also `/skill-forge:audit-skills` |
 | `skill-describer` | Subagent | A description needs writing or rewriting, or two skills overlap |
-| `/new-skill` | Command | Typed |
 
 ## The auditor
 

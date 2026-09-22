@@ -19,7 +19,7 @@ so, and says to read the existing code first.
 | `java-21-modernize` | Skill | Modernising older Java; deciding on a record, sealed type or virtual threads |
 | `test-shape` | Skill | Adding tests; deciding what to mock; a test that breaks on every refactor |
 | `migration-review` | Subagent | A Flyway or Liquibase file changes, or before a release carrying a schema change |
-| `/review-migration`, `/new-endpoint` | Commands | Typed |
+| `/review-migration` | Command | Typed, to launch the subagent |
 
 ## The migration reviewer
 

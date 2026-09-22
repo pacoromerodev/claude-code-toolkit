@@ -11,7 +11,10 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py .claude/settings.json
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py managed.json --managed
 ```
 
-`--managed` holds the file to the stricter bar a policy file needs.
+`--managed` holds the file to the stricter bar a policy file needs. With
+nothing named, check every settings file in the repository, and
+`~/.claude/settings.json` if it exists — a rule that appears to be ignored is
+usually a correct rule in the wrong one of the four locations below.
 
 ## The four locations
 

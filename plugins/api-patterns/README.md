@@ -15,7 +15,6 @@ Patterns for building on the Claude API that carry their own verification.
 | `rag-retriever` | Skill | Building or debugging retrieval |
 | `agent-or-workflow` | Skill | Designing anything that calls a model more than once |
 | `tool-schema-review` | Subagent | Tools added or changed; a tool never called |
-| `/eval`, `/cache-audit` | Commands | Typed |
 
 ## Graders that discriminate
 

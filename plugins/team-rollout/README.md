@@ -13,7 +13,6 @@ Deploy Claude across a team without the expensive mistakes.
 | `plan-rollout` | Skill | Planning a deployment; onboarding a group; deciding who gets what |
 | `settings-review` | Skill | Writing or reviewing settings; a hook does not fire |
 | `settings/*.json` | Templates | Copied and narrowed |
-| `/rollout-plan`, `/settings-check` | Commands | Typed |
 
 ## Five decisions, and the order is the content
 

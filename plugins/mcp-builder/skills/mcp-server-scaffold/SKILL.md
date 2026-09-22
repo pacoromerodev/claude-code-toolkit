@@ -133,6 +133,10 @@ Call each tool, read each resource, render each prompt. A server that works in
 the Inspector and fails in a client is a client problem; the reverse is much
 harder to diagnose.
 
+Pick the transport with the `choose-transport` skill before you ship it: the
+choice decides what the server may keep in memory, and changing it later
+rewrites the session handling.
+
 Then audit it:
 
 ```bash

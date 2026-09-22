@@ -6,6 +6,14 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/rollout-plan` and `/settings-check`; the skills
+  answer to `/team-rollout:plan-rollout` and `/team-rollout:settings-review`.
+
 ### Added
 - `check_settings.py` checks the marketplace allowlist itself: a
   `strictKnownMarketplaces` that is not an array, an entry that is not a source

@@ -6,6 +6,14 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/eval` and `/cache-audit`; the skills answer to
+  `/api-patterns:eval-harness` and `/api-patterns:prompt-cache-audit`.
+
 ### Changed
 - `rag-retriever`: the contextual-retrieval prompt now carries the document,
   not only the chunk. Generating context from the chunk alone cannot recover a
