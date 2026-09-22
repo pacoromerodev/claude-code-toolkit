@@ -68,6 +68,10 @@ jobs:
       - name: Skills pass our own auditor
         run: python3 plugins/skill-forge/scripts/audit_skills.py plugins/*/skills
 
+      # This repository's own CLAUDE.md, held to the checker it ships.
+      - name: CLAUDE.md follows its own advice
+        run: python3 plugins/context-discipline/scripts/check_claude_md.py CLAUDE.md
+
       # Not a hook, so it may use a dependency; the schema itself is vendored.
       - name: Settings files match the published schema
         run: |
