@@ -113,6 +113,23 @@ code "errors present" "$broken_code" 1
 code "nothing wrong"  "$clean_code"  0
 
 echo
+echo "== a skill competes with the agents and commands beside it =="
+# fixtures/neighbours is shaped like a plugin: the command's description is a
+# copy of the skill's, and the agent's is unrelated.
+neighbours_output="$("$PY" "$AUDIT" "$FIXTURES/neighbours/skills" 2>&1)"
+code "a neighbour clash is a warning, not an error" "$?" 0
+if [[ "$neighbours_output" == *"overlaps 100% with 'command latency-trace'"* ]]; then
+  printf 'ok    finds   a command description copied from the skill\n'; ((pass++))
+else
+  printf 'FAIL  finds   the duplicated command description:\n%s\n' "$neighbours_output"; ((fail++))
+fi
+if [[ "$neighbours_output" != *"cost-reviewer"* ]]; then
+  printf 'ok    quiet   an unrelated agent beside it\n'; ((pass++))
+else
+  printf 'FAIL  quiet   reported the unrelated agent\n'; ((fail++))
+fi
+
+echo
 echo "== json output is parseable =="
 # Captured first, not piped: the auditor exits 1 when it finds errors, and
 # under `set -o pipefail` that legitimate exit would fail the pipeline.

@@ -303,22 +303,60 @@ def audit_one(path, findings):
     return {"name": name or label, "description": description, "label": label}
 
 
-def check_overlap(skills, findings):
+def neighbours(target):
+    """Agents and commands sitting beside a skills directory.
+
+    A skill does not compete only with other skills. It competes with the
+    agents and commands installed alongside it, which the model chooses
+    between on the same evidence: their descriptions.
+    """
+    target = Path(target)
+    if target.is_file():
+        target = target.parent
+    plugin = target.parent if target.name == "skills" else None
+    if plugin is None:
+        return []
+
+    others = []
+    for kind, subdir in (("agent", "agents"), ("command", "commands")):
+        for path in sorted((plugin / subdir).glob("*.md")):
+            try:
+                data, _, error = parse_frontmatter(path.read_text(encoding="utf-8"))
+            except OSError:
+                continue
+            if error or not data.get("description"):
+                continue
+            others.append({
+                "name": data.get("name") or path.stem,
+                "description": data["description"],
+                "label": f"{kind} {path.stem}",
+            })
+    return others
+
+
+def check_overlap(skills, findings, others=()):
     """Two descriptions that match the same prompts make the choice arbitrary."""
+    def compare(first, second, hint):
+        a, b = tokens(first["description"]), tokens(second["description"])
+        if not a or not b:
+            return
+        overlap = len(a & b) / min(len(a), len(b))
+        if overlap > 0.6:
+            findings.append(Finding(
+                "warning", first["label"],
+                f"description overlaps {int(overlap * 100)}% with "
+                f"{second['label']!r}", hint))
+
     for i, first in enumerate(skills):
         for second in skills[i + 1:]:
-            a, b = tokens(first["description"]), tokens(second["description"])
-            if not a or not b:
-                continue
-            shared = a & b
-            overlap = len(shared) / min(len(a), len(b))
-            if overlap > 0.6:
-                findings.append(Finding(
-                    "warning", first["label"],
-                    f"description overlaps {int(overlap * 100)}% with "
-                    f"{second['label']!r}",
+            compare(first, second,
                     "When both match a prompt, which one fires is arbitrary. "
-                    "Make each name the situation the other does not cover."))
+                    "Make each name the situation the other does not cover.")
+        for other in others:
+            compare(first, other,
+                    "The model picks between a skill, an agent and a command "
+                    "on their descriptions alone. Say what this one does that "
+                    "the other does not — or drop one of them.")
 
 
 def main():
@@ -328,8 +366,10 @@ def main():
     args = parser.parse_args()
 
     findings, skills, audited = [], [], 0
+    others = []
 
     for target in args.paths:
+        others.extend(neighbours(target))
         found, missing, loose = find_skills(target)
         for path in loose:
             findings.append(Finding(
@@ -349,7 +389,7 @@ def main():
             if result:
                 skills.append(result)
 
-    check_overlap(skills, findings)
+    check_overlap(skills, findings, others)
 
     errors = [f for f in findings if f.level == "error"]
     warnings = [f for f in findings if f.level == "warning"]
