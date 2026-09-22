@@ -17,6 +17,13 @@ All notable changes to `delivery-quality`. Format follows
 - Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
   and the fixture sent a payload the Edit tool does not produce.
 
+### Added
+- `verify-changes` checks a workflow change as what it is: code that runs with
+  nobody watching. When the diff touches `.github/workflows/`, it reports on
+  the declared permissions, whether checkout keeps the token, anything
+  interpolated into a shell, unpinned versions, and — for a job that runs
+  Claude — a turn cap, narrow tool grants and no permission bypass.
+
 ### Changed
 - `code-reviewer` no longer claims "before a commit", which had it competing
   with `verify-changes` on every pre-commit prompt. It now says what it is

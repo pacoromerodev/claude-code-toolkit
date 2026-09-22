@@ -58,6 +58,28 @@ Read every hunk, not the summary. You are looking for what the change does beyon
 - Changes to files nobody asked you to touch
 - Behaviour changes not covered by any test
 
+## 2b. If the change touches a workflow
+
+A workflow runs with nobody watching, and a change to one is not covered by
+any test. When the diff includes `.github/workflows/`, check each of these and
+report what you found:
+
+- **`permissions:`** is declared. Without it the job gets the repository
+  default, which is usually more than it needs.
+- **Checkout does not keep the token.** `persist-credentials: false`, unless
+  something later genuinely pushes.
+- **Nothing is interpolated into a shell.** A `${{ }}` inside a `run:` block
+  is pasted in as text before the shell sees it, so an issue title or a
+  comment body becomes part of the command. Pass values through `env:`.
+- **Versions are pinned** — the action, and any CLI installed by the job.
+  `@main` is whatever it holds today.
+- **If the job runs Claude:** a turn cap, tools granted narrowly rather than
+  as whole tools, and no permission bypass. Unattended is exactly where those
+  matter.
+
+`.github/scripts/check_workflows.py` in this repository checks all of them,
+and is worth stealing.
+
 ## 3. Check the tests were not weakened
 
 This is the check that matters most, because it is the one a passing suite hides.

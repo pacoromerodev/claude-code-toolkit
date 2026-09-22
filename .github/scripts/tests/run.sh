@@ -102,6 +102,22 @@ expect_text "workflows bad" "$out" "checkout without persist-credentials: false"
 expect_text "workflows bad" "$out" "inside a run: block"
 expect_text "workflows bad" "$out" "@acme/tool is installed unpinned"
 
+# A workflow that runs Claude unattended: every M4 finding must appear.
+out="$("$PY" "$SCRIPTS/check_workflows.py" "$FIXTURES/workflows/unattended" 2>&1)"
+expect_exit "workflows unattended" "$?" 1
+expect_text "workflows unattended" "$out" "runs Claude with no --max-turns"
+expect_text "workflows unattended" "$out" "runs Claude with permissions bypassed"
+expect_text "workflows unattended" "$out" "grants Bash, Write, Edit with no pattern"
+expect_text "workflows unattended" "$out" "actions/checkout is used at @main"
+expect_text "workflows unattended" "$out" "\${{ }} inside a run: block"
+# `plugin eval` is bounded by its own case files, so its operator grant and
+# its lack of --max-turns are not findings.
+if ! printf '%s\n' "$out" | grep -q "evals.yml.*no --max-turns"; then
+  ok "workflows unattended" "leaves plugin eval's own bounds alone"
+else
+  bad "workflows unattended" "asked plugin eval for --max-turns"
+fi
+
 echo
 echo "== check_course_wording.py =="
 # Fingerprints built from a fixture note, never from the real ones: this
