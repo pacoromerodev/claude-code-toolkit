@@ -103,6 +103,24 @@ expect_text "workflows bad" "$out" "inside a run: block"
 expect_text "workflows bad" "$out" "@acme/tool is installed unpinned"
 
 echo
+echo "== check_course_wording.py =="
+# Fingerprints built from a fixture note, never from the real ones: this
+# repository holds no course text, hashed or otherwise, beyond data/.
+fp="$SANDBOX/fingerprints.txt"
+"$PY" "$SCRIPTS/check_course_wording.py" --update \
+  --notes "$FIXTURES/course-wording/notes" --fingerprints "$fp" > /dev/null
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/good" 2>&1)"
+expect_exit "wording good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/bad" 2>&1)"
+expect_exit "wording bad" "$?" 1
+expect_text "wording bad" "$out" "ledger entry for the auditor"
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --fingerprints "$fp" \
+  "$FIXTURES/course-wording/bad" 2>&1)"
+expect_exit "wording bad, report-only" "$?" 0
+
+echo
 echo "== check_hooks.py =="
 out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
 expect_exit "hooks good" "$?" 0
