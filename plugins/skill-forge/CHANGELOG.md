@@ -6,6 +6,17 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
+### Added
+- `audit_skills.py` audits subagents. Pointed at a plugin's `skills/` it also
+  reads the `agents/` beside it, and reports: a reviewing agent granted
+  `Write` or `Edit`, an output format with no section for what the agent could
+  not check, a persona line, a description that never says when to delegate,
+  and one that never says what to pass — the description shapes the delegation
+  prompt, so asking for the files is how the main thread comes to send them.
+- The five agents this repository ships now say what to pass, which is how
+  that last rule was found.
+
+
 ### Changed
 - `write-a-skill` is for writing one. A skill that exists and does not fire
   is handed to `audit-skills` and `skill-describer` by name, so the three stop

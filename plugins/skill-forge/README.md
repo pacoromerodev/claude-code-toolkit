@@ -20,7 +20,7 @@ everything here is built around that fact.
 | Component | Type | Fires when |
 |---|---|---|
 | `write-a-skill` | Skill | You ask to write, create or scaffold a skill, or an existing one is not triggering |
-| `audit-skills` | Skill | You ask to check, review or audit skills, or a skill is not triggering. Also `/skill-forge:audit-skills` |
+| `audit-skills` | Skill | You ask to check, review or audit skills or subagents, or one is not triggering. Also `/skill-forge:audit-skills` |
 | `skill-describer` | Subagent | A description needs writing or rewriting, or two skills overlap |
 
 ## The auditor
@@ -55,6 +55,19 @@ Exit 1 on any error; warnings alone exit 0.
 - **`references/x.md` never mentioned.** A file that never loads.
 - **script not executable.**
 
+### Subagents
+
+Point it at a plugin's `skills/` and it audits the `agents/` beside it too — a
+subagent is judged on what comes back, because that is all that does:
+
+| Finding | Why |
+|---|---|
+| A reviewing agent with `Write` or `Edit` | The finding gets fixed in a context nobody sees, and the report says it was fine |
+| No section for gaps in the output format | Only the summary returns, so anything unchecked disappears unless a heading keeps it |
+| "You are a senior X expert" | Adds nothing the task description does not |
+| A description that never says when to delegate | The main thread picks between agents on those descriptions alone |
+| A description that never says what to pass | It also shapes the prompt the main thread writes when delegating |
+
 The auditor runs as a script, never read into context — which is how it can be
 this thorough for the price of a one-line description.
 
@@ -71,7 +84,7 @@ existing skills, and an "Obstacles encountered" section.
 plugins/skill-forge/tests/run.sh
 ```
 
-29 assertions: every planted fault in `fixtures/broken/` must be found, the
+36 assertions: every planted fault in `fixtures/broken/` must be found, the
 clean tree in `fixtures/clean/` must stay silent, exit codes must be right, the
 `--json` output must parse, and **this repository's own skills must pass**.
 

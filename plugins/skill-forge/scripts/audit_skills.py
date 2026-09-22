@@ -356,7 +356,7 @@ def neighbours(target):
     for kind, subdir in (("agent", "agents"), ("command", "commands")):
         for path in sorted((plugin / subdir).glob("*.md")):
             try:
-                data, _, error = parse_frontmatter(path.read_text(encoding="utf-8"))
+                data, body, error = parse_frontmatter(path.read_text(encoding="utf-8"))
             except OSError:
                 continue
             if error or not data.get("description"):
@@ -365,9 +365,138 @@ def neighbours(target):
                 "name": data.get("name") or path.stem,
                 "description": data["description"],
                 "label": f"{kind} {path.stem}",
+                # A command whose body launches an agent is that agent's front
+                # door. Restating its description is the point, not a clash.
+                "launches": kind == "command" and "subagent" in body.lower(),
             })
     return others
 
+
+
+# --- subagents ---
+
+# Tools that change files. A reviewer with these has been given the ability to
+# "just fix it", which is the one thing a review must not do.
+EDIT_TOOLS = {"Write", "Edit", "NotebookEdit"}
+
+# An agent that reads and reports. Named from its own description, because
+# that is what the main thread reads when it decides to delegate.
+REVIEWING = re.compile(
+    r"\b(review|audit|inspect|analys|analyz|report|check|diagnos)\w*", re.I)
+
+# A section where the agent says what it could not do. A summary is all that
+# comes back from a subagent, so a gap it does not state is invisible.
+GAP_SECTION = re.compile(
+    r"^#{1,4}\s*(obstacles|not verified|what i could not|limitations|gaps|"
+    r"unverified|caveats)", re.I | re.M)
+
+# "You are a senior X expert" and its relatives.
+PERSONA = re.compile(
+    r"\byou are\s+(?:a|an|the)?\s*[^.\n]{0,40}?"
+    r"\b(expert|specialist|guru|ninja|wizard|master|authority|veteran)\b",
+    re.I)
+
+# Phrases that tell the main thread what to hand over when it delegates.
+HANDOVER = re.compile(
+    r"\b(pass|give it|hand it|provide|name the|tell it|say which|include the"
+    r"|specify)\b", re.I)
+
+
+def find_agents(target):
+    """Agent files under this path, or beside a skills directory."""
+    target = Path(target)
+    if target.is_file() and target.suffix == ".md" and target.parent.name == "agents":
+        return [target]
+    if not target.is_dir():
+        return []
+    if target.name == "agents":
+        return sorted(target.glob("*.md"))
+    if target.name == "skills":
+        return sorted((target.parent / "agents").glob("*.md"))
+    return sorted(target.glob("agents/*.md"))
+
+
+def audit_agent(path, findings):
+    """A subagent is judged on what comes back, because that is all that does."""
+    label = path.stem
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        findings.append(Finding("error", label, f"cannot be read: {error}"))
+        return None
+
+    data, body, error = parse_frontmatter(text)
+    if error:
+        findings.append(Finding(
+            "error", label, error,
+            "An agent needs frontmatter with at least `name` and "
+            "`description`: those are what the main thread sees."))
+        return None
+
+    name = data.get("name", "")
+    description = data.get("description", "")
+
+    if not name:
+        findings.append(Finding(
+            "error", label, "frontmatter has no `name`",
+            "The name is how the main thread delegates to it."))
+    elif name != label:
+        findings.append(Finding(
+            "warning", label,
+            f"`name` is {name!r} but the file is {label}.md",
+            "Delegation uses the name; everything else uses the filename. "
+            "Keep them the same."))
+
+    if not description:
+        findings.append(Finding(
+            "error", label, "frontmatter has no `description`",
+            "Every agent's description goes into the main thread's prompt. "
+            "Without one, nothing knows when to delegate here."))
+    else:
+        if not any(hint in description.lower() for hint in TRIGGER_HINTS):
+            findings.append(Finding(
+                "warning", label, "description never says when to delegate",
+                "The main thread chooses between agents on these descriptions "
+                "alone. Say the situation, in the words it would appear in."))
+        if not HANDOVER.search(description):
+            findings.append(Finding(
+                "warning", label, "description never says what to pass",
+                "The description also shapes the prompt the main thread "
+                "writes. Ask for what the agent needs — the files, the scope, "
+                "the sources — and the delegation will carry it."))
+
+    tools = tool_entries(data.get("tools", ""))
+    granted_edits = sorted(EDIT_TOOLS.intersection(tools))
+    if granted_edits and REVIEWING.search(description or label):
+        findings.append(Finding(
+            "error", label,
+            f"a reviewing agent with {', '.join(granted_edits)}",
+            "A review that can edit stops being a review: the finding gets "
+            "fixed in a context nobody sees, and the report says it was "
+            "fine. Leave the fixing to the thread that asked."))
+
+    persona = PERSONA.search(body) or PERSONA.search(description or "")
+    if persona:
+        findings.append(Finding(
+            "warning", label, f"persona line: {persona.group(0)!r}",
+            "It adds nothing the task description does not. Say what the "
+            "agent does, what it may touch, and what it returns."))
+
+    if not GAP_SECTION.search(body):
+        findings.append(Finding(
+            "warning", label, "the output format has no section for gaps",
+            "Only the summary comes back from a subagent, so anything it "
+            "could not check disappears unless the format keeps a heading "
+            "for it — \"Obstacles encountered\", \"Not verified\"."))
+
+    if len(body.splitlines()) < 5:
+        findings.append(Finding(
+            "warning", label, "body is barely there",
+            "The body is this agent's whole system prompt: what to look for, "
+            "how to work, and what to return."))
+
+    return {"name": name or label, "description": description,
+            "label": f"agent {label}"}
 
 def check_overlap(skills, findings, others=()):
     """Two descriptions that match the same prompts make the choice arbitrary."""
@@ -388,6 +517,8 @@ def check_overlap(skills, findings, others=()):
                     "When both match a prompt, which one fires is arbitrary. "
                     "Make each name the situation the other does not cover.")
         for other in others:
+            if other.get("launches"):
+                continue
             compare(first, other,
                     "The model picks between a skill, an agent and a command "
                     "on their descriptions alone. Say what this one does that "
@@ -396,15 +527,21 @@ def check_overlap(skills, findings, others=()):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("paths", nargs="+", help="skills directory, or a skill")
+    parser.add_argument("paths", nargs="+",
+                        help="a skills directory, a skill, or an agents directory")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     args = parser.parse_args()
 
     findings, skills, audited = [], [], 0
-    others = []
+    others, agents_seen = [], 0
 
     for target in args.paths:
         others.extend(neighbours(target))
+        for agent_path in find_agents(target):
+            agents_seen += 1
+            result = audit_agent(agent_path, findings)
+            if result:
+                skills.append(result)
         found, missing, loose = find_skills(target)
         for path in loose:
             findings.append(Finding(
@@ -424,6 +561,11 @@ def main():
             if result:
                 skills.append(result)
 
+    # An agent audited here is already in `skills`; drop the copy neighbours()
+    # collected, or every agent overlaps 100% with itself.
+    audited_labels = {entry["label"] for entry in skills}
+    others = [entry for entry in others if entry["label"] not in audited_labels]
+
     check_overlap(skills, findings, others)
 
     errors = [f for f in findings if f.level == "error"]
@@ -432,14 +574,15 @@ def main():
     if args.json:
         print(json.dumps({
             "audited": audited,
+            "agents": agents_seen,
             "errors": len(errors),
             "warnings": len(warnings),
             "findings": [f.as_dict() for f in findings],
         }, indent=2))
         return 1 if errors else 0
 
-    if not audited:
-        print("No skills found. Point this at a directory of skill directories.")
+    if not audited and not agents_seen:
+        print("Nothing found. Point this at a directory of skills or agents.")
         return 0
 
     for finding in findings:
@@ -448,11 +591,14 @@ def main():
         if finding.hint:
             print(f"        {finding.hint}")
 
+    counted = f"{audited} skill(s)"
+    if agents_seen:
+        counted += f" and {agents_seen} agent(s)"
     if not findings:
-        print(f"Clean — {audited} skill(s) audited, nothing to report.")
+        print(f"Clean — {counted} audited, nothing to report.")
     else:
         print()
-        print(f"{audited} skill(s) audited: {len(errors)} error(s), "
+        print(f"{counted} audited: {len(errors)} error(s), "
               f"{len(warnings)} warning(s)")
 
     return 1 if errors else 0

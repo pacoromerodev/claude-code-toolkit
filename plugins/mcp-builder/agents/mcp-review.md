@@ -1,6 +1,6 @@
 ---
 name: mcp-review
-description: Reviews an MCP server — a file defining @mcp.tool, @mcp.resource or @mcp.prompt handlers that a client connects to — for what makes it unusable by a model: vague tool descriptions, unbounded results, the wrong primitive, unchecked paths, transport settings that silently do nothing. Use when such a server changes, or when the user asks why one of its tools is never called or returns too much. For tools passed directly to the Claude API, use tool-schema-review.
+description: Reviews an MCP server — a file defining @mcp.tool, @mcp.resource or @mcp.prompt handlers that a client connects to — for what makes it unusable by a model: vague tool descriptions, unbounded results, the wrong primitive, unchecked paths, transport settings that silently do nothing. Use when such a server changes, or when the user asks why one of its tools is never called or returns too much. Pass the server file or directory, and which tool is behaving badly if you know. For tools passed directly to the Claude API, use tool-schema-review.
 tools: Read, Glob, Grep, Bash
 model: inherit
 color: purple

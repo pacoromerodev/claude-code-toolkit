@@ -144,6 +144,24 @@ else
 fi
 
 echo
+echo "== subagents are audited too =="
+agents_output="$("$PY" "$AUDIT" "$FIXTURES/broken-agents/agents" 2>&1)"
+code "a reviewer that can edit is an error" "$?" 1
+for probe in "edit tools on a reviewer:a reviewing agent with Edit, Write" \
+             "a persona line:persona line:" \
+             "no section for gaps:has no section for gaps" \
+             "no trigger in the description:never says when to delegate" \
+             "nothing about what to pass:never says what to pass" \
+             "name not matching the file:but the file is wrong-name.md"; do
+  label="${probe%%:*}"; needle="${probe#*:}"
+  if [[ "$agents_output" == *"$needle"* ]]; then
+    printf 'ok    finds   %s\n' "$label"; ((pass++))
+  else
+    printf 'FAIL  finds   %s — nothing matched %q\n' "$label" "$needle"; ((fail++))
+  fi
+done
+
+echo
 echo "== json output is parseable =="
 # Captured first, not piped: the auditor exits 1 when it finds errors, and
 # under `set -o pipefail` that legitimate exit would fail the pipeline.
