@@ -103,6 +103,8 @@ claude plugin eval plugins/api-patterns --scaffold --allow-tools Bash
 - **agent-that-must-resume** — a multi-hour clean-up agent that died mid-run.
   The answer must reach managed agents, and must not offer the tool runner as
   the fix for resumption.
+- **bedrock-model-not-found** — "the model doesn't exist", with IAM already
+  correct. The answer must reach the cross-region inference profile.
 - **not-fired** — "how many tokens is a page of text", which must not start an
   audit.
 

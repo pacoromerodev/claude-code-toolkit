@@ -41,6 +41,14 @@ A description is three or four sentences: what it does, when to use it rather
 than the neighbouring tool, what it returns, how it fails. Parameter
 descriptions live in the schema, with units, formats and allowed values stated.
 
+## On Bedrock
+
+The Converse API wraps the same schema differently — `toolSpec`, with the
+schema under `inputSchema.json` — and a tool result carries `status:
+"success" | "error"` where the Anthropic API uses `is_error`. The review is
+the same; the field names are not. `skills/eval-harness/references/providers.md`
+in this plugin has the shapes side by side.
+
 ## Output format
 
 Return exactly this.

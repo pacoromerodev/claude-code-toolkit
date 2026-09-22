@@ -132,6 +132,11 @@ covering the failures you actually see.
 your repo, in your language, with your cases. `references/graders.md` has
 grader prompts and code-grader shapes to copy.
 
+**On Bedrock or Vertex**, the request shape differs enough to make a ported
+eval incomparable, and one failure — a model not hosted in your region —
+reports itself as a model that does not exist. `references/providers.md` has
+both, and what to record alongside a score.
+
 ## What not to do
 
 - Score by reading a few outputs

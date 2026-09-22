@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: bedrock-model-not-found
+description: >-
+  A Bedrock call failing with "model does not exist". The answer must reach
+  the inference profile, not IAM.
+tags: [eval-harness, skill]
+execution:
+  prompt: |
+    Our Bedrock calls fail with an error saying the model doesn't exist. The
+    model id is copied straight from the Bedrock catalogue and our IAM role
+    has bedrock:InvokeModel. Same code works for a colleague in another
+    region. What am I missing?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3
