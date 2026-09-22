@@ -6,6 +6,22 @@ All notable changes to `mcp-builder`. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- `choose-transport`, `mcp-roots-check` and `check_mcp_server.py` told apart
+  two different losses that had been described as one. `stateless_http=True`
+  ends every server-to-client *request* — sampling, **List Roots**,
+  elicitation, subscriptions — because there is no session for the reply to
+  land in. Progress and log notifications survive it: they travel on the
+  response stream of the call that emitted them. What drops those is
+  `json_response=True`, which answers a POST with a single JSON body. Settled
+  against the MCP Python SDK, whose transport says so directly.
+- List Roots was missing from the losses and from the pre-switch grep, which
+  is the one that matters most: a server that asked for its boundaries and can
+  no longer ask has no boundaries.
+- The `stateless-tradeoff` grader no longer rewards an answer claiming
+  progress and logging break under stateless mode.
+
+
 ### Removed
 - The command files that only restated their skill with defaults attached. A
   command's description is always-on context and the skill's is what the model

@@ -56,7 +56,8 @@ Parses with `ast` rather than grepping.
 | `api_key` or `token` as a parameter | The model does not hold your secrets |
 | Credential in a resource URI | URIs are visible to the client and get logged |
 | Filesystem access with no path check | The SDK reports roots and enforces nothing |
-| `stateless_http=True` alongside sampling, progress or subscriptions | Those stop working, silently |
+| `stateless_http=True` alongside sampling, List Roots, elicitation or subscriptions | Every server-to-client request fails |
+| `json_response=True` alongside progress or logging | One JSON body, no stream: the notifications are dropped |
 
 **Warnings and notes:** thin descriptions, descriptions with no selection cue,
 vague parameter names, collections with no `limit`, long-running tools that
@@ -72,17 +73,23 @@ list, so one clear sentence is the right length for both.
 mcp = FastMCP("service", stateless_http=True)
 ```
 
-Scales freely behind a load balancer, and removes every server-to-client
-message: **sampling, progress reporting, subscriptions and logging callbacks**.
-None of them raise. They do nothing.
+Scales freely behind a load balancer, and ends every server-to-client
+**request**: **sampling, List Roots, elicitation, subscriptions**. There is no
+session, so the client's reply has nowhere to land.
+
+Progress and log notifications are not in that list. They ride the response
+stream of the call that emitted them, which stateless mode still has;
+`json_response=True` is the switch that drops those.
 
 Before switching:
 
 ```bash
-grep -rn "create_message\|report_progress\|subscribe\|ctx\.info" .
+grep -rn "create_message\|list_roots\|elicit\|subscribe" .
 ```
 
-Every hit is a feature that stops working.
+Every hit is a feature that stops working. A `list_roots` hit is the one to
+read twice: a server that asked for its boundaries and can no longer ask has
+no boundaries.
 
 ## Roots are reported, not enforced
 
@@ -100,10 +107,11 @@ one string and opening another is how a check gets defeated between two lines.
 plugins/mcp-builder/tests/run.sh
 ```
 
-21 assertions. Every planted fault must be found, the good server must come
+24 assertions. Every planted fault must be found, the good server must come
 back silent, the messages must explain the consequence rather than name the
-rule, and a purpose-built stateless conflict must be reported as an error
-naming both broken features.
+rule, and the two transport switches must be told apart: a stateless server
+calling `list_roots` is an error naming that call, while progress reporting in
+the same file is not blamed on it.
 
 ## Evals
 
@@ -114,7 +122,12 @@ claude plugin eval plugins/mcp-builder --scaffold --allow-tools Bash
 - **tool-never-called** — three tools described in two words each. The
   diagnosis must be the descriptions, and the deliverable must be the rewrites.
 - **stateless-tradeoff** — scaling a server that uses progress, logging and
-  sampling. The answer must name what stateless mode removes.
+  sampling. The answer must name sampling as the loss, and not invent the
+  other two.
+- **roots-lost-under-stateless** — a file server whose path check calls
+  `list_roots`, moved behind a load balancer, now failing every read. The
+  answer must reach the transport mode, and must not fix it by dropping the
+  check.
 - **not-fired** — "what is the difference between MCP and tool use", which must
   not start building a server.
 
