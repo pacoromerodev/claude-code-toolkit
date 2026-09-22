@@ -6,6 +6,16 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- `verify-changes` and `code-reviewer` read untracked files (AUDIT M16). A
+  change made entirely of new files has an empty `git diff`, so both used to
+  report nothing wrong about code neither had seen — which is exactly what
+  happened to this repository's own audit documents.
+- `verify-changes` takes the test command from `.claude/test-gate.json` or
+  `.claude/test-gate.sh` when the project has one, before falling back to
+  detecting a runner. Those files are what the project's own gate runs, so
+  anything else verifies a different thing.
+
 ### Changed
 - `/review` is now `/review-diff`. Claude Code documents `review` as a bundled
   alias of its own `code-review`, so the short form was a coin toss — and the

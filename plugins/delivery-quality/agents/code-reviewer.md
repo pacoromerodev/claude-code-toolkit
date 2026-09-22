@@ -13,9 +13,15 @@ You review code. You do not write it. You have no edit tools and you do not ask 
 Unless the task says otherwise, review the uncommitted change:
 
 ```bash
-git status --short
+git status --porcelain
 git diff HEAD
+git ls-files --others --exclude-standard
 ```
+
+The third command is not optional. A file that was never added has no diff, so
+a change made of new files looks like no change at all — read each one in full
+and review it as additions. If the answer would be "nothing to review", say
+which of the three commands you ran before concluding that.
 
 For a branch review, use `git diff $(git merge-base HEAD main)...HEAD`.
 

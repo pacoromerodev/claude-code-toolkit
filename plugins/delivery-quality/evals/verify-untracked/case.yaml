@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: verify-untracked
+description: >-
+  A change made only of new files, one of them a test that asserts nothing.
+  The verification must read what git diff does not show.
+tags: [verify-changes, skill, needs-bash]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    Added the tax module and its tests. Can you check it over before I commit?
+  max_turns: 20
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 3

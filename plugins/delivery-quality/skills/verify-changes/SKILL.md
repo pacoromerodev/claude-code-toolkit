@@ -11,7 +11,17 @@ Run the three checks in order. Do not skip a check because an earlier one looked
 
 ## 1. Run the tests
 
-Detect the runner from the files present, in this order:
+**If the project says how to run them, that wins.** Check first:
+
+| File | What to run |
+|---|---|
+| `.claude/test-gate.json` | The `command` it names |
+| `.claude/test-gate.sh` | That script |
+
+Those are what this project's own gate runs, so a verification that runs
+something else is verifying a different thing.
+
+Otherwise detect the runner from the files present, in this order:
 
 | File | Command |
 |---|---|
@@ -29,8 +39,16 @@ Capture the real output. A failing suite ends the verification: report the failu
 ## 2. Read the diff
 
 ```bash
+git status --porcelain
 git diff HEAD
+git ls-files --others --exclude-standard
 ```
+
+**`git diff` does not show a file that was never added.** A change made
+entirely of new files produces an empty diff, and a verification that reads
+only the diff reports nothing wrong with code it never saw. Read every
+untracked file in full — the third command lists them — and treat it as a
+hunk that is all additions.
 
 Read every hunk, not the summary. You are looking for what the change does beyond what was asked:
 
