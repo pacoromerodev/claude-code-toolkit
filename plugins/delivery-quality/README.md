@@ -127,15 +127,28 @@ anything else, or to keep a slow suite out of the way of docs-only sessions:
 
 in `.claude/test-gate.json`. A `.claude/test-gate.sh` executable works too.
 
-On failure it prints the **first** failure with surrounding context, not the
+`Stop` fires at the end of **every turn**, not only when the session ends, so
+`only_when_changed` is what keeps a slow suite out of the way. It counts the
+working tree and anything committed on this branch but not yet on its
+upstream: a commit made mid-session is still this session's change.
+
+On failure it reports the **first** failure with surrounding context, not the
 tail of the log — on Maven and Gradle the last lines are the build summary,
-which says nothing about what broke.
+which says nothing about what broke. Lines are clipped to 300 characters and
+the whole report to 4,000, because it goes into the context.
 
-It never re-enters itself — it checks `stop_hook_active`, without which the gate
-fires again on the stop that follows its own feedback and the session cannot
-end. A timeout or a crash lets the session end.
+The report comes back as `hookSpecificOutput.additionalContext`: the turn
+continues so Claude can fix the failure, and it is shown as hook feedback
+rather than a hook error. Claude Code bounds the loop with `stop_hook_active`
+and its 8-continuation cap, so the gate does **not** skip its own re-entry —
+the next run is what checks the fix. A crash, an unreadable config or a
+missing runner lets the turn end, and says so to the user through
+`systemMessage` rather than disappearing.
 
-Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT`.
+Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT` or the config's
+`timeout`. Either way the gate clamps it below the hook's own 960 seconds: a
+longer one would be cut off by the harness, and the feedback would never be
+printed.
 
 ## Tests
 
@@ -143,7 +156,7 @@ Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT`.
 plugins/delivery-quality/tests/run.sh
 ```
 
-88 fixture cases across both guards and the gate: secrets that must block,
+97 fixture cases across both guards and the gate: secrets that must block,
 paths that must block, destructive commands that must block, legitimate values
 and commands that must pass, and malformed input that must fail open. Adding a
 pattern without a fixture — in both directions — is not done.

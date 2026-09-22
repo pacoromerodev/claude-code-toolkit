@@ -192,6 +192,94 @@ check test_gate.py gate-no-marker.json            0
 check test_gate.py gate-reentry.json              0
 check test_gate.py gate-malformed.json            0
 
+# The gate runs a real command in a real project. Its feedback goes back as
+# JSON on stdout — additionalContext keeps the turn going, systemMessage only
+# tells the user — so every case here reads stdout, not the exit code.
+gate_project() {
+  local dir; dir="$(mktemp -d)"
+  mkdir -p "$dir/.claude" "$dir/src"
+  ( cd "$dir" && git init -q -b main . && git config user.email t@example.invalid \
+      && git config user.name T && echo one > src/app.txt && git add -A \
+      && git commit -qm init ) >/dev/null 2>&1
+  printf '%s' "$dir"
+}
+gate_run() {  # gate_run <project> [env assignments...]
+  local dir="$1"; shift
+  printf '{"cwd":"%s","hook_event_name":"Stop"}' "$dir" \
+    | env "$@" "$PY" "$SCRIPTS/test_gate.py" 2>/dev/null
+}
+gate_case() {  # gate_case <label> <output> <python assertion>
+  if printf '%s' "$2" | "$PY" -c "$3" 2>/dev/null; then
+    printf 'ok    %-28s %s\n' test_gate.py "$1"; ((pass++))
+  else
+    printf 'FAIL  %-28s %s — output: %s\n' test_gate.py "$1" "$2"; ((fail++))
+  fi
+}
+
+proj="$(gate_project)"
+printf '{"command": ["false"]}' > "$proj/.claude/test-gate.json"
+gate_case "a failing suite continues the turn" "$(gate_run "$proj")" '
+import json,sys
+ctx = json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]
+assert "exited 1" in ctx and "Do not delete, skip" in ctx
+assert "runs again on your next stop" in ctx'
+
+printf '{"command": ["true"]}' > "$proj/.claude/test-gate.json"
+[[ -z "$(gate_run "$proj")" ]] && { printf 'ok    %-28s %s\n' test_gate.py "a passing suite says nothing"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' test_gate.py "a passing suite printed something"; ((fail++)); }
+
+# CLAUDE_TEST_GATE_TIMEOUT used to be parsed at import time, so a value like
+# 15m took the hook down with a traceback.
+out="$(gate_run "$proj" CLAUDE_TEST_GATE_TIMEOUT=15m)"; code=$?
+[[ "$code" == 0 && -z "$out" ]] && { printf 'ok    %-28s %s\n' test_gate.py "survives an unparseable timeout"; ((pass++)); } \
+  || { printf 'FAIL  %-28s exit %s, output: %s\n' test_gate.py "$code" "$out"; ((fail++)); }
+
+"$PY" - "$SCRIPTS/test_gate.py" <<'PYTHON' && { printf 'ok    %-28s %s\n' test_gate.py "clamps a timeout above the hook's own"; ((pass++)); } || { printf 'FAIL  %-28s %s\n' test_gate.py "timeout not clamped"; ((fail++)); }
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("tg", sys.argv[1])
+gate = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(gate)
+assert gate.effective_timeout({"timeout": 1800}) == gate.TIMEOUT_CEILING
+assert gate.effective_timeout({"timeout": 120}) == 120
+PYTHON
+
+# only_when_changed must see work that was already committed this session.
+printf '{"command": ["false"], "only_when_changed": ["src/**"]}' > "$proj/.claude/test-gate.json"
+remote="$(mktemp -d)/origin.git"
+( cd "$proj" && git init -q --bare "$remote" && git remote add origin "$remote" \
+    && git push -q -u origin main && echo two > src/app.txt && git add -A \
+    && git commit -qm "change src" ) >/dev/null 2>&1
+gate_case "runs for a change already committed" "$(gate_run "$proj")" '
+import json,sys
+assert "exited 1" in json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]'
+
+( cd "$proj" && git push -q origin main && echo note > README.md ) >/dev/null 2>&1
+[[ -z "$(gate_run "$proj")" ]] && { printf 'ok    %-28s %s\n' test_gate.py "silent when nothing it watches changed"; ((pass++)); } \
+  || { printf 'FAIL  %-28s %s\n' test_gate.py "ran for an unrelated change"; ((fail++)); }
+
+# A gate that cannot run must say so to the user, not disappear.
+bare="$(gate_project)"; touch "$bare/.claude/test-gate"
+gate_case "reports an enabled gate with no runner" "$(gate_run "$bare")" '
+import json,sys
+assert "did not run" in json.load(sys.stdin)["systemMessage"]'
+
+printf 'not json' > "$bare/.claude/test-gate.json"
+gate_case "reports an unreadable config" "$(gate_run "$bare")" '
+import json,sys
+assert "not valid JSON" in json.load(sys.stdin)["systemMessage"]'
+
+# One enormous failure line must not become the context.
+"$PY" - "$proj/.claude/test-gate.json" <<'PYTHON'
+import json, sys
+script = "python3 -c \"print('FAILED ' + 'x' * 200000)\"; exit 1"
+sys.argv[1] and open(sys.argv[1], "w").write(json.dumps({"command": ["bash", "-c", script]}))
+PYTHON
+gate_case "bounds enormous output" "$(gate_run "$proj")" '
+import json,sys
+ctx = json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]
+assert len(ctx) < 6000, "additionalContext is %d characters" % len(ctx)'
+rm -r -f "$proj" "$bare" "$remote"
+
 echo
 echo "-------------------------------"
 printf '%d passed, %d failed\n' "$pass" "$fail"
