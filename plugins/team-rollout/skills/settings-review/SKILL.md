@@ -16,13 +16,21 @@ nothing named, check every settings file in the repository, and
 `~/.claude/settings.json` if it exists — a rule that appears to be ignored is
 usually a correct rule in the wrong one of the four locations below.
 
-## The four locations
+## Where a rule belongs
 
-Managed policy → user (`~/.claude/settings.json`) → project
-(`.claude/settings.json`) → local (`.claude/settings.local.json`, gitignored).
-More specific wins, except that a managed policy cannot be overridden — which
-is what makes it the right place for the few rules that must hold, and the
-wrong place for preferences.
+Highest wins, and the order is not "most specific":
+
+| | File | Set by |
+|---|---|---|
+| 1 | managed settings | the organisation — cannot be overridden below |
+| 2 | `claude --settings <file>` | you, for one session |
+| 3 | `.claude/settings.local.json` | you, in this project (gitignored) |
+| 4 | `.claude/settings.json` | everyone in the project |
+| 5 | `~/.claude/settings.json` | you, everywhere |
+
+Managed settings being un-overridable is what makes them right for the few
+rules that must hold and wrong for preferences: nobody below can adjust one,
+including for a good reason.
 
 **A project file is a statement about the team.** Personal preferences go in
 the user file. This is the most common misuse: someone's editor habit committed
@@ -66,16 +74,26 @@ what the team installs tomorrow, hooks included. Pin a tag.
 Anything matching a key pattern in one should be treated as leaked and rotated.
 
 **A relative hook path.** `./scripts/hook.sh` resolves against whatever
-directory the session started in, so the hook silently does not run. Use
-`$CLAUDE_PROJECT_DIR` or `${CLAUDE_PLUGIN_ROOT}`.
+directory the session started in, so the hook silently does not run. In a
+settings file the fix is `"$CLAUDE_PROJECT_DIR"/scripts/hook.sh`, quoted.
+(`${CLAUDE_PLUGIN_ROOT}` is for a hook a plugin ships, and is not set for
+one configured here.)
 
 **A hook with no timeout** on `Stop`, `PreCompact` or `SessionStart`. Those
 events can block the session, and a hook that hangs there leaves it unable to
 finish.
 
-**Invalid JSON.** Claude Code ignores a settings file it cannot parse — and it
-does so silently, so every rule in it stops applying with no message anywhere.
-Worth checking first when rules appear to be ignored.
+**Invalid JSON, or a value the schema rejects.** An interactive session opens
+with a Settings Error dialog — fix it with Claude's help, exit, or continue
+without that file. A `-p` run shows no dialog at all: the file, or the entry,
+is skipped and the run continues, which is how a rule stops applying on a
+build machine while it still works on a laptop. `claude doctor` lists what was
+dropped, and `/status` shows which files loaded.
+
+**One bad entry is not one bad file.** A malformed permission rule or an
+unknown hook event name is a Settings Warning: that value is skipped and the
+rest of the file stays in effect. So "the file loaded" is not evidence that
+the rule you care about did.
 
 ## Starting from the templates
 

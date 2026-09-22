@@ -217,8 +217,8 @@ def check(data, managed, findings):
                             "error", f"hooks.{event}[{index}]", "relative-hook",
                             f"hook command is a relative path: {command!r}",
                             "It resolves against whatever directory the "
-                            "session started in. Use $CLAUDE_PROJECT_DIR or "
-                            "${CLAUDE_PLUGIN_ROOT}."))
+                            'session started in. Use "$CLAUDE_PROJECT_DIR"/… '
+                            "— quoted, because the path can contain a space."))
                     if "timeout" not in hook and event in {"Stop", "PreCompact",
                                                            "SessionStart"}:
                         findings.append(Finding(

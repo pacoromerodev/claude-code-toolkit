@@ -56,17 +56,18 @@ python3 plugins/team-rollout/scripts/check_settings.py managed.json --managed
 | A git marketplace with no `ref` | Whatever the default branch holds today is what the team installs tomorrow, hooks included |
 | `./scripts/hook.sh` | Resolves against wherever the session started. The hook silently never runs |
 | No timeout on a `Stop` hook | A hook that hangs there leaves the session unable to finish |
-| Unparseable JSON | Claude Code ignores the file **silently** — every rule in it stops applying with no message |
+| Unparseable JSON, or a rejected value | An interactive session shows a Settings Error dialog; a `-p` run skips the file with no dialog and carries on. `claude doctor` lists what was dropped |
 
-## The four locations
+## Where a rule belongs
 
-Managed policy → user → project → local. More specific wins, except that a
-managed policy cannot be overridden — which makes it right for the few rules
-that must hold and wrong for preferences.
+Highest wins: managed settings, then `claude --settings`, then
+`.claude/settings.local.json`, then `.claude/settings.json`, then
+`~/.claude/settings.json`. Managed settings cannot be overridden below, which
+makes them right for the few rules that must hold and wrong for preferences.
 
 **A project file is a statement about the team.** Personal preferences belong
-in the user file. A correct rule in the wrong one of the four is a surprisingly
-common cause of "this is being ignored".
+in the user file. A correct rule in the wrong file is a surprisingly common
+cause of "this is being ignored".
 
 ## Tests
 

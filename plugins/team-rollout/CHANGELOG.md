@@ -22,6 +22,18 @@ All notable changes to `team-rollout`. Format follows
   registered with no `ref`.
 
 ### Changed
+- `settings-review` describes what Claude Code actually does with a broken
+  settings file: an interactive session opens with a Settings Error dialog,
+  while a `-p` run skips the file with no dialog — which is how a rule stops
+  applying on a build machine and still works on a laptop. A single bad entry
+  is a Settings Warning and the rest of the file stays in effect, so "the file
+  loaded" is not evidence that the rule did.
+- The precedence list is a table, highest first, and includes
+  `claude --settings`. The old line read as "most specific wins", which is not
+  the order.
+- Neither the skill nor the checker offers `${CLAUDE_PLUGIN_ROOT}` as a fix
+  for a relative hook path in a settings file: it is set for a hook a plugin
+  ships, not for one configured there.
 - `settings-review` reports a literal credential first — the file is shared,
   so the key is leaked and must be rotated — then grants wider than intended.
   It now also carries what each marketplace key actually does, and which of
