@@ -12,8 +12,7 @@ match it, and that something is the description.
 
 ## Before writing anything
 
-Answer these. If the first two have no clear answer, the thing being asked for
-is probably a command or a subagent, not a skill — check `docs/anatomy.md`.
+Answer these:
 
 1. **What situation does this fire in?** In the words a user would actually
    type, not the words you would use to name the concept.
@@ -21,6 +20,18 @@ is probably a command or a subagent, not a skill — check `docs/anatomy.md`.
    output is a skill nobody notices is missing.
 3. **What would firing it wrongly cost?** Every false positive spends context
    on an unrelated turn.
+
+If the first two have no clear answer, what is wanted is probably not a skill:
+
+| | Starts with | Runs in | Reach for it when |
+|---|---|---|---|
+| **Skill** | The model matching a description | This conversation | A situation recurs and the model should handle it the same way each time |
+| **Command** | Someone typing `/name` | This conversation | The user decides when, and nothing should fire on its own |
+| **Subagent** | Delegation | Its own context, returning a summary | The work is long or noisy and only the conclusion should come back |
+| **Hook** | An event | A shell, deterministically | It must happen every time, whatever the model decides |
+
+The answer is often two of them: a subagent for the work, and a skill whose
+description is how the model knows to delegate to it.
 
 ## Layout
 
@@ -39,15 +50,27 @@ sit inside that directory. A file loose in the skills root silently never loads.
 
 ```yaml
 ---
-name: verify-changes            # ≤64, lowercase, hyphens, == directory name
-description: Verify that a ...  # ≤1024, what it does AND when to use it
+name: verify-changes            # ≤64, lowercase, hyphens; match the directory
+description: Verify that a ...  # what it does AND when to use it
 allowed-tools: Read, Grep       # optional: pre-approved, see below
 model: inherit                  # optional: haiku | sonnet | opus | inherit
 ---
 ```
 
-Only `name` and `description` are required, and only those two load at startup.
-Everything else in the file is read after the skill fires.
+Every field is optional, and the one that matters is `description`: it is what
+the model matches a prompt against, and a skill without one is a skill that
+fires by luck. Only the name and description load at startup; the rest of the
+file is read after the skill fires.
+
+**What `name` does depends on where the skill lives.** In a plugin it becomes
+the last segment of the command, `/<plugin>:<name>`. In a personal or project
+skill it is only the label in the listing — the command comes from the
+directory. Keeping the two identical means never having to remember which
+case you are in.
+
+**The listing truncates at 1,536 characters** of description. Past that the
+text is not read by the model deciding whether to fire the skill, so the
+trigger goes first, not last.
 
 `allowed-tools` **grants**; it does not restrict. Every tool listed runs
 without a permission prompt on the turn the skill fires, and tools not listed
@@ -62,6 +85,18 @@ allowed-tools: Read, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check.py *
 A bare `Bash` lets any command run unprompted whenever the skill matches a
 prompt. Leave `Write` and `Edit` out: file changes should go through the
 user's normal permission flow. The auditor reports both.
+
+## Skills and subagents
+
+They compose, in both directions:
+
+- A subagent can be given a `skills:` list, which preloads those skills into
+  its startup context. Use it when the subagent's whole job depends on a
+  procedure, rather than hoping its description matches.
+- A skill can hand its own work to a subagent with `context: fork` and an
+  `agent:` to run it. The skill body becomes the task, and only the summary
+  comes back — worth it when the procedure reads a lot and the conversation
+  needs none of it.
 
 ## The description is the skill
 

@@ -21,7 +21,9 @@ import sys
 from pathlib import Path
 
 NAME_MAX = 64
-DESCRIPTION_MAX = 1024
+# The listing truncates a description at this many characters. Past it the
+# skill still loads; the tail simply never reaches the model.
+DESCRIPTION_MAX = 1536
 BODY_MAX_LINES = 500
 
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -89,6 +91,16 @@ def parse_frontmatter(text):
             value = ""
         data[key] = value.strip("\"'")
     return data, body, None
+
+
+# A path the body tells the reader to open: inside the skill or the plugin,
+# not the user's own project and not a URL.
+CITED = re.compile(r"`((?:references|assets|scripts|docs)/[\w./-]+\.\w+)`")
+
+
+def cited_files(body):
+    """Paths the body points at that the plugin is expected to ship."""
+    return sorted({match.group(1) for match in CITED.finditer(body)})
 
 
 def tokens(text):
@@ -189,8 +201,14 @@ def audit_one(path, findings):
     description = data.get("description", "")
 
     # --- name ---
+    # Claude Code loads a skill with no `name`; what it loses is a stable way
+    # to invoke and list it, which is a real cost, not a fatal one.
     if not name:
-        findings.append(Finding("error", label, "frontmatter has no `name`"))
+        findings.append(Finding(
+            "warning", label, "frontmatter has no `name`",
+            "The skill still loads, and is listed by its directory. Name it, "
+            "so the listing and the command do not depend on a folder someone "
+            "may rename."))
     else:
         if len(name) > NAME_MAX:
             findings.append(Finding(
@@ -203,9 +221,13 @@ def audit_one(path, findings):
                 f"hyphens"))
         if name != directory.name:
             findings.append(Finding(
-                "error", label,
+                "warning", label,
                 f"`name` is {name!r} but the directory is {directory.name!r}",
-                "They have to match, or the skill does not resolve."))
+                "The skill loads either way, but the two names do different "
+                "jobs and they now disagree: in a plugin the command is "
+                f"/<plugin>:{name}, while a personal or project skill is "
+                f"invoked as /{directory.name} and shows {name!r} in the "
+                "listing. Match them and the question does not arise."))
 
     # --- description ---
     if not description:
@@ -215,9 +237,11 @@ def audit_one(path, findings):
     else:
         if len(description) > DESCRIPTION_MAX:
             findings.append(Finding(
-                "error", label,
-                f"`description` is {len(description)} characters, over the "
-                f"{DESCRIPTION_MAX} limit"))
+                "warning", label,
+                f"`description` is {len(description)} characters; the listing "
+                f"truncates at {DESCRIPTION_MAX}",
+                "Everything past the cut is invisible to the model deciding "
+                "whether to fire this skill. Put the trigger first."))
         if len(description) < 40:
             findings.append(Finding(
                 "warning", label,
@@ -299,6 +323,17 @@ def audit_one(path, findings):
                 "warning", label,
                 f"references/{reference.name} is never mentioned in SKILL.md",
                 "A reference nothing points at is never loaded."))
+
+    # The other direction: a body that sends the reader to a file the skill
+    # does not ship. Claude Code will not find it either — the instruction is
+    # a dead end wherever the skill is installed.
+    for cited in cited_files(body):
+        if not (directory / cited).exists() and \
+                not (directory.parent.parent / cited).exists():
+            findings.append(Finding(
+                "error", label, f"points at `{cited}`, which is not here",
+                "Nothing ships that path, so whoever follows the instruction "
+                "finds nothing. Ship the file, or say the thing inline."))
 
     return {"name": name or label, "description": description, "label": label}
 

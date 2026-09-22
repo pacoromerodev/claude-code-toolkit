@@ -70,12 +70,26 @@ finds "body over the line limit"         "over the 500 limit"
 finds "description with no trigger"      "never says when to use"
 finds "description opening with 'this skill'" 'opens with "this skill"'
 finds "unreferenced reference file"      "never mentioned in SKILL.md"
+finds "a body pointing at a file nobody ships" "points at \`docs/anatomy.md\`"
 finds "overlapping descriptions"         "overlaps"
 finds "bare Bash, comma-separated"       "grant-bare-comma: \`allowed-tools\` pre-approves every shell command"
 finds "bare Bash, space-separated"       "grant-bare-space: \`allowed-tools\` pre-approves every shell command"
 finds "bare Bash, flow list"             "grant-bare-flow: \`allowed-tools\` pre-approves every shell command"
 finds "bare Bash, YAML block list"       "grant-bare-block: \`allowed-tools\` pre-approves every shell command"
 finds "pre-approved file writes"         "grant-write: \`allowed-tools\` pre-approves file writes"
+
+echo
+echo "== what loads anyway is a warning, not an error =="
+# Claude Code loads a skill whose name differs from its directory. The names
+# do different jobs — command segment in a plugin, listing label outside one —
+# so the disagreement is worth saying, and is not a failure.
+mismatch_output="$("$PY" "$AUDIT" "$FIXTURES/broken/name-mismatch" 2>&1)"
+code "a name mismatch alone" "$?" 0
+if [[ "$mismatch_output" == *"warn"* && "$mismatch_output" != *"ERROR"* ]]; then
+  printf 'ok    finds   a name mismatch is reported as a warning\n'; ((pass++))
+else
+  printf 'FAIL  finds   name mismatch not a warning: %s\n' "${mismatch_output%%$'\n'*}"; ((fail++))
+fi
 
 echo
 echo "== a SKILL.md loose in a skills root =="

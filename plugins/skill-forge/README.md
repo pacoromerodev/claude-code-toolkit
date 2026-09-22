@@ -71,7 +71,7 @@ existing skills, and an "Obstacles encountered" section.
 plugins/skill-forge/tests/run.sh
 ```
 
-26 assertions: every planted fault in `fixtures/broken/` must be found, the
+29 assertions: every planted fault in `fixtures/broken/` must be found, the
 clean tree in `fixtures/clean/` must stay silent, exit codes must be right, the
 `--json` output must parse, and **this repository's own skills must pass**.
 
