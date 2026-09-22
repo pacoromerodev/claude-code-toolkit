@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Audit Claude API calls for prompt caching mistakes that cost money silently.
+"""Audit Claude API calls for the mistakes that cost money or fail late.
 
-    python3 check_caching.py client.py
-    python3 check_caching.py src/ --json
+    python3 check_api_calls.py client.py
+    python3 check_api_calls.py src/ --json
 
-Caching fails quietly: a request with a breakpoint in the wrong place simply
+Two kinds of fault. A request shaped wrongly — thinking with temperature, a
+budget under the floor, `effort` outside `output_config`, `system=None` —
+fails when it runs, which is usually in front of someone. Caching fails
+quietly: a request with a breakpoint in the wrong place simply
 misses, every time, and the only evidence is `cache_read_input_tokens` staying
 at zero on a bill that does not go down.
 
@@ -19,6 +22,11 @@ The rules checked here:
   - Anything that changes per call — a timestamp, a user id, a random value —
     inside a cached prefix invalidates it on every request. That is true
     wherever the breakpoint sits, including on the newest message.
+  - Extended thinking rules out `temperature` and a prefilled assistant turn;
+    its budget starts at 1,024 tokens and must leave room under max_tokens;
+    `effort` lives in `output_config`.
+  - `system=None` is an error rather than an omission.
+  - A tool loop returns a result for a tool that failed, with is_error.
 
 Parses with `ast`. Exit 1 on an error, 0 otherwise.
 """
@@ -199,6 +207,126 @@ def check_call(node, file, source, findings):
                 "not change, and let the varying text follow it."))
 
 
+
+# --- request shapes that fail, or quietly do nothing ---
+
+THINKING_MIN_BUDGET = 1024
+
+# Levels `effort` takes. Present here only to recognise the value when it has
+# been put in the wrong place.
+EFFORT_LEVELS = {"low", "medium", "high", "xhigh", "max"}
+
+
+def literal_int(node):
+    if isinstance(node, ast.Constant) and isinstance(node.value, int):
+        return node.value
+    return None
+
+
+def dict_entry(node, key):
+    """The value for `key` in a dict literal, or None."""
+    if not isinstance(node, ast.Dict):
+        return None
+    for name, value in zip(node.keys, node.values):
+        if isinstance(name, ast.Constant) and name.value == key:
+            return value
+    return None
+
+
+def check_thinking(node, file, source, findings):
+    thinking = keyword(node, "thinking")
+    if thinking is None:
+        return
+
+    if keyword(node, "temperature") is not None:
+        findings.append(Finding(
+            "error", file, node.lineno, "thinking-with-temperature",
+            "extended thinking and `temperature` in the same request",
+            "The API rejects the pair. Drop temperature: with thinking on, "
+            "the reasoning is where the variation lives."))
+
+    messages = keyword(node, "messages")
+    if messages is not None:
+        text = source_of(messages, source)
+        if re.search(r"['\"]role['\"]\s*:\s*['\"]assistant['\"]", text) and \
+                text.rstrip().endswith("]"):
+            findings.append(Finding(
+                "warning", file, node.lineno, "thinking-with-prefill",
+                "extended thinking with what looks like a prefilled "
+                "assistant turn",
+                "Thinking does not work with a prefill. If the last message "
+                "here is a partial assistant turn, drop it and ask for the "
+                "format in the prompt instead."))
+
+    budget = dict_entry(thinking, "budget_tokens") or dict_entry(thinking, "budget")
+    value = literal_int(budget) if budget is not None else None
+    if value is not None:
+        if value < THINKING_MIN_BUDGET:
+            findings.append(Finding(
+                "error", file, node.lineno, "thinking-budget-too-small",
+                f"thinking budget of {value} tokens, under the "
+                f"{THINKING_MIN_BUDGET} minimum",
+                "The request is rejected. Raise it, and raise max_tokens with "
+                "it."))
+        limit = literal_int(keyword(node, "max_tokens"))
+        if limit is not None and value >= limit:
+            findings.append(Finding(
+                "error", file, node.lineno, "thinking-budget-over-max",
+                f"thinking budget {value} is not below max_tokens {limit}",
+                "The budget comes out of max_tokens, so the answer would have "
+                "nothing left. Give max_tokens room above the budget."))
+
+    misplaced = dict_entry(thinking, "effort")
+    if misplaced is not None:
+        findings.append(Finding(
+            "error", file, node.lineno, "effort-in-thinking",
+            "`effort` inside `thinking`",
+            "It belongs in `output_config`. Where it is, it is an unknown key "
+            "in the thinking object."))
+
+
+def check_effort(node, file, findings):
+    effort = keyword(node, "effort")
+    if effort is None:
+        return
+    level = effort.value if isinstance(effort, ast.Constant) else None
+    named = f" ({level!r})" if level in EFFORT_LEVELS else ""
+    findings.append(Finding(
+        "error", file, node.lineno, "effort-top-level",
+        f"`effort`{named} passed as its own argument",
+        "It goes inside `output_config`: output_config={\"effort\": "
+        "\"high\"}. On its own it is an unexpected keyword."))
+
+
+def check_system(node, file, findings):
+    system = keyword(node, "system")
+    if isinstance(system, ast.Constant) and system.value is None:
+        findings.append(Finding(
+            "error", file, node.lineno, "system-none",
+            "`system=None`",
+            "The API does not accept a null system prompt — it is an error, "
+            "not an omission. Build the arguments and add `system` only when "
+            "there is one."))
+
+
+def check_tool_results(tree, file, source, findings):
+    """A tool that raised still owes the model a result."""
+    if "tool_use" not in source or "tool_result" not in source:
+        return
+    if "is_error" in source:
+        return
+    guarded = any(isinstance(node, (ast.Try, ast.ExceptHandler))
+                  for node in ast.walk(tree))
+    findings.append(Finding(
+        "warning", file, 0, "tool-errors-unreported",
+        "a tool loop that never returns `is_error`",
+        "Every tool_use needs a tool_result, including the ones that failed: "
+        + ("the exception is caught, but the model is told nothing about it, "
+           if guarded else
+           "an exception here leaves the call unanswered, ")
+        + "so the model either waits or invents what the tool returned. "
+          "Return the message with is_error=True."))
+
 def check_usage_reporting(tree, file, source, findings):
     """Caching that nobody measures is caching nobody knows is broken."""
     dumped = ast.dump(tree)
@@ -231,9 +359,13 @@ def check_module(path, findings):
         if isinstance(node, ast.Call) and is_messages_create(node):
             calls += 1
             check_call(node, file, source, findings)
+            check_thinking(node, file, source, findings)
+            check_effort(node, file, findings)
+            check_system(node, file, findings)
 
     if calls:
         check_usage_reporting(tree, file, source, findings)
+        check_tool_results(tree, file, source, findings)
     return calls
 
 

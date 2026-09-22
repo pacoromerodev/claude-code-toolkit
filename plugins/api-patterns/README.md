@@ -30,7 +30,7 @@ and pretending otherwise hides failures inside an average.
 ## Caching fails silently
 
 ```bash
-python3 plugins/api-patterns/scripts/check_caching.py src/
+python3 plugins/api-patterns/scripts/check_api_calls.py src/
 ```
 
 A misconfigured breakpoint does not error. The request succeeds, the output is
@@ -42,6 +42,11 @@ fine, and you pay full price plus a write premium every call.
 | More than four breakpoints | Request rejected |
 | Prefix under the model's minimum (512–4,096 tokens) | Breakpoint accepted and inert, with no error |
 | Breakpoint on a block that varies per request | The hash differs every time: written, never read |
+| Thinking with `temperature`, or with a prefilled turn | Rejected, or silently unsupported |
+| A thinking budget under 1,024, or not below `max_tokens` | Rejected, or no room left for the answer |
+| `effort` outside `output_config` | An unexpected keyword |
+| `system=None` | An error, not an omission |
+| A tool loop with no `is_error` | A failed tool leaves the model waiting or inventing |
 | `cache_control` with usage never read | A cache that never hits looks exactly like one that works |
 
 `cache_read_input_tokens` above zero is the only proof.
@@ -80,7 +85,7 @@ have an agent, and you now know which part needs the freedom.
 plugins/api-patterns/tests/run.sh
 ```
 
-18 assertions. The caching fixtures come in both directions, and the RRF tests
+27 assertions. The caching fixtures come in both directions, and the RRF tests
 check the property the whole choice rests on: `s2` at semantic#1 and bm25#2
 must outrank `s7` at bm25#1. Plus duplicates, single lists, tie determinism,
 `k=0` and `limit`.

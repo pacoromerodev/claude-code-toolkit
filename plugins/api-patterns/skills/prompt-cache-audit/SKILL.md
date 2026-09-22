@@ -1,7 +1,7 @@
 ---
 name: prompt-cache-audit
 description: Checks Claude API calls for prompt caching that silently misses — breakpoints in the wrong place, varying content inside a cached prefix, too many breakpoints, a prefix too short to store. Use when API costs are higher than expected, when adding caching, or when reviewing code that calls the Messages API repeatedly.
-allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_caching.py *)
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_api_calls.py *)
 ---
 
 # Auditing prompt caching
@@ -18,11 +18,14 @@ Two ways to ask for it:
 | **Explicit** | `cache_control` on the blocks you choose, up to four | A prefix you control: tools, a long system prompt, a document |
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_caching.py <path>
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_api_calls.py <path>
 ```
 
 With no path given, audit every file in the repository that calls the Messages
-API.
+API. The script also reports request shapes that fail when they run — thinking
+with `temperature` or a prefill, a thinking budget under 1,024 tokens or with
+no room under `max_tokens`, `effort` outside `output_config`, `system=None`,
+and a tool loop that never returns `is_error`.
 
 ## The rules
 
