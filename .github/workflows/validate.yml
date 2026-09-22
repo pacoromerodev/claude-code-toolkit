@@ -39,6 +39,9 @@ jobs:
       - name: Hooks point at scripts that exist
         run: python3 .github/scripts/check_hooks.py
 
+      - name: No two components answer to one name
+        run: python3 .github/scripts/check_names.py
+
       - name: Eval cases are runnable and graded both ways
         run: python3 .github/scripts/check_eval_cases.py
 

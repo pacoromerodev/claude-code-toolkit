@@ -57,6 +57,17 @@ else
 fi
 
 echo
+echo "== check_names.py =="
+out="$("$PY" "$SCRIPTS/check_names.py" "$FIXTURES/names/good" 2>&1)"
+expect_exit "names good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_names.py" "$FIXTURES/names/bad" 2>&1)"
+expect_exit "names bad" "$?" 1
+expect_text "names bad" "$out" "alpha:audit-widgets: a command and a skill share this name"
+expect_text "names bad" "$out" "alpha:widget-review: a command and an agent share this name"
+expect_text "names bad" "$out" "beta:verify: Claude Code already ships a command"
+expect_text "names bad" "$out" "audit-widgets: used by alpha and beta"
+
+echo
 echo "== check_hooks.py =="
 out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
 expect_exit "hooks good" "$?" 0

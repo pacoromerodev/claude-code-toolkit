@@ -49,7 +49,10 @@ Exit 1 on any error; warnings alone exit 0.
 - **description never says when to use the skill.** It reads as a definition.
   This is the single most common reason a working skill sits unused.
 - **description overlaps N% with another.** Both match the same prompts, so
-  which one fires is arbitrary.
+  which one fires is arbitrary. Pointed at a plugin's `skills/`, the auditor
+  compares against the agents and commands beside it too: the model chooses
+  between all three on their descriptions, so a command that restates its
+  skill is the same collision.
 - **`references/x.md` never mentioned.** A file that never loads.
 - **script not executable.**
 
@@ -69,7 +72,7 @@ existing skills, and an "Obstacles encountered" section.
 plugins/skill-forge/tests/run.sh
 ```
 
-15 assertions: every planted fault in `fixtures/broken/` must be found, the
+26 assertions: every planted fault in `fixtures/broken/` must be found, the
 clean tree in `fixtures/clean/` must stay silent, exit codes must be right, the
 `--json` output must parse, and **this repository's own skills must pass**.
 

@@ -7,6 +7,11 @@ All notable changes to `skill-forge`. Format follows
 ## [Unreleased]
 
 ### Added
+- The overlap check reaches past the skills directory. Given a plugin's
+  `skills/`, `audit_skills.py` also reads the descriptions of the agents and
+  commands beside it: the model picks between a skill, an agent and a command
+  on the same evidence, so a command that restates its skill's description is
+  the same ambiguity as two skills that do.
 - `audit_skills.py` reports a bare `Bash` in `allowed-tools` as an error and
   pre-approved `Write`/`Edit` as a warning, in every form the field accepts
   (comma- or space-separated, flow list, YAML list). `--json` findings carry a
