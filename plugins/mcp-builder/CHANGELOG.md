@@ -6,6 +6,12 @@ All notable changes to `mcp-builder`. Format follows
 
 ## [Unreleased]
 
+### Added
+- Four cases: `stdio-or-http`, `roots-are-advice`, `tool-or-resource` and
+  `server-from-an-api`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
 ### Changed
 - `mcp-review` says what an MCP server looks like in a file (`@mcp.tool` and
   friends) and points at `tool-schema-review` for tools passed straight to the

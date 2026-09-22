@@ -105,6 +105,9 @@ claude plugin eval plugins/api-patterns --scaffold --allow-tools Bash
   the fix for resumption.
 - **bedrock-model-not-found** — "the model doesn't exist", with IAM already
   correct. The answer must reach the cross-region inference profile.
+- **cache-ttl-mismatch** — bursty traffic against a five-minute lifetime.
+- **hybrid-or-rerank** — reranking proposed for a document never retrieved.
+- **tool-never-chosen** — two one-word tool descriptions.
 - **not-fired** — "how many tokens is a page of text", which must not start an
   audit.
 

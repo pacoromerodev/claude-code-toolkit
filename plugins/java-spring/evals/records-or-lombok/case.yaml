@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: records-or-lombok
+description: >-
+  Records against Lombok. The answer must separate value classes from entities.
+tags: [java-21-modernize, skill]
+execution:
+  prompt: |
+    We're on Java 21 now. Someone suggested replacing our Lombok @Data value
+    classes with records. Half the team says records are just less flexible
+    Lombok. Which is right, and where would you start?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

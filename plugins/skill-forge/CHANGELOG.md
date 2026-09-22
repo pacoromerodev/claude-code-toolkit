@@ -7,6 +7,11 @@ All notable changes to `skill-forge`. Format follows
 ## [Unreleased]
 
 ### Added
+- Two cases: `procedure-into-skill` and `skill-or-subagent`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
+### Added
 - `audit_skills.py` audits subagents. Pointed at a plugin's `skills/` it also
   reads the `agents/` beside it, and reports: a reviewing agent granted
   `Write` or `Edit`, an output format with no section for what the agent could

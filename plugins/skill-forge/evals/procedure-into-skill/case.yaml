@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: procedure-into-skill
+description: >-
+  A repeated release procedure. The answer must produce a skill, description first.
+tags: [write-a-skill, skill]
+execution:
+  prompt: |
+    Every time we cut a release I paste the same six steps to Claude — check
+    the changelog, bump the versions in two files, tag, push the tag, watch
+    the workflow, announce it. Can I stop pasting this?
+  max_turns: 12
+  timeout_seconds: 360
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

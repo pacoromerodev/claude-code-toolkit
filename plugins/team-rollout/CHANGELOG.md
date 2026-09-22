@@ -6,6 +6,11 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+### Added
+- One case: `local-settings-committed`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
 ### Removed
 - The command files that only restated their skill with defaults attached. A
   command's description is always-on context and the skill's is what the model

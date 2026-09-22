@@ -102,6 +102,8 @@ claude plugin eval plugins/skill-forge --scaffold --allow-tools Bash
   explained, not just listed.
 - **description-rewrite** — a real skill body behind the description "Kafka
   consumer helper." The rewrite must put the trigger in user language.
+- **procedure-into-skill** — six release steps pasted every time.
+- **skill-or-subagent** — an investigation that would read fifty files.
 - **not-fired** — a conceptual question about skills, which must not start an
   audit.
 

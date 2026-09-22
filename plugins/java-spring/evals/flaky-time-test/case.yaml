@@ -1,0 +1,24 @@
+schema_version: "1.0"
+name: flaky-time-test
+description: >-
+  A test that sleeps and asserts on the clock. The answer must inject time rather than widen the window.
+tags: [test-shape, skill]
+execution:
+  prompt: |
+    This test fails about one run in twenty on CI:
+
+    ```java
+    @Test
+    void tokenExpiresAfterTenMinutes() throws Exception {
+    Token token = service.issue();
+    Thread.sleep(50);
+    assertFalse(token.isExpired());
+    assertTrue(service.issue().expiresAt().isAfter(Instant.now()));
+    }
+    ```
+
+    I was going to raise the sleep to 500ms. Anything smarter?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

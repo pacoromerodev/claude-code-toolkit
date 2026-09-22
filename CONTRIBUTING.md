@@ -84,7 +84,7 @@ python3 .github/scripts/check_hooks.py        # hooks point at scripts that exis
 python3 .github/scripts/check_names.py        # no two components share a name
 python3 .github/scripts/check_workflows.py    # workflows scoped, pinned, no interpolated shell
 python3 .github/scripts/check_course_wording.py # no sentence lifted from the notes
-python3 .github/scripts/check_eval_coverage.py  # two cases per skill, one negative
+python3 .github/scripts/check_eval_coverage.py --enforce  # two cases per skill, one negative
 python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
 plugins/<name>/tests/run.sh                   # fixture tests
 ```

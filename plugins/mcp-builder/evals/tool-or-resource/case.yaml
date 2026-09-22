@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: tool-or-resource
+description: >-
+  Everything modelled as a tool. The answer must separate the primitives by who controls them.
+tags: [mcp-server-scaffold, skill]
+execution:
+  prompt: |
+    Building an MCP server for our internal docs. I have three tools:
+    `search_docs(query)`, `get_doc(id)` and `summarise_doc(id)`. The client
+    only ever calls search. Should I merge them into one tool with a mode
+    parameter?
+  max_turns: 12
+  timeout_seconds: 360
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

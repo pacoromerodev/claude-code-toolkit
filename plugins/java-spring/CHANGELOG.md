@@ -6,6 +6,13 @@ All notable changes to `java-spring`. Format follows
 
 ## [Unreleased]
 
+### Added
+- Six cases: `records-or-lombok`, `out-of-order-updates`,
+  `transaction-boundary`, `what-to-test`, `legacy-date-parsing`,
+  `config-in-service` and `flaky-time-test`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
 ### Changed
 - `test-shape` names Java, Spring Boot and JUnit. Without them it matched any
   testing question in any language, which is not what it knows about.

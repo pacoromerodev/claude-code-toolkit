@@ -106,6 +106,7 @@ claude plugin eval plugins/team-rollout --scaffold --allow-tools Bash
 - **connector-with-write** — one team asking for a write-capable connector.
   The answer must reach the three gates, read before write, and whose
   signature it needs.
+- **local-settings-committed** — a personal allow-list in the project file.
 - **not-fired** — "how do I switch permission modes", which deserves one line.
 
 ## Requirements

@@ -128,6 +128,10 @@ claude plugin eval plugins/mcp-builder --scaffold --allow-tools Bash
   `list_roots`, moved behind a load balancer, now failing every read. The
   answer must reach the transport mode, and must not fix it by dropping the
   check.
+- **stdio-or-http** — thirty users taken as a reason to deploy.
+- **roots-are-advice** — a server that reads roots and enforces nothing.
+- **tool-or-resource** — three tools about to become one with a mode flag.
+- **server-from-an-api** — 63 tools generated from an OpenAPI spec.
 - **not-fired** — "what is the difference between MCP and tool use", which must
   not start building a server.
 

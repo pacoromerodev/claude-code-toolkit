@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: server-from-an-api
+description: >-
+  An MCP server generated one tool per endpoint. The answer must cut the
+  catalogue down to what a model can choose from.
+tags: [mcp-server-scaffold, skill]
+execution:
+  prompt: |
+    I generated an MCP server from our OpenAPI spec — it came out with 63
+    tools, one per endpoint, names and descriptions taken from the spec's
+    summaries. Claude either picks the wrong one or asks the user which to
+    use. More detail in the descriptions?
+  max_turns: 12
+  timeout_seconds: 360
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

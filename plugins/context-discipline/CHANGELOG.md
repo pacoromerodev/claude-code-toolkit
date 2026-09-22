@@ -7,6 +7,11 @@ All notable changes to `context-discipline`. Format follows
 ## [Unreleased]
 
 ### Added
+- Two cases: `rules-nobody-follows` and `fix-before-scope`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
+### Added
 - `check_claude_md.py` reports a rule a hook could enforce — a prohibition
   about pushing, committing, deleting, deploying and the like — as a note with
   what to do about it: CLAUDE.md asks, a `PreToolUse` hook that exits 2

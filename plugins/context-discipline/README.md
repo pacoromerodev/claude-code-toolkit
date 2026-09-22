@@ -98,6 +98,8 @@ claude plugin eval plugins/context-discipline --scaffold --allow-tools Bash
   another package depends on the method that would change.
 - **context-cannot-be-measured** — "what percentage of the context have we
   used?". The answer must say it cannot measure that, and name `/context`.
+- **rules-nobody-follows** — a 400-line CLAUDE.md about to get more emphasis.
+- **fix-before-scope** — "fix whatever is causing it", across a subsystem.
 - **not-fired** — a one-word typo fix, which must not trigger a planning
   ceremony.
 

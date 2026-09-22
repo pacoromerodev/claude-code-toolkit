@@ -55,11 +55,8 @@ jobs:
       - name: No sentence is a sentence from the course notes
         run: python3 .github/scripts/check_course_wording.py --enforce
 
-      # Report-only until the suites of ROADMAP-v2 Phase 12 land, then
-      # --enforce. Reporting a gap nobody can close yet only teaches people to
-      # ignore a red build.
       - name: Every skill has the cases CONTRIBUTING asks for
-        run: python3 .github/scripts/check_eval_coverage.py
+        run: python3 .github/scripts/check_eval_coverage.py --enforce
 
       - name: Eval cases are runnable and graded both ways
         run: python3 .github/scripts/check_eval_cases.py

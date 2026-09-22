@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: rules-nobody-follows
+description: >-
+  A 400-line CLAUDE.md about to get more emphasis. The answer must go after the length and the enforcement.
+tags: [claude-md-doctor, skill]
+execution:
+  prompt: |
+    Our CLAUDE.md is 400 lines and people say Claude ignores it. The team's
+    answer is to add IMPORTANT to the rules that matter. Before I do that,
+    is there a better move?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

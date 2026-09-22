@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: hybrid-or-rerank
+description: >-
+  Reranking proposed for a retrieval that never returns the document. The answer must be keyword search.
+tags: [rag-retriever, skill]
+execution:
+  prompt: |
+    Our support search misses tickets when people paste an error code like
+    ERR_4032 — semantic search returns vaguely similar tickets instead. We're
+    about to add a reranking step with Claude over the top 50. Will that fix
+    it?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

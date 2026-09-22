@@ -1,0 +1,28 @@
+schema_version: "1.0"
+name: tool-never-chosen
+description: >-
+  Two one-word tool descriptions. The fix must be the descriptions, not a system-prompt rule.
+tags: [tool-schema-review, subagent]
+execution:
+  prompt: |
+    Claude keeps calling `search` when it should call `get_order`. Here are
+    the definitions:
+
+    ```python
+    tools = [
+    {"name": "search", "description": "Search",
+    "input_schema": {"type": "object",
+    "properties": {"q": {"type": "string"}},
+    "required": ["q"]}},
+    {"name": "get_order", "description": "Get order",
+    "input_schema": {"type": "object",
+    "properties": {"id": {"type": "string"}},
+    "required": ["id"]}},
+    ]
+    ```
+
+    Should I add a rule to the system prompt telling it to prefer get_order?
+  max_turns: 12
+  timeout_seconds: 360
+  allowed_tools: [Read, Glob, Grep, Skill, Task]
+runs: 3

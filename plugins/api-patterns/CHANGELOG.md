@@ -6,6 +6,12 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+### Added
+- Three cases: `cache-ttl-mismatch`, `hybrid-or-rerank` and `tool-never-chosen`,
+  the last for the subagent, which had none. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
 ### Changed
 - `tool-schema-review` says where the tools it reviews live — the `tools`
   array of a Messages call, or the functions a tool runner builds one from —
