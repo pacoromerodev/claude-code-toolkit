@@ -33,7 +33,7 @@ needs_bash=$(grep -l '^tags: .*needs-bash' "$evals"/*/case.yaml | wc -l)
 
 echo "== store with a symbolic link =="
 rm -f "$SANDBOX/calls"
-out="$(HOME="$SANDBOX/linked" DOCKER_CONFIG= CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/out" bash "$RUNNER" "$plugin" 2>&1)"
+out="$(HOME="$SANDBOX/linked" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/out" bash "$RUNNER" "$plugin" 2>&1)"
 calls=$(wc -l < "$SANDBOX/calls" 2>/dev/null || echo 0)
 [[ "$calls" -eq $((total - needs_bash)) ]] && ok "runs only the cases that do not need Bash ($calls)" \
   || bad "ran $calls case(s), wanted $((total - needs_bash))"
@@ -45,7 +45,7 @@ grep -q -- '--no-publish' "$SANDBOX/calls" && ok "never publishes" || bad "publi
 echo
 echo "== plain store =="
 rm -f "$SANDBOX/calls"
-out="$(HOME="$SANDBOX/plain" DOCKER_CONFIG= CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/out2" bash "$RUNNER" "$plugin" 2>&1)"
+out="$(HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/out2" bash "$RUNNER" "$plugin" 2>&1)"
 calls=$(wc -l < "$SANDBOX/calls" 2>/dev/null || echo 0)
 [[ "$calls" -eq "$total" ]] && ok "runs every case ($calls)" || bad "ran $calls case(s), wanted $total"
 grep -q -- '--allow-tools Bash Write Edit' "$SANDBOX/calls" && ok "grants Bash, Write and Edit" \
