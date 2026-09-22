@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: context-cannot-be-measured
+description: >-
+  A direct question about how full the context is. The answer must say the
+  model cannot measure it and point at the command that can.
+tags: [context-budget, command]
+execution:
+  prompt: |
+    How much of the context window have we used so far in this session? Give
+    me a percentage so I know whether to compact.
+  max_turns: 6
+  timeout_seconds: 240
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

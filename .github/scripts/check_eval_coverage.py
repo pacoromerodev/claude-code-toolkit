@@ -63,8 +63,11 @@ def plugin_report(plugin):
         frontmatter_name(path, path.stem): "subagent"
         for path in sorted((plugin / "agents").glob("*.md"))
     }
+    # A command may be the subject of a case; it just does not have to be.
+    commands = {path.stem: "command"
+                for path in sorted((plugin / "commands").glob("*.md"))}
 
-    counts = {name: 0 for name in list(skills) + list(agents)}
+    counts = {name: 0 for name in list(skills) + list(agents) + list(commands)}
     negatives = 0
     unknown = []
 
@@ -85,6 +88,9 @@ def plugin_report(plugin):
     for name, kind in list(skills.items()) + list(agents.items()):
         wanted = POSITIVE_PER_SKILL if kind == "skill" else POSITIVE_PER_AGENT
         rows.append((name, kind, counts[name], wanted))
+    for name in commands:
+        if counts[name]:
+            rows.append((name, "command", counts[name], 0))
     return rows, negatives, unknown
 
 

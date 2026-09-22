@@ -35,7 +35,7 @@ Five components, each solving a different failure of unsupervised work.
 | `guard_destructive` | PreToolUse hook | Blocks the shell commands that cannot be undone: `rm -rf` outside the project, a force-push to a protected branch, `git reset --hard` with work not yet pushed, `DROP`/`TRUNCATE`/unfiltered `DELETE` against a database, a disk written directly. |
 | `test_gate` | Stop hook | Opt-in. Runs the test suite before the session is allowed to end, and refuses to end it while tests fail. |
 
-`/review` launches the subagent. The skill answers to `/delivery-quality:verify-changes`, or fires on its own when a change needs verifying.
+`/review-diff` launches the subagent. The skill answers to `/delivery-quality:verify-changes`, or fires on its own when a change needs verifying.
 
 #### Enabling the test gate
 
@@ -89,7 +89,7 @@ The components here follow a few rules that came out of building them, and each 
         ├── .claude-plugin/plugin.json
         ├── skills/verify-changes/SKILL.md
         ├── agents/code-reviewer.md
-        ├── commands/review.md
+        ├── commands/review-diff.md
         ├── hooks/hooks.json
         └── scripts/{guard_secrets,guard_destructive,test_gate}.py
 ```

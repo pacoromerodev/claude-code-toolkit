@@ -29,9 +29,9 @@ ROOT = Path(__file__).resolve().parents[2]
 # than guessed: a warning naming a command that does not exist is worse than
 # no warning.
 BUILT_IN = {
-    "add-dir", "batch", "claude-api", "cd", "code-review", "compact", "debug",
-    "doctor", "help", "init", "login", "loop", "model", "permissions",
-    "plugin", "reload-plugins", "rewind", "review", "run",
+    "add-dir", "batch", "claude-api", "cd", "code-review", "compact",
+    "context", "debug", "doctor", "help", "init", "login", "loop", "model",
+    "permissions", "plugin", "reload-plugins", "rewind", "review", "run",
     "run-skill-generator", "security-review", "skill-doctor", "skills",
     "verify",
 }

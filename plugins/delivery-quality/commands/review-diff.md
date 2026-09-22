@@ -1,5 +1,5 @@
 ---
-description: Review the uncommitted change with the read-only code-reviewer subagent
+description: Review the uncommitted diff with the read-only code-reviewer subagent
 ---
 
 Launch the `code-reviewer` subagent on the current uncommitted change.

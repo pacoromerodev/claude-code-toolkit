@@ -24,7 +24,7 @@ working tree before compaction and hand it back afterwards.
 | `restore_state` | SessionStart hook, `compact` matcher | Right after a compaction, in the session that was compacted |
 | `scope-task` | Skill | A wide, vague or open-ended request |
 | `claude-md-doctor` | Skill | Rules in CLAUDE.md are being ignored, or one needs writing |
-| `/handoff`, `/context` | Commands | Typed |
+| `/handoff`, `/context-budget` | Commands | Typed |
 
 ## The state cycle
 
@@ -96,6 +96,8 @@ claude plugin eval plugins/context-discipline --scaffold --allow-tools Bash
   rewrite them, not list them.
 - **scope-before-code** — "clean up the payment module", where a caller in
   another package depends on the method that would change.
+- **context-cannot-be-measured** — "what percentage of the context have we
+  used?". The answer must say it cannot measure that, and name `/context`.
 - **not-fired** — a one-word typo fix, which must not trigger a planning
   ceremony.
 

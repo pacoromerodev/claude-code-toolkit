@@ -6,6 +6,13 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `/review` is now `/review-diff`. Claude Code documents `review` as a bundled
+  alias of its own `code-review`, so the short form was a coin toss — and the
+  two do different jobs: the built-in reviews a pull request, this one launches
+  a read-only subagent on the working diff.
+
+
 ### Removed
 - The command files that only restated their skill with defaults attached. A
   command's description is always-on context and the skill's is what the model

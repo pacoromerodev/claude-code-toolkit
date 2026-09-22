@@ -11,11 +11,11 @@ Verification before you trust a change.
 | Component | Type | Fires when |
 |---|---|---|
 | `verify-changes` | Skill | You ask to verify, double-check or confirm a change, or are about to commit or open a PR |
-| `code-reviewer` | Subagent | You ask for a review or a second opinion, or `/review` is run |
+| `code-reviewer` | Subagent | You ask for a review or a second opinion, or `/review-diff` is run |
 | `guard_secrets` | PreToolUse hook | Always, on `Write`, `Edit`, `NotebookEdit`, `Bash` and `PowerShell` |
 | `guard_destructive` | PreToolUse hook | Always, on `Bash` |
 | `test_gate` | Stop hook | Only in projects that opt in |
-| `/review` | Command | Typed, to launch the subagent |
+| `/review-diff` | Command | Typed, to launch the subagent |
 
 ## verify-changes
 
