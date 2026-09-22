@@ -69,7 +69,11 @@ jobs:
 
   hooks:
     name: Hook scripts
-    runs-on: ubuntu-latest
+    # Pinned, not latest: 3.8 has no build for Ubuntu 26.04, so the day the
+    # latest image moves is the day the floor stops being tested. The floor
+    # itself lives in check_stdlib_only.py, which fails if this matrix and it
+    # disagree.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ["3.8", "3.12"]

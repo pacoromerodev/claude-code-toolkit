@@ -34,11 +34,17 @@ while it cannot brick a session.
 so the model sees the reason and can correct itself. Exit 1 does not block.
 Anything else is non-blocking.
 
-**Standard library only.** Hooks run on a machine where nothing has been
-installed. This binds `plugins/*/scripts`; a CI script under `.github/scripts`
-runs only on a runner and may install what it needs, as the settings schema
-check does. CI enforces this; widening the allowed set is a deliberate edit to
-`.github/scripts/check_stdlib_only.py`, not an accident.
+**Standard library only, on Python 3.8.** Hooks run on a machine where
+nothing has been installed, using whatever `python3` is already there — a
+stock macOS still answers 3.9. The floor is declared once, as `MINIMUM` in
+`.github/scripts/check_stdlib_only.py`, which also fails if the CI matrix
+stops testing it. `tomllib`, `zoneinfo` and `graphlib` are standard library
+and still rejected: they arrived after the floor, so they pass on the runner
+and fail on the machine that matters.
+
+This binds `plugins/*/scripts`; a CI script under `.github/scripts` runs only
+on a runner and may install what it needs, as the settings schema check does.
+Widening the allowed set is a deliberate edit to that script, not an accident.
 
 **Every rule is checkable.** "Handle errors properly" is not a rule. "Do not
 catch an exception without either re-raising or logging it with context" is.

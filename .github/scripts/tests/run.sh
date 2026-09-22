@@ -82,6 +82,16 @@ expect_text "coverage bad" "$out" "demo has no negative case"
 expect_text "coverage bad" "$out" "is tagged 'widgit-check'"
 
 echo
+echo "== check_stdlib_only.py =="
+out="$("$PY" "$SCRIPTS/check_stdlib_only.py" "$FIXTURES/stdlib/good" 2>&1)"
+expect_exit "stdlib good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_stdlib_only.py" "$FIXTURES/stdlib/bad" 2>&1)"
+expect_exit "stdlib bad" "$?" 1
+expect_text "stdlib bad" "$out" "imports 'tomllib', which arrived in Python 3.11"
+expect_text "stdlib bad" "$out" "imports 'requests', which is not in the allowed"
+expect_text "stdlib bad" "$out" "the matrix starts at 3.12, this script's floor is 3.8"
+
+echo
 echo "== check_hooks.py =="
 out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
 expect_exit "hooks good" "$?" 0
