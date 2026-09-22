@@ -38,6 +38,11 @@ All notable changes to `delivery-quality`. Format follows
   An enabled gate that cannot run (no runner, unreadable config) says so
   through `systemMessage` instead of writing to a channel only the debug log
   sees.
+- All three hooks take the project from the payload's `cwd`, which follows
+  Claude into a worktree and after `cd`, instead of `CLAUDE_PROJECT_DIR`,
+  which stays where the session started. In a worktree the gate used to test
+  the other checkout and pass a real regression, and the destructive guard
+  read the wrong `git status`.
 
 ### Removed
 - Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,

@@ -110,11 +110,17 @@ WRITE_REDIRECTS = {">", ">>", ">|", "&>", "&>>"}
 HARMLESS_TARGETS = {"/dev/null", "/dev/stdout", "/dev/stderr"}
 
 
-def project_allowlist():
+def working_directory(payload):
+    """Where Claude is now: the payload's cwd, which follows it into worktrees
+    and after cd, before CLAUDE_PROJECT_DIR, which does not."""
+    for candidate in (payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR"), os.getcwd()):
+        if candidate and Path(candidate).is_dir():
+            return Path(candidate).resolve()
+    return Path.cwd().resolve()
+
+
+def project_allowlist(root):
     """Regexes this project has explicitly allowed, if any."""
-    root = os.environ.get("CLAUDE_PROJECT_DIR")
-    if not root:
-        return []
     path = Path(root) / ".claude" / "secret-guard-allow"
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
@@ -274,7 +280,7 @@ def main():
     if not body:
         return 0
 
-    allowlist = project_allowlist()
+    allowlist = project_allowlist(working_directory(payload))
 
     for label, pattern in SECRETS:
         for match in pattern.finditer(body):
