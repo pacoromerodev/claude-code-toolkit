@@ -52,6 +52,9 @@ python3 plugins/team-rollout/scripts/check_settings.py managed.json --managed
 | `bypassPermissions` as default mode | Disables the permission system for every session using the file |
 | A literal credential | Settings files get committed and shared — treat it as leaked and rotate |
 | No `strictKnownMarketplaces` | A plugin runs code with the user's privileges and its hooks stack with everyone else's |
+| `strictKnownMarketplaces: true` | It is an array of source objects. A boolean reads as locked down, is rejected as the wrong type, and restricts nothing |
+| `knownMarketplaces` | Not a setting. Nothing reads that key |
+| A git marketplace with no `ref` | Whatever the default branch holds today is what the team installs tomorrow, hooks included |
 | `./scripts/hook.sh` | Resolves against wherever the session started. The hook silently never runs |
 | No timeout on a `Stop` hook | A hook that hangs there leaves the session unable to finish |
 | Unparseable JSON | Claude Code ignores the file **silently** — every rule in it stops applying with no message |
@@ -72,9 +75,22 @@ common cause of "this is being ignored".
 plugins/team-rollout/tests/run.sh
 ```
 
-22 assertions, including that the templates this plugin ships **pass the
+26 assertions, including that the templates this plugin ships **pass the
 checker this plugin ships**. A plugin whose own examples fail its own checker
 is not one anyone should copy from.
+
+Passing the checker is not the same as being accepted by Claude Code, which
+validates settings against its own schema and drops what does not match. CI
+holds the templates to that schema too:
+
+```bash
+python3 .github/scripts/validate_settings_schema.py
+```
+
+Neither check can prove the policy takes effect on a real machine. That part
+is manual, once, on a machine where the managed file is deployed: run
+`claude plugin marketplace add <a repo not on the list>` and confirm it is
+refused.
 
 ## Evals
 

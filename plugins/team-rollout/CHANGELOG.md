@@ -6,11 +6,25 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+### Added
+- `check_settings.py` checks the marketplace allowlist itself: a
+  `strictKnownMarketplaces` that is not an array, an entry that is not a source
+  object, an unknown source type, an empty list (reported as the lockdown it
+  is), the non-existent `knownMarketplaces` key, and a git marketplace
+  registered with no `ref`.
+
 ### Changed
 - `settings-review` reports a literal credential first — the file is shared,
   so the key is leaked and must be rotated — then grants wider than intended.
+  It now also carries what each marketplace key actually does, and which of
+  them is managed-only.
 
 ### Fixed
+- Both shipped templates were rejected by Claude Code's own schema, so a
+  policy that read as restrictive applied nothing: `strictKnownMarketplaces`
+  was a boolean where an array belongs, `knownMarketplaces` is not a setting,
+  and a `$comment` sat inside `hooks`, which takes event names only. CI now
+  validates every shipped settings file against the published schema.
 - `not-fired` eval grader says what a correct answer looks like; it had failed
   a correct Shift+Tab answer.
 

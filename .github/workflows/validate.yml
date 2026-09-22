@@ -39,6 +39,12 @@ jobs:
       - name: Eval cases are runnable and graded both ways
         run: python3 .github/scripts/check_eval_cases.py
 
+      # Not a hook, so it may use a dependency; the schema itself is vendored.
+      - name: Settings files match the published schema
+        run: |
+          python3 -m pip install --quiet jsonschema
+          python3 .github/scripts/validate_settings_schema.py
+
       - name: The CI scripts pass their own fixtures
         run: bash .github/scripts/tests/run.sh
 
