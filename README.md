@@ -9,8 +9,6 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 /plugin install delivery-quality@pacoromerodev
 ```
 
-While the repository is private, the machine you install from needs git access to it — `gh auth login` or an SSH key is enough.
-
 ---
 
 ## Plugins
@@ -27,13 +25,14 @@ While the repository is private, the machine you install from needs git access t
 
 ### delivery-quality
 
-Four components, each solving a different failure of unsupervised work.
+Five components, each solving a different failure of unsupervised work.
 
 | Component | Type | What it does |
 |---|---|---|
 | `verify-changes` | Skill | Runs the project's tests, reads the full diff, and checks that no test was weakened, skipped or deleted to make the suite pass. Reports with evidence and a required "Not verified" section. |
 | `code-reviewer` | Subagent | Reviews the uncommitted change read-only and returns findings ranked by severity, with an "Obstacles encountered" section so its blind spots stay visible. |
 | `guard_secrets` | PreToolUse hook | Blocks any write that would put a real credential on disk — API keys, private keys, connection strings with passwords, writes to `.env` and friends. |
+| `guard_destructive` | PreToolUse hook | Blocks the shell commands that cannot be undone: `rm -rf` outside the project, a force-push to a protected branch, `git reset --hard` with work not yet pushed, `DROP`/`TRUNCATE`/unfiltered `DELETE` against a database, a disk written directly. |
 | `test_gate` | Stop hook | Opt-in. Runs the test suite before the session is allowed to end, and refuses to end it while tests fail. |
 
 Two slash commands wrap the first two: `/verify` and `/review`.
@@ -56,7 +55,7 @@ EOF
 chmod +x .claude/test-gate.sh
 ```
 
-The gate never re-enters itself, and a timeout or a crash in the hook lets the session end rather than trapping it.
+The gate never blocks the session outright. When tests fail it hands the failures back as context for the turn to continue with; when the suite hangs it kills it — after the project's timeout, or 940 seconds, whichever is smaller, so the report arrives before Claude Code's own hook timeout cuts it off — and says to find the hanging test rather than raise the limit. If the hook itself crashes, the session ends.
 
 #### What the secret guard blocks
 
@@ -92,7 +91,7 @@ The components here follow a few rules that came out of building them, and each 
         ├── agents/code-reviewer.md
         ├── commands/{verify,review}.md
         ├── hooks/hooks.json
-        └── scripts/{guard_secrets,test_gate}.py
+        └── scripts/{guard_secrets,guard_destructive,test_gate}.py
 ```
 
 Adding a plugin means creating `plugins/<name>/` with its own `plugin.json` and adding an entry to `marketplace.json`. Validate both before committing:
