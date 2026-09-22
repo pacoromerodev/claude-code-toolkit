@@ -66,6 +66,24 @@ jobs:
           done
           exit $status
 
+      # The step above runs in a checkout that compileall has already written
+      # into, so it cannot see stray files. Run the suites again in a fresh
+      # worktree and require it to stay clean, ignored files included.
+      - name: Fixture tests leave no files behind
+        run: |
+          clean="$(mktemp -d)/wt"
+          git worktree add --quiet --detach "$clean" HEAD
+          cd "$clean"
+          for runner in plugins/*/tests/run.sh; do
+            bash "$runner" > /dev/null || exit 1
+          done
+          leftovers="$(git status --porcelain --ignored)"
+          if [ -n "$leftovers" ]; then
+            echo "::error::the fixture tests wrote into the repository:"
+            echo "$leftovers"
+            exit 1
+          fi
+
   shell:
     name: Shell scripts
     runs-on: ubuntu-latest

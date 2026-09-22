@@ -10,6 +10,15 @@ SCRIPTS="$HERE/../scripts"
 FIXTURES="$HERE/fixtures"
 PY="${PYTHON:-python3}"
 
+# Run from a throwaway directory, without bytecode: a hook that falls back to
+# the current directory, or an imported script writing __pycache__, must never
+# leave files in the repository.
+export PYTHONDONTWRITEBYTECODE=1
+unset CLAUDE_PROJECT_DIR
+SANDBOX="$(mktemp -d)"
+trap 'rm -rf "$SANDBOX"' EXIT
+cd "$SANDBOX" || exit 1
+
 pass=0
 fail=0
 
@@ -60,7 +69,7 @@ fi
 echo
 echo "== save → restore, end to end =="
 work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
+trap 'rm -rf "$work" "$SANDBOX"' EXIT
 (
   cd "$work" || exit 1
   git init -q -b main . && git config user.email t@example.invalid && \

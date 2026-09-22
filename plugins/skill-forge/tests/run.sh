@@ -12,6 +12,15 @@ AUDIT="$HERE/../scripts/audit_skills.py"
 FIXTURES="$HERE/fixtures"
 PY="${PYTHON:-python3}"
 
+# Run from a throwaway directory, without bytecode: a hook that falls back to
+# the current directory, or an imported script writing __pycache__, must never
+# leave files in the repository.
+export PYTHONDONTWRITEBYTECODE=1
+unset CLAUDE_PROJECT_DIR
+SANDBOX="$(mktemp -d)"
+trap 'rm -rf "$SANDBOX"' EXIT
+cd "$SANDBOX" || exit 1
+
 pass=0
 fail=0
 
