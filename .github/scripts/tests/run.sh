@@ -57,6 +57,18 @@ else
 fi
 
 echo
+echo "== check_hooks.py =="
+out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
+expect_exit "hooks good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/bad" 2>&1)"
+expect_exit "hooks bad" "$?" 1
+expect_text "hooks bad" "$out" "relative path in 'python3 ./scripts/guard.py'"
+expect_text "hooks bad" "$out" "scripts/renamed.py does not exist in the plugin"
+expect_text "hooks bad" "$out" "Stop[0]: no timeout"
+expect_text "hooks bad" "$out" "'PreCommit' is not a hook event"
+expect_text "hooks bad" "$out" "SessionStart[0]: uses \$CLAUDE_PROJECT_DIR"
+
+echo
 echo "-------------------------------"
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [[ "$fail" -eq 0 ]] || exit 1
