@@ -52,10 +52,8 @@ jobs:
       - name: Workflows are scoped, pinned and free of interpolated shell
         run: python3 .github/scripts/check_workflows.py
 
-      # Report-only until ROADMAP-v2 13.2 rewords the passage it finds; the
-      # fixtures already prove --enforce fails.
       - name: No sentence is a sentence from the course notes
-        run: python3 .github/scripts/check_course_wording.py
+        run: python3 .github/scripts/check_course_wording.py --enforce
 
       # Report-only until the suites of ROADMAP-v2 Phase 12 land, then
       # --enforce. Reporting a gap nobody can close yet only teaches people to

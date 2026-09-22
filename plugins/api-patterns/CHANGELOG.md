@@ -6,6 +6,14 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `rag-retriever`: the contextual-retrieval prompt now carries the document,
+  not only the chunk. Generating context from the chunk alone cannot recover a
+  heading the chunk does not contain, which is the case the technique exists
+  for. The skill says what to pass when the document will not fit, what to
+  index, and what the ingest costs — and it is written in this repository's
+  own words, which the new wording check now enforces.
+
 ### Fixed
 - `not-fired` eval grader states what a correct answer looks like, not only
   what scores badly.
