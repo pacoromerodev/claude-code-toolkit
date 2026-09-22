@@ -24,6 +24,13 @@ All notable changes to `skill-forge`. Format follows
 - `write-a-skill` described `allowed-tools` as narrowing what a skill may use.
   It grants; the skill now says so and shows a scoped Bash rule.
 
+### Removed
+- The `/audit-skills` command. It had the same name as the `audit-skills`
+  skill, and in an installed plugin the command won: the skill's procedure
+  never loaded, and the command's body pointed at itself. The skill is still
+  invocable as `/skill-forge:audit-skills`, and it carries the command's
+  defaults.
+
 ### Security
 - Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
   grants tools without a prompt on the turn a skill fires; it restricts
