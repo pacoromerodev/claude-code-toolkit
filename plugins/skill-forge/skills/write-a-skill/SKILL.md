@@ -1,6 +1,6 @@
 ---
 name: write-a-skill
-description: Create a new Claude Code skill, or fix one that never fires. Use when the user asks to write, create, scaffold or add a skill, when they want to turn a repeated procedure into a reusable one, or when an existing skill is not triggering and the description needs rewriting.
+description: Writes a new Claude Code skill from scratch — the procedure, the frontmatter and the eval cases. Use when the user asks to write, create, scaffold or add a skill, or to turn a repeated procedure into a reusable one. For a skill that exists and does not fire, use audit-skills for what is wrong with it and skill-describer for the description.
 allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py *)
 ---
 

@@ -6,32 +6,26 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
-### Fixed
-- `verify-changes` and `code-reviewer` read untracked files (AUDIT M16). A
-  change made entirely of new files has an empty `git diff`, so both used to
-  report nothing wrong about code neither had seen — which is exactly what
-  happened to this repository's own audit documents.
-- `verify-changes` takes the test command from `.claude/test-gate.json` or
-  `.claude/test-gate.sh` when the project has one, before falling back to
-  detecting a runner. Those files are what the project's own gate runs, so
-  anything else verifies a different thing.
-
-### Changed
-- `/review` is now `/review-diff`. Claude Code documents `review` as a bundled
-  alias of its own `code-review`, so the short form was a coin toss — and the
-  two do different jobs: the built-in reviews a pull request, this one launches
-  a read-only subagent on the working diff.
-
-
 ### Removed
 - The command files that only restated their skill with defaults attached. A
   command's description is always-on context and the skill's is what the model
   matches on, so a wrapper paid twice for one component. What the wrappers
   added is now in the skill bodies, where it applies whether the skill was
-  typed or fired on its own. `/verify`; the skill answers to `/delivery-
-  quality:verify-changes`. `/review` stays, because it launches the subagent.
+  typed or fired on its own. `/verify`; the skill answers to
+  `/delivery-quality:verify-changes`. The command that launches the subagent
+  stays, as `/review-diff`.
+- Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
+  and the fixture sent a payload the Edit tool does not produce.
 
 ### Changed
+- `code-reviewer` no longer claims "before a commit", which had it competing
+  with `verify-changes` on every pre-commit prompt. It now says what it is
+  for — a second opinion on a change about to be shared — and that it does not
+  run the tests.
+- `/review` is now `/review-diff`. Claude Code documents `review` as a bundled
+  alias of its own `code-review`, so the short form was a coin toss — and the
+  two do different jobs: the built-in reviews a pull request, this one launches
+  a read-only subagent on the working diff.
 - `--force-with-lease` to a protected branch is now blocked too: it only
   guards against unfetched work, and still rewrites shared history.
   Deleting a protected remote branch and `git push --mirror` are blocked.
@@ -68,10 +62,6 @@ All notable changes to `delivery-quality`. Format follows
   which stays where the session started. In a worktree the gate used to test
   the other checkout and pass a real regression, and the destructive guard
   read the wrong `git status`.
-
-### Removed
-- Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
-  and the fixture sent a payload the Edit tool does not produce.
 
 ### Security
 - `guard_destructive` parses the command instead of matching one pattern

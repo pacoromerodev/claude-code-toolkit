@@ -80,6 +80,12 @@ jobs:
       - name: The local eval runner skips what it cannot run, and says so
         run: bash scripts/tests/run-evals.test.sh
 
+      # The route check itself needs a logged-in CLI and costs a session per
+      # prompt, so CI runs it against a stub: what is tested here is that it
+      # reads a transcript correctly and fails on a mis-route.
+      - name: The route check reads a transcript correctly
+        run: bash scripts/tests/route-check.test.sh
+
   hooks:
     name: Hook scripts
     # Pinned, not latest: 3.8 has no build for Ubuntu 26.04, so the day the

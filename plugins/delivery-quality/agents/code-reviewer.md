@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews uncommitted changes or a branch diff and reports findings ranked by severity. Use proactively before a commit or a pull request, and whenever the user asks for a review, a second opinion or a check of what was just written. Read-only — it never edits code.
+description: Reviews uncommitted changes or a branch diff and reports findings ranked by severity, with the reasoning behind each one. Use when the user asks for a review, a second opinion, or a check of what was just written, and when a change is about to be shared with someone else. Read-only — it never edits code, and it does not run the tests.
 tools: Read, Glob, Grep, Bash
 model: inherit
 color: yellow

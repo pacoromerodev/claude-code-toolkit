@@ -1,6 +1,6 @@
 ---
 name: tool-schema-review
-description: Reviews tool definitions passed to the Claude API for the things that make a model call them wrongly or not at all — vague descriptions, unexplained parameters, overlapping tools, unbounded results. Use proactively when tools are added or changed, and when a tool is never called, called with wrong arguments, or called instead of a better one.
+description: Reviews the tool definitions your own code passes to the Claude API — the `tools` array in a Messages call, or the functions a tool runner builds one from — for what makes a model call them wrongly or not at all: vague descriptions, unexplained parameters, overlapping tools, unbounded results. Use when those definitions change, or when a tool is never called, called with wrong arguments, or called instead of a better one. For tools exposed by an MCP server, use mcp-review.
 tools: Read, Glob, Grep, Bash
 model: inherit
 color: teal

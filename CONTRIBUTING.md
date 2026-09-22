@@ -96,6 +96,19 @@ they cost money and need a credential — so run them by hand before a release:
 scripts/run-evals.sh [plugin ...]             # results outside the repo, never published
 ```
 
+Descriptions are a separate question, and `plugin eval` cannot answer it: it
+loads one plugin per run, so two components whose descriptions both match a
+prompt each score perfectly alone. Check routing with every plugin installed
+at once:
+
+```bash
+scripts/route_check.sh [--list] [case ...]      # one short session per prompt
+```
+
+It needs a logged-in CLI with this branch's plugins installed, so it is a
+before-a-release step, not a CI one. CI runs it against a stub instead, which
+tests that it reads a transcript and fails on a mis-route.
+
 The runner evaluates the working copy, one case at a time. `claude plugin
 eval` refuses any Bash-granting run while the Docker credential store holds a
 symbolic link (common on WSL with Docker Desktop). When that is the case the

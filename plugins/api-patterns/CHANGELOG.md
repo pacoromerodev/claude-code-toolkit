@@ -6,21 +6,10 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
-### Removed
-- The command files that only restated their skill with defaults attached. A
-  command's description is always-on context and the skill's is what the model
-  matches on, so a wrapper paid twice for one component. What the wrappers
-  added is now in the skill bodies, where it applies whether the skill was
-  typed or fired on its own. `/eval` and `/cache-audit`; the skills answer to
-  `/api-patterns:eval-harness` and `/api-patterns:prompt-cache-audit`.
-
-### Added
-- `agent-or-workflow` covers the decision that follows "this is an agent":
-  your own loop, the SDK's tool runner, or managed agents. The skill stopped
-  at the classification, which left the expensive half of the choice — who
-  operates the loop — unmade.
-
 ### Changed
+- `tool-schema-review` says where the tools it reviews live — the `tools`
+  array of a Messages call, or the functions a tool runner builds one from —
+  and points at `mcp-review` for the other kind.
 - `eval-harness` credits the score jump to the right technique. The move from
   about 3.9 to about 7.9 comes from explicit output guidelines — a length, a
   structure, the elements the answer must contain, or the steps to work

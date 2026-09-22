@@ -6,14 +6,6 @@ All notable changes to `context-discipline`. Format follows
 
 ## [Unreleased]
 
-### Changed
-- `/context` is now `/context-budget`. Claude Code ships `/context`, and two
-  commands answering to one name is a coin toss; the built-in is also the one
-  with the numbers. The command says outright that the model cannot measure
-  its own context — an estimate stated as a number is a guess someone will act
-  on — and sends the reader to `/context` for the breakdown before
-  recommending a move.
-
 ### Added
 - `check_claude_md.py` reports a rule a hook could enforce — a prohibition
   about pushing, committing, deleting, deploying and the like — as a note with
@@ -29,8 +21,13 @@ All notable changes to `context-discipline`. Format follows
   ("Never push to main. Open a pull request."), which it used to miss because
   it skipped the first four words after the prohibition.
 
-
 ### Changed
+- `/context` is now `/context-budget`. Claude Code ships `/context`, and two
+  commands answering to one name is a coin toss; the built-in is also the one
+  with the numbers. The command says outright that the model cannot measure
+  its own context — an estimate stated as a number is a guess someone will act
+  on — and sends the reader to `/context` for the breakdown before
+  recommending a move.
 - The `/handoff` note is read live at restore time, attributed to the
   assistant with its date, rather than frozen into the snapshot and labelled
   as outranking everything measured. Output is capped at 8,000 characters,

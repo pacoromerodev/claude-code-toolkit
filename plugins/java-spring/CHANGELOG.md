@@ -6,6 +6,10 @@ All notable changes to `java-spring`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `test-shape` names Java, Spring Boot and JUnit. Without them it matched any
+  testing question in any language, which is not what it knows about.
+
 ### Removed
 - The command files that only restated their skill with defaults attached. A
   command's description is always-on context and the skill's is what the model

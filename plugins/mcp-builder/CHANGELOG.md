@@ -6,6 +6,11 @@ All notable changes to `mcp-builder`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `mcp-review` says what an MCP server looks like in a file (`@mcp.tool` and
+  friends) and points at `tool-schema-review` for tools passed straight to the
+  API. The two had overlapping descriptions and no way to tell them apart.
+
 ### Fixed
 - `choose-transport`, `mcp-roots-check` and `check_mcp_server.py` told apart
   two different losses that had been described as one. `stateless_http=True`

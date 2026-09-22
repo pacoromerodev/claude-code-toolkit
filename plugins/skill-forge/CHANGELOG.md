@@ -6,45 +6,10 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
-### Fixed
-- Three claims about skills corrected against the Claude Code documentation.
-  Every frontmatter field is optional — only `description` decides whether a
-  skill fires, so a missing `name` is a warning, not an error. A `name` that
-  differs from its directory is a warning too: the skill loads, and the two
-  names do different jobs (the command segment in a plugin, the listing label
-  outside one). A description is truncated at 1,536 characters rather than
-  rejected at 1,024, so the finding says what is lost — everything past the
-  cut, in the field the model reads to decide.
-- `write-a-skill` sent the reader to `docs/anatomy.md`, which this plugin does
-  not ship (AUDIT L7). The decision it pointed at — skill, command, subagent
-  or hook — is now a table in the skill itself, and `audit_skills.py` reports
-  a body that points at a file the plugin does not ship, which is how the dead
-  link was found.
-- `write-a-skill` covers how skills and subagents compose: a subagent's
-  `skills:` list preloads a procedure into its startup context, and a skill
-  can fork its own work to an agent.
-
-
-### Removed
-- The command files that only restated their skill with defaults attached. A
-  command's description is always-on context and the skill's is what the model
-  matches on, so a wrapper paid twice for one component. What the wrappers
-  added is now in the skill bodies, where it applies whether the skill was
-  typed or fired on its own. `/new-skill`; the skill answers to `/skill-
-  forge:write-a-skill`.
-
-### Added
-- The overlap check reaches past the skills directory. Given a plugin's
-  `skills/`, `audit_skills.py` also reads the descriptions of the agents and
-  commands beside it: the model picks between a skill, an agent and a command
-  on the same evidence, so a command that restates its skill's description is
-  the same ambiguity as two skills that do.
-- `audit_skills.py` reports a bare `Bash` in `allowed-tools` as an error and
-  pre-approved `Write`/`Edit` as a warning, in every form the field accepts
-  (comma- or space-separated, flow list, YAML list). `--json` findings carry a
-  `rule` field.
-
 ### Changed
+- `write-a-skill` is for writing one. A skill that exists and does not fire
+  is handed to `audit-skills` and `skill-describer` by name, so the three stop
+  competing for the same prompt.
 - `audit-finds-faults` eval plants a loose `SKILL.md` (never loads) instead of a
   name that differs from its directory, which Claude Code still loads.
 
