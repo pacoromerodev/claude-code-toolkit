@@ -12,7 +12,7 @@ Verification before you trust a change.
 |---|---|---|
 | `verify-changes` | Skill | You ask to verify, double-check or confirm a change, or are about to commit or open a PR |
 | `code-reviewer` | Subagent | You ask for a review or a second opinion, or `/review` is run |
-| `guard_secrets` | PreToolUse hook | Always, on `Write`, `Edit`, `NotebookEdit` and `Bash` |
+| `guard_secrets` | PreToolUse hook | Always, on `Write`, `Edit`, `NotebookEdit`, `Bash` and `PowerShell` |
 | `guard_destructive` | PreToolUse hook | Always, on `Bash` |
 | `test_gate` | Stop hook | Only in projects that opt in |
 | `/verify`, `/review` | Commands | Typed |
@@ -62,8 +62,8 @@ leaking it. Anything that writes, including `aws configure set`, is scanned.
 `PLACEHOLDER`, `REDACTED`, `CHANGEME`, `DUMMY`, `FAKE`, `YOUR_*`, `<angle
 brackets>`, `${VARS}`, `$UPPERCASE`, five or more `x`. These markers are
 **case-sensitive** on purpose: lowercase `example` appears in the reserved
-documentation domains, and matching it would let a real password through in
-`mongodb://admin:hunter2@cluster0.example.net`.
+documentation domains, and matching it would let a real password through in a
+connection string whose host is under one of them.
 
 If the guard itself fails — malformed payload, unexpected shape, any exception
 — it exits clean and lets the call through. A guard that silently stops
@@ -156,7 +156,7 @@ printed.
 plugins/delivery-quality/tests/run.sh
 ```
 
-97 fixture cases across both guards and the gate: secrets that must block,
+99 fixture cases across both guards and the gate: secrets that must block,
 paths that must block, destructive commands that must block, legitimate values
 and commands that must pass, and malformed input that must fail open. Adding a
 pattern without a fixture — in both directions — is not done.

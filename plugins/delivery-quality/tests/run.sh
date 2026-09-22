@@ -278,7 +278,32 @@ gate_case "bounds enormous output" "$(gate_run "$proj")" '
 import json,sys
 ctx = json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]
 assert len(ctx) < 6000, "additionalContext is %d characters" % len(ctx)'
-rm -r -f "$proj" "$bare" "$remote"
+
+echo
+echo "== the tree Claude is in, not the one the session started in =="
+# CLAUDE_PROJECT_DIR stays at the session's starting directory; the payload's
+# cwd follows Claude into a worktree. A hook that trusts the variable checks
+# the wrong tree: a clean main checkout while the worktree has the failure.
+main_checkout="$(gate_project)"
+tree="$(mktemp -d)/wt"
+( cd "$main_checkout" && git worktree add -q --detach "$tree" HEAD \
+    && printf '{"command": ["false"]}' > "$tree/.claude/test-gate.json" ) >/dev/null 2>&1
+mkdir -p "$tree/.claude" && printf '{"command": ["false"]}' > "$tree/.claude/test-gate.json"
+worktree_out="$(printf '{"cwd":"%s","hook_event_name":"Stop"}' "$tree" \
+  | env CLAUDE_PROJECT_DIR="$main_checkout" "$PY" "$SCRIPTS/test_gate.py" 2>/dev/null)"
+gate_case "test_gate uses the worktree it was called in" "$worktree_out" '
+import json,sys
+assert "exited 1" in json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]'
+
+echo two > "$tree/src/app.txt"
+reset_in_tree="$(printf '{"tool_name":"Bash","tool_input":{"command":"git reset --hard"},"cwd":"%s"}' "$tree")"
+if [[ "$(printf '%s' "$reset_in_tree" | env CLAUDE_PROJECT_DIR="$main_checkout" "$PY" "$SCRIPTS/guard_destructive.py" >/dev/null 2>&1; echo $?)" == 2 ]]; then
+  printf 'ok    %-28s %s\n' guard_destructive.py "sees changes in the worktree, not the start directory"; ((pass++))
+else
+  printf 'FAIL  %-28s %s\n' guard_destructive.py "checked the wrong tree"; ((fail++))
+fi
+( cd "$main_checkout" && git worktree remove --force "$tree" ) >/dev/null 2>&1
+rm -r -f "$proj" "$bare" "$remote" "$main_checkout"
 
 echo
 echo "-------------------------------"

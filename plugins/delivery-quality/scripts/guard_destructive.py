@@ -56,15 +56,21 @@ def clip(text):
     return text if len(text) <= MAX_ECHO else text[:MAX_ECHO - 1] + "…"
 
 
-def project_root(payload):
-    for candidate in (
-        os.environ.get("CLAUDE_PROJECT_DIR"),
-        payload.get("cwd"),
-        os.getcwd(),
-    ):
+def working_directory(payload):
+    """Where Claude is now. The payload's cwd follows it into worktrees and
+    after cd; CLAUDE_PROJECT_DIR stays where the session started, which is a
+    different tree."""
+    for candidate in (payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR"), os.getcwd()):
         if candidate and Path(candidate).is_dir():
             return Path(candidate).resolve()
     return Path.cwd().resolve()
+
+
+def project_root(payload):
+    """The repository that holds the working directory, or the directory."""
+    cwd = working_directory(payload)
+    top = git(cwd, "rev-parse", "--show-toplevel")
+    return Path(top).resolve() if top else cwd
 
 
 def allowlist(root):
