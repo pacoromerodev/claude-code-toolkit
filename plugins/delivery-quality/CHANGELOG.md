@@ -12,6 +12,11 @@ All notable changes to `delivery-quality`. Format follows
   Deleting a protected remote branch and `git push --mirror` are blocked.
   Allow rules exempt only the command they match, not a whole chained line.
   Block messages are written for the model and name what to do instead.
+- A failing suite comes back as Stop `additionalContext` rather than exit 2:
+  the turn continues as hook feedback, not a hook error, bounded by Claude
+  Code's own 8-continuation cap. The gate no longer skips its own re-entry,
+  so the run after a failure is what checks the fix. Output is clipped to 300
+  characters per line and 4,000 in total.
 
 ### Fixed
 - `review-format` and `verify-not-fired` evals had no fixture and could never
@@ -24,6 +29,15 @@ All notable changes to `delivery-quality`. Format follows
   was blocked. `.env.example` and its siblings are no longer blocked by name.
   A URL with a port and an at-sign in its path is no longer read as a
   connection string with a password.
+- `test_gate` parsed `CLAUDE_TEST_GATE_TIMEOUT` at import time, so a value
+  like `15m` took the hook down with a traceback. A project timeout longer
+  than the hook's own 960s is now clamped: the harness would have cut the run
+  off before the feedback was printed.
+  `only_when_changed` counts work already committed on the branch, not just
+  the working tree, so committing mid-session no longer skips the gate.
+  An enabled gate that cannot run (no runner, unreadable config) says so
+  through `systemMessage` instead of writing to a channel only the debug log
+  sees.
 
 ### Removed
 - Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
