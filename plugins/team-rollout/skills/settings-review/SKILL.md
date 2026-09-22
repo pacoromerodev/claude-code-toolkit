@@ -1,7 +1,7 @@
 ---
 name: settings-review
 description: Reviews a Claude Code settings file for permissions that are wider than intended, unpinned plugin marketplaces, literal credentials and hooks that will not resolve. Use when writing or reviewing settings.json or a managed policy, when deciding what a team may run without prompting, or when a hook does not fire.
-allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py *)
+allowed-tools: Read, Glob, Grep, Bash
 ---
 
 # Reviewing settings

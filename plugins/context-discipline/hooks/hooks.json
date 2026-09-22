@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/save_state.py\"",
+            "command": "python3 ./scripts/save_state.py",
             "timeout": 20
           }
         ]
