@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: score-jumped-after-examples
+description: >-
+  A score that moved after two changes at once. The answer must separate them
+  before crediting either.
+tags: [eval-harness, skill]
+execution:
+  prompt: |
+    My summarisation prompt went from 4 to 8 on our eval. I added three
+    worked examples and also rewrote the instructions to say the summary must
+    be under 150 words, lead with the decision, and list owners. Examples are
+    clearly the thing that works — should I add ten more?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

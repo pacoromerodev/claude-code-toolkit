@@ -15,6 +15,14 @@ All notable changes to `api-patterns`. Format follows
   `/api-patterns:eval-harness` and `/api-patterns:prompt-cache-audit`.
 
 ### Changed
+- `eval-harness` credits the score jump to the right technique. The move from
+  about 3.9 to about 7.9 comes from explicit output guidelines — a length, a
+  structure, the elements the answer must contain, or the steps to work
+  through — not from examples, which the skill previously named. Examples are
+  now what you add next, for the edge cases and formats the guidelines cannot
+  carry, and the skill says to take them from the highest-scoring outputs
+  already in the eval rather than inventing them. It also says how to have a
+  fast model draft the dataset, and what to check before trusting it.
 - `prompt-cache-audit` and `check_caching.py` match the API as documented
   today. Caching is not "never automatic": one `cache_control` at the top
   level of a request caches the growing history by itself, and the skill now

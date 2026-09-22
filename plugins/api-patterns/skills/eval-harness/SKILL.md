@@ -26,6 +26,15 @@ What goes in it:
 Keep it in a file, not in the conversation. An eval you cannot re-run is a
 one-off opinion.
 
+**Generating it.** Writing thirty cases by hand is where most evals die, so
+have a fast, cheap model write the first draft: ask for a JSON array, one
+object per case, with the fields your runner reads and one worked example of
+the shape. Say what a solvable case looks like for your task, or you get
+thirty variations of the same easy one. Parse it by prefilling the assistant
+turn with an opening fence and stopping on the closing one, then read the
+cases yourself — you are looking for the ones that are too easy, and for the
+edge case the model did not think to write.
+
 ## 2. Graders
 
 Use both kinds and average them. They fail in different directions, which is
@@ -91,16 +100,31 @@ either.
 
 ## Where prompts actually improve
 
-Measured against the same dataset, the same prompt at three levels of effort:
+The same prompt, the same dataset, three levels of effort:
 
 | | Score |
 |---|---|
-| Vague instruction | 2.3 |
-| Clear and specific, with an output guide | 3.9 |
-| Plus structure, examples and step ordering | 7.9 |
+| Vague request | 2.3 |
+| An instruction, not a question: an action verb, the task in the first line | 3.9 |
+| Plus explicit output guidelines | 7.9 |
 
-The jump is in the third row, and it comes from examples of the output you
-want — not from more adjectives about quality.
+The big jump is the third row, and it is not "more adjectives about quality".
+It is naming what the output must satisfy — length, structure, the elements it
+has to contain, the tone — or the steps to work through when the task needs
+thinking, rather than describing the result you hope for. "Under 1,000 words,
+one scene that shows the talent, at least one secondary character" moves a
+score; "well written" does not.
+
+**Examples come next, not instead.** Once the guidelines are in place, add one
+or more worked examples for the cases they cannot carry: an edge case, an
+exact output format, a tone, an ambiguous input. Wrap each in tags that mark
+the input and the ideal answer, say plainly that it is an example with the
+answer you want, and say *why* that answer is the right one.
+
+The eval is where the examples come from. The cases the current prompt already
+scores highest are, by definition, outputs you would be happy to receive —
+lift those into the prompt rather than inventing new ones, and keep them
+covering the failures you actually see.
 
 ## Running it
 
