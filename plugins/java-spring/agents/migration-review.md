@@ -1,6 +1,6 @@
 ---
 name: migration-review
-description: Reviews a database migration for what breaks during a rolling deploy — locks, destructive changes, unbounded backfills, missing rollbacks. Use proactively whenever a Flyway or Liquibase file is added or changed, before a release that carries a schema change, or when the user asks whether a migration is safe.
+description: Reviews a database migration for what breaks during a rolling deploy — locks, destructive changes, unbounded backfills, missing rollbacks. Use proactively whenever a Flyway or Liquibase file is added or changed, before a release that carries a schema change, or when the user asks whether a migration is safe. Pass the migration files and the table's rough size if it is known.
 tools: Read, Glob, Grep, Bash
 model: inherit
 color: orange

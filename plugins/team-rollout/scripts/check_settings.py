@@ -34,6 +34,12 @@ SECRETLIKE = re.compile(
 SECRET_KEY_NAME = re.compile(
     r"(api_?key|token|secret|password|credential)", re.I)
 
+MISSING = object()
+
+# Source types a marketplace entry may declare.
+MARKETPLACE_SOURCES = {"github", "git", "git-subdir", "url", "npm", "file",
+                       "directory", "hostPattern", "pathPattern", "skills-dir"}
+
 DANGEROUS_FLAGS = {
     "dangerouslySkipPermissions": "bypasses every permission check",
     "bypassPermissions": "bypasses every permission check",
@@ -59,6 +65,75 @@ def walk_strings(node, trail=""):
             yield from walk_strings(value, f"{trail}[{index}]")
     elif isinstance(node, str):
         yield trail, node
+
+
+def check_marketplaces(data, managed, findings):
+    """The allowlist is an array of source objects, and it registers nothing.
+
+    A boolean here reads as "restricted" and is not: Claude Code rejects the
+    value, so the policy does not apply at all.
+    """
+    strict = data.get("strictKnownMarketplaces", MISSING)
+
+    if strict is MISSING:
+        if managed:
+            findings.append(Finding(
+                "warning", "strictKnownMarketplaces", "open-marketplaces",
+                "marketplaces are not restricted",
+                "A plugin runs code with the user's privileges and its hooks "
+                "stack with everyone else's. Pin the marketplaces people may "
+                "install from."))
+    elif not isinstance(strict, list):
+        findings.append(Finding(
+            "error", "strictKnownMarketplaces", "strict-not-a-list",
+            f"strictKnownMarketplaces is {type(strict).__name__}, not an array",
+            "It is an allowlist of marketplace source objects, such as "
+            '[{"source": "github", "repo": "acme/plugins", "ref": "v1.0"}]. '
+            "A value of another type is rejected, so nothing is restricted. "
+            "An empty array blocks every marketplace, the official one "
+            "included."))
+    else:
+        if not strict:
+            findings.append(Finding(
+                "info", "strictKnownMarketplaces", "marketplace-lockdown",
+                "the allowlist is empty, which blocks every marketplace",
+                "Including the official Anthropic one. Deliberate for a locked "
+                "-down fleet; a mistake if plugins are meant to work."))
+        for index, entry in enumerate(strict):
+            path = f"strictKnownMarketplaces[{index}]"
+            if not isinstance(entry, dict) or "source" not in entry:
+                findings.append(Finding(
+                    "error", path, "marketplace-entry",
+                    "entry is not a source object",
+                    'Each entry names a source type, e.g. {"source": "github", '
+                    '"repo": "acme/plugins"}.'))
+            elif entry["source"] not in MARKETPLACE_SOURCES:
+                findings.append(Finding(
+                    "warning", path, "marketplace-source",
+                    f"unknown source type {entry['source']!r}",
+                    "Claude Code accepts: " + ", ".join(sorted(MARKETPLACE_SOURCES)) + "."))
+
+    if "knownMarketplaces" in data:
+        findings.append(Finding(
+            "error", "knownMarketplaces", "unknown-setting",
+            "there is no knownMarketplaces setting",
+            "Nothing reads this key. The allowlist is "
+            "strictKnownMarketplaces (managed only); registering a "
+            "marketplace for everyone is extraKnownMarketplaces."))
+
+    extra = data.get("extraKnownMarketplaces") or {}
+    if isinstance(extra, dict):
+        for name, entry in extra.items():
+            source = (entry or {}).get("source") if isinstance(entry, dict) else None
+            if not isinstance(source, dict):
+                continue
+            if source.get("source") in {"github", "git", "git-subdir"} and not source.get("ref"):
+                findings.append(Finding(
+                    "warning", f"extraKnownMarketplaces.{name}", "unpinned-marketplace",
+                    "registered from a git source with no ref",
+                    "Whatever the default branch holds is what the team "
+                    "installs, and it can change under them. Pin a tag or a "
+                    'branch with "ref".'))
 
 
 def check(data, managed, findings):
@@ -101,13 +176,7 @@ def check(data, managed, findings):
             "in. Say what the organisation's default is."))
 
     # --- marketplaces and plugins ---
-    if managed and "strictKnownMarketplaces" not in json.dumps(data):
-        findings.append(Finding(
-            "warning", "strictKnownMarketplaces", "open-marketplaces",
-            "marketplaces are not restricted",
-            "A plugin runs code with the user's privileges and its hooks "
-            "stack with everyone else's. Pin the marketplaces people may "
-            "install from."))
+    check_marketplaces(data, managed, findings)
 
     # --- secrets ---
     for path, value in walk_strings(data):
@@ -148,8 +217,8 @@ def check(data, managed, findings):
                             "error", f"hooks.{event}[{index}]", "relative-hook",
                             f"hook command is a relative path: {command!r}",
                             "It resolves against whatever directory the "
-                            "session started in. Use $CLAUDE_PROJECT_DIR or "
-                            "${CLAUDE_PLUGIN_ROOT}."))
+                            'session started in. Use "$CLAUDE_PROJECT_DIR"/… '
+                            "— quoted, because the path can contain a space."))
                     if "timeout" not in hook and event in {"Stop", "PreCompact",
                                                            "SessionStart"}:
                         findings.append(Finding(

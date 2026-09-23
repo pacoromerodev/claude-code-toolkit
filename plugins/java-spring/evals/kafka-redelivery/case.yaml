@@ -3,7 +3,7 @@ name: kafka-redelivery
 description: >-
   A consumer with auto-commit and a non-idempotent handler. The review must
   start from at-least-once delivery, not from style.
-tags: [kafka-consumer, skill]
+tags: [kafka-consumer, skill, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -13,4 +13,4 @@ execution:
   max_turns: 16
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Skill]
-runs: 1
+runs: 3

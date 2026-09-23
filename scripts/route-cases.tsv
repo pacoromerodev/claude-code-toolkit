@@ -1,0 +1,16 @@
+# name	expected	prompt
+skill-not-firing	audit-skills	One of my skills never triggers and I cannot work out why. Can you check the skills folder?
+write-new-skill	write-a-skill	I keep explaining the same release checklist to Claude. Turn it into a skill I can reuse.
+description-rewrite	skill-describer	This skill's description is the problem — nothing matches it. Write me some alternatives.
+api-tools-ignored	tool-schema-review	Claude never calls the get_invoice tool in our tools array, it just answers from memory. The definitions are in billing/tools.py.
+mcp-tools-ignored	mcp-review	Our MCP server exposes six tools through @mcp.tool and the client only ever uses one of them. server.py is in the repo root.
+review-the-diff	code-reviewer	Give me a second opinion on what I just changed before I share it.
+verify-the-change	verify-changes	I finished the fix. Can you confirm it actually works rather than taking my word for it?
+java-test-level	test-shape	Adding a JUnit test for a Spring service that calls a repository. Mock the repository or use @SpringBootTest?
+caching-not-hitting	prompt-cache-audit	We added cache_control to our Messages calls and the bill did not move. Where do I look?
+retrieval-misses	rag-retriever	Search keeps missing documents that obviously match the question. What is wrong with our retrieval?
+rollout-order	plan-rollout	We are giving Claude to about 300 people next quarter. Where do I start?
+settings-ignored	settings-review	A rule in our .claude/settings.json seems to be ignored on some machines. Can you look at the settings files?
+migration-safety	migration-review	Is this Flyway migration safe to run during a rolling deploy?
+transport-choice	choose-transport	We need our MCP server to run behind a load balancer with several replicas. How do I set that up?
+plain-question	none	What is the difference between a skill and a slash command in Claude Code?

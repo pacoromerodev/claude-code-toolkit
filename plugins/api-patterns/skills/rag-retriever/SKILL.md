@@ -1,7 +1,7 @@
 ---
 name: rag-retriever
 description: Designs retrieval for a RAG system — chunking, embeddings, keyword search and fusing the two — and says which failure each part fixes. Use when building or debugging retrieval, when search misses documents that obviously match, or when deciding how to chunk a corpus.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fuse.py *)
 ---
 
 # Retrieval that finds the right thing
@@ -60,7 +60,7 @@ over each retriever `r` where document `d` appears, rank starting at 1, `k`
 around 60.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/fuse.py" rankings.json
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fuse.py rankings.json
 ```
 
 Two properties are why this is the default:
@@ -80,19 +80,32 @@ Worth it when precision matters more than latency, since it costs a model call.
 
 ## Contextual retrieval
 
-A chunk taken out of its document loses what it was about. Prepending a
-one-sentence situating summary to each chunk before embedding it measurably
-improves retrieval:
+A chunk taken out of its document loses what it was about. "It must be renewed
+90 days before expiry" — what must? Prepend one generated sentence of context
+to each chunk before you embed it, and index the pair.
+
+The prompt needs both halves, or the model has nothing to place the chunk
+against:
 
 ```
-Here is the chunk we want to situate within the whole document:
-<chunk>{chunk}</chunk>
-Write a short, succinct snippet that situates this chunk within the document,
-to improve search retrieval of the chunk. Answer only with the snippet.
+<document>{document}</document>
+
+<excerpt>{chunk}</excerpt>
+
+The excerpt comes from the document above. Name, in one or two sentences, what
+part of it this is and what it refers to, so that someone reading the excerpt
+alone would know. Reply with those sentences only.
 ```
 
-For a document too large to pass whole, give the model the opening chunks plus
-the immediately preceding ones — enough to know where it is.
+Prepend the reply to the chunk, embed that, and keep the same pair in the
+keyword index.
+
+**When the document will not fit:** pass its first few chunks, which usually
+carry the title and summary, together with the handful immediately before this
+one. That is enough to place it, and it is bounded.
+
+**Cost:** one model call per chunk, at ingest. Cache the document part of the
+prompt and the calls for one document share it.
 
 ## Debugging retrieval
 

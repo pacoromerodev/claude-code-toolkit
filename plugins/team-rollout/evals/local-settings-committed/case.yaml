@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: local-settings-committed
+description: >-
+  A personal preference committed to the project file. The answer must place the rule, not only fix it.
+tags: [settings-review, skill]
+execution:
+  prompt: |
+    Someone committed `.claude/settings.json` with their own permission
+    allow-list in it — about thirty Bash entries for their local tooling — and
+    now everyone has them. I can revert it, but people keep doing this. What
+    should the project file actually contain?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

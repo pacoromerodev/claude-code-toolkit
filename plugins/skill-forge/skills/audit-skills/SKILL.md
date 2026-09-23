@@ -1,7 +1,7 @@
 ---
 name: audit-skills
 description: Check a directory of skills for the faults that stop them firing — a name that does not match its directory, a description that never says when to use the skill, a SKILL.md in the wrong place, overlapping descriptions, oversized bodies, unreferenced files. Use when a skill is not triggering, before sharing or publishing skills, or when the user asks to review, audit or check their skills.
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py *)
 ---
 
 # Auditing skills
@@ -13,12 +13,13 @@ that needs judgement: the description.
 ## Run it
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py" <path>
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/audit_skills.py <path>
 ```
 
 Point it at a directory of skill directories (`.claude/skills`,
-`~/.claude/skills`, `plugins/*/skills`) or at one skill. Add `--json` when you
-need to process the result rather than read it.
+`~/.claude/skills`, `plugins/*/skills`) or at one skill. With no path given,
+audit `.claude/skills`, and `~/.claude/skills` as well when it exists. Add
+`--json` when you need to process the result rather than read it.
 
 Exit 1 means at least one error. Warnings alone exit 0 — they are judgement
 calls, not violations.
@@ -54,7 +55,7 @@ point at it from the body or delete it.
 ## Reporting back
 
 Lead with the errors — those are breakage, not opinion. Then the warnings,
-grouped by skill, with the fix rather than the restatement.
+grouped by skill, each with the fix rather than a restatement of the problem.
 
 If the audit is clean but the skill still does not fire, the problem is the
 description's wording, not its structure. Hand it to `skill-describer` for

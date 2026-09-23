@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: connector-with-write
+description: >-
+  A request to give one team a write-capable connector. The answer must reach
+  the three gates, read before write, and who signs it off.
+tags: [plan-rollout, skill]
+execution:
+  prompt: |
+    Payments team wants the Drive connector with write access so Claude can
+    update the reconciliation sheets directly. I'm an admin, I can turn it on
+    this afternoon. Anything I should know first?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

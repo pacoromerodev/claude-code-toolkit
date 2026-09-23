@@ -6,19 +6,26 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read is all any of this needs. Stated rather than inherited, so widening it
+# is a visible change to this file.
+permissions:
+  contents: read
+
 jobs:
   manifests:
     name: Manifests and consistency
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.278
 
       - name: Validate the marketplace manifest
         run: claude plugin validate .
@@ -36,14 +43,64 @@ jobs:
       - name: Every plugin has a marketplace entry, with matching versions
         run: python3 .github/scripts/check_consistency.py
 
+      - name: Hooks point at scripts that exist
+        run: python3 .github/scripts/check_hooks.py
+
+      - name: No two components answer to one name
+        run: python3 .github/scripts/check_names.py
+
+      - name: Workflows are scoped, pinned and free of interpolated shell
+        run: python3 .github/scripts/check_workflows.py
+
+      - name: No sentence is a sentence from the course notes
+        run: python3 .github/scripts/check_course_wording.py --enforce
+
+      - name: Every skill has the cases CONTRIBUTING asks for
+        run: python3 .github/scripts/check_eval_coverage.py --enforce
+
+      - name: Eval cases are runnable and graded both ways
+        run: python3 .github/scripts/check_eval_cases.py
+
+      # The auditor this repository ships, turned on the skills it ships.
+      - name: Skills pass our own auditor
+        run: python3 plugins/skill-forge/scripts/audit_skills.py plugins/*/skills
+
+      # This repository's own CLAUDE.md, held to the checker it ships.
+      - name: CLAUDE.md follows its own advice
+        run: python3 plugins/context-discipline/scripts/check_claude_md.py CLAUDE.md
+
+      # Not a hook, so it may use a dependency; the schema itself is vendored.
+      - name: Settings files match the published schema
+        run: |
+          python3 -m pip install --quiet jsonschema
+          python3 .github/scripts/validate_settings_schema.py
+
+      - name: The CI scripts pass their own fixtures
+        run: bash .github/scripts/tests/run.sh
+
+      - name: The local eval runner skips what it cannot run, and says so
+        run: bash scripts/tests/run-evals.test.sh
+
+      # The route check itself needs a logged-in CLI and costs a session per
+      # prompt, so CI runs it against a stub: what is tested here is that it
+      # reads a transcript correctly and fails on a mis-route.
+      - name: The route check reads a transcript correctly
+        run: bash scripts/tests/route-check.test.sh
+
   hooks:
     name: Hook scripts
-    runs-on: ubuntu-latest
+    # Pinned, not latest: 3.8 has no build for Ubuntu 26.04, so the day the
+    # latest image moves is the day the floor stops being tested. The floor
+    # itself lives in check_stdlib_only.py, which fails if this matrix and it
+    # disagree.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ["3.8", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
@@ -66,13 +123,33 @@ jobs:
           done
           exit $status
 
+      # The step above runs in a checkout that compileall has already written
+      # into, so it cannot see stray files. Run the suites again in a fresh
+      # worktree and require it to stay clean, ignored files included.
+      - name: Fixture tests leave no files behind
+        run: |
+          clean="$(mktemp -d)/wt"
+          git worktree add --quiet --detach "$clean" HEAD
+          cd "$clean"
+          for runner in plugins/*/tests/run.sh; do
+            bash "$runner" > /dev/null || exit 1
+          done
+          leftovers="$(git status --porcelain --ignored)"
+          if [ -n "$leftovers" ]; then
+            echo "::error::the fixture tests wrote into the repository:"
+            echo "$leftovers"
+            exit 1
+          fi
+
   shell:
     name: Shell scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: shellcheck
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          find plugins .github -name '*.sh' -print0 | xargs -0 -r shellcheck -S warning
+          find plugins .github scripts -name '*.sh' -print0 | xargs -0 -r shellcheck -S warning

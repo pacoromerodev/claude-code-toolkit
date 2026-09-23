@@ -1,7 +1,7 @@
 ---
 name: test-shape
-description: Decides what to test at which level and how to write the test so it asserts behaviour rather than implementation. Use when adding tests, when the user asks what to test or whether to mock something, when a test breaks on every refactor, or when reviewing a change that has no test.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+description: Decides what to test at which level in a Java or Spring Boot project — unit, slice or @SpringBootTest — and how to write it so it asserts behaviour rather than implementation. Use when adding tests to Java code, when the user asks what to test or whether to mock something, when a JUnit test breaks on every refactor, or when reviewing a Spring change that has no test.
+allowed-tools: Read, Glob, Grep
 ---
 
 # What to test, and where

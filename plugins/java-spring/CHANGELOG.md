@@ -6,6 +6,36 @@ All notable changes to `java-spring`. Format follows
 
 ## [Unreleased]
 
+### Added
+- Six cases: `records-or-lombok`, `out-of-order-updates`,
+  `transaction-boundary`, `what-to-test`, `legacy-date-parsing`,
+  `config-in-service` and `flaky-time-test`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
+### Changed
+- `test-shape` names Java, Spring Boot and JUnit. Without them it matched any
+  testing question in any language, which is not what it knows about.
+
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/new-endpoint`; the skill answers to `/java-
+  spring:spring-boot-service`. `/review-migration` stays, because it launches
+  the subagent.
+
+### Fixed
+- `not-fired` eval grader states what a correct answer looks like, not only
+  what scores badly.
+
+### Security
+- Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
+  grants tools without a prompt on the turn a skill fires; it restricts
+  nothing. Read tools stay pre-approved, and Bash only for the plugin's own
+  script, as an exact prefix. Everything else goes through the normal prompt.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

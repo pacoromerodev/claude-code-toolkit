@@ -11,7 +11,17 @@ Run the three checks in order. Do not skip a check because an earlier one looked
 
 ## 1. Run the tests
 
-Detect the runner from the files present, in this order:
+**If the project says how to run them, that wins.** Check first:
+
+| File | What to run |
+|---|---|
+| `.claude/test-gate.json` | The `command` it names |
+| `.claude/test-gate.sh` | That script |
+
+Those are what this project's own gate runs, so a verification that runs
+something else is verifying a different thing.
+
+Otherwise detect the runner from the files present, in this order:
 
 | File | Command |
 |---|---|
@@ -29,8 +39,16 @@ Capture the real output. A failing suite ends the verification: report the failu
 ## 2. Read the diff
 
 ```bash
+git status --porcelain
 git diff HEAD
+git ls-files --others --exclude-standard
 ```
+
+**`git diff` does not show a file that was never added.** A change made
+entirely of new files produces an empty diff, and a verification that reads
+only the diff reports nothing wrong with code it never saw. Read every
+untracked file in full — the third command lists them — and treat it as a
+hunk that is all additions.
 
 Read every hunk, not the summary. You are looking for what the change does beyond what was asked:
 
@@ -39,6 +57,50 @@ Read every hunk, not the summary. You are looking for what the change does beyon
 - Error paths that swallow the error, empty `catch` blocks, broad `except`
 - Changes to files nobody asked you to touch
 - Behaviour changes not covered by any test
+
+## 2a. If the change adds a dependency
+
+A package name that looks right is not a package that exists. A generated
+import, a name half-remembered from another ecosystem, and a typo all read the
+same in a diff — and a plausible name that nobody owns is also how a
+dependency gets taken over later.
+
+For each package the change introduces, confirm it resolves:
+
+| Ecosystem | Check |
+|---|---|
+| npm | it is in `package-lock.json`, or `npm view <name> version` answers |
+| Python | it is in the lockfile (`poetry.lock`, `uv.lock`, `requirements.txt` with a pin), or `pip index versions <name>` answers |
+| Maven / Gradle | the coordinates appear in the lockfile, or resolve from the declared repositories |
+| Go | `go mod download <module>` succeeds |
+| Cargo | it is in `Cargo.lock`, or `cargo search <name>` answers |
+
+Report a package that does not resolve as a finding, with the name and where
+it was introduced. Say what you checked against — the lockfile, or the
+registry — because "it installs on my machine" and "it is in the lockfile" are
+different facts.
+
+## 2b. If the change touches a workflow
+
+A workflow runs with nobody watching, and a change to one is not covered by
+any test. When the diff includes `.github/workflows/`, check each of these and
+report what you found:
+
+- **`permissions:`** is declared. Without it the job gets the repository
+  default, which is usually more than it needs.
+- **Checkout does not keep the token.** `persist-credentials: false`, unless
+  something later genuinely pushes.
+- **Nothing is interpolated into a shell.** A `${{ }}` inside a `run:` block
+  is pasted in as text before the shell sees it, so an issue title or a
+  comment body becomes part of the command. Pass values through `env:`.
+- **Versions are pinned** — the action, and any CLI installed by the job.
+  `@main` is whatever it holds today.
+- **If the job runs Claude:** a turn cap, tools granted narrowly rather than
+  as whole tools, and no permission bypass. Unattended is exactly where those
+  matter.
+
+`.github/scripts/check_workflows.py` in this repository checks all of them,
+and is worth stealing.
 
 ## 3. Check the tests were not weakened
 

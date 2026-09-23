@@ -1,6 +1,6 @@
 ---
 name: skill-describer
-description: Writes and compares candidate descriptions for a skill, naming which prompts each one would and would not match. Use when a skill is not firing, when a new skill needs its description written, or when two skills overlap and need separating.
+description: Writes and compares candidate descriptions for a skill, naming which prompts each one would and would not match. Use when a skill is not firing, when a new skill needs its description written, or when two skills overlap and need separating. Give it the skill body, or the procedure the skill will hold, and the skills it sits beside.
 tools: Read, Glob, Grep
 model: inherit
 color: cyan

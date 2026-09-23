@@ -21,7 +21,9 @@ import sys
 from pathlib import Path
 
 NAME_MAX = 64
-DESCRIPTION_MAX = 1024
+# The listing truncates a description at this many characters. Past it the
+# skill still loads; the tail simply never reaches the model.
+DESCRIPTION_MAX = 1536
 BODY_MAX_LINES = 500
 
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -43,15 +45,17 @@ KNOWN_MODELS = {"haiku", "sonnet", "opus", "inherit"}
 
 
 class Finding:
-    def __init__(self, level, skill, message, hint=None):
+    def __init__(self, level, skill, message, hint=None, rule=None):
         self.level = level
         self.skill = skill
         self.message = message
         self.hint = hint
+        self.rule = rule
 
     def as_dict(self):
         return {
             "level": self.level,
+            "rule": self.rule,
             "skill": self.skill,
             "message": self.message,
             "hint": self.hint,
@@ -89,24 +93,72 @@ def parse_frontmatter(text):
     return data, body, None
 
 
+# A path the body tells the reader to open: inside the skill or the plugin,
+# not the user's own project and not a URL.
+CITED = re.compile(r"`((?:references|assets|scripts|docs)/[\w./-]+\.\w+)`")
+
+
+def cited_files(body):
+    """Paths the body points at that the plugin is expected to ship."""
+    return sorted({match.group(1) for match in CITED.finditer(body)})
+
+
 def tokens(text):
     return {w for w in re.findall(r"[a-z]{4,}", text.lower())}
 
 
-def find_skills(target):
-    """Every SKILL.md under this path, plus the directories that look like a
-    skill but have none."""
-    target = Path(target)
-    found, missing = [], []
+def tool_entries(raw):
+    """Split an `allowed-tools` value into entries, in any of the forms Claude
+    Code accepts: comma- or space-separated, a flow list `[a, b]`, or a block
+    list (which the frontmatter parser flattens to `- a - b`). Parentheses are
+    respected, so `Bash(git add *)` stays one entry."""
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        raw = raw[1:-1]
+    entries, current, depth = [], "", 0
+    for char in raw:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        if depth == 0 and (char == "," or char.isspace()):
+            if current:
+                entries.append(current)
+            current = ""
+            continue
+        current += char
+    if current:
+        entries.append(current)
+    return [e.strip("\"'") for e in entries if e not in {"-", ""}]
 
-    if (target / "SKILL.md").is_file():
-        return [target / "SKILL.md"], []
+
+# A grant, not a restriction: every tool listed runs without a prompt on the
+# turn the skill fires. These entries hand over the whole tool.
+BARE_SHELL = {"Bash", "Bash(*)", "Bash(:*)", "PowerShell", "PowerShell(*)"}
+WRITE_TOOLS = {"Write", "Edit", "NotebookEdit"}
+
+
+def find_skills(target):
+    """Every SKILL.md under this path, the directories that look like a skill
+    but have none, and any SKILL.md sitting loose in a skills root."""
+    target = Path(target)
+    found, missing, loose = [], [], []
 
     if target.is_file() and target.name == "SKILL.md":
-        return [target], []
+        return [target], [], []
 
     if not target.is_dir():
-        return [], []
+        return [], [], []
+
+    # A directory holding SKILL.md is one skill, unless it also holds skill
+    # directories: then it is a skills root, and its SKILL.md is loose.
+    has_children = any(
+        (entry / "SKILL.md").is_file()
+        for entry in target.iterdir()
+        if entry.is_dir() and not entry.name.startswith(".")
+    )
+    if (target / "SKILL.md").is_file() and not has_children:
+        return [target / "SKILL.md"], [], []
 
     for entry in sorted(target.iterdir()):
         if not entry.is_dir() or entry.name.startswith("."):
@@ -119,12 +171,12 @@ def find_skills(target):
             if stray or (entry / "scripts").is_dir() or (entry / "references").is_dir():
                 missing.append(entry)
 
-    # A SKILL.md sitting loose in the directory: a real and common mistake,
+    # A SKILL.md sitting loose in the skills root: a real and common mistake,
     # because the skill silently never loads.
     if (target / "SKILL.md").is_file():
-        found.append(target / "SKILL.md")
+        loose.append(target / "SKILL.md")
 
-    return found, missing
+    return found, missing, loose
 
 
 def audit_one(path, findings):
@@ -149,8 +201,14 @@ def audit_one(path, findings):
     description = data.get("description", "")
 
     # --- name ---
+    # Claude Code loads a skill with no `name`; what it loses is a stable way
+    # to invoke and list it, which is a real cost, not a fatal one.
     if not name:
-        findings.append(Finding("error", label, "frontmatter has no `name`"))
+        findings.append(Finding(
+            "warning", label, "frontmatter has no `name`",
+            "The skill still loads, and is listed by its directory. Name it, "
+            "so the listing and the command do not depend on a folder someone "
+            "may rename."))
     else:
         if len(name) > NAME_MAX:
             findings.append(Finding(
@@ -163,9 +221,13 @@ def audit_one(path, findings):
                 f"hyphens"))
         if name != directory.name:
             findings.append(Finding(
-                "error", label,
+                "warning", label,
                 f"`name` is {name!r} but the directory is {directory.name!r}",
-                "They have to match, or the skill does not resolve."))
+                "The skill loads either way, but the two names do different "
+                "jobs and they now disagree: in a plugin the command is "
+                f"/<plugin>:{name}, while a personal or project skill is "
+                f"invoked as /{directory.name} and shows {name!r} in the "
+                "listing. Match them and the question does not arise."))
 
     # --- description ---
     if not description:
@@ -175,9 +237,11 @@ def audit_one(path, findings):
     else:
         if len(description) > DESCRIPTION_MAX:
             findings.append(Finding(
-                "error", label,
-                f"`description` is {len(description)} characters, over the "
-                f"{DESCRIPTION_MAX} limit"))
+                "warning", label,
+                f"`description` is {len(description)} characters; the listing "
+                f"truncates at {DESCRIPTION_MAX}",
+                "Everything past the cut is invisible to the model deciding "
+                "whether to fire this skill. Put the trigger first."))
         if len(description) < 40:
             findings.append(Finding(
                 "warning", label,
@@ -199,12 +263,30 @@ def audit_one(path, findings):
     # --- optional fields ---
     allowed = data.get("allowed-tools", "")
     if allowed:
-        declared = {t.strip() for t in re.split(r"[,\s]+", allowed) if t.strip()}
-        unknown = declared - KNOWN_TOOLS
+        entries = tool_entries(allowed)
+        declared = {entry.split("(", 1)[0] for entry in entries}
+        unknown = declared - KNOWN_TOOLS - {"PowerShell"}
         if unknown:
             findings.append(Finding(
                 "warning", label,
                 f"`allowed-tools` names unknown tool(s): {', '.join(sorted(unknown))}"))
+        bare = sorted(set(entries) & BARE_SHELL)
+        if bare:
+            findings.append(Finding(
+                "error", label,
+                f"`allowed-tools` pre-approves every shell command ({', '.join(bare)})",
+                "The field grants, it does not restrict: whenever the skill fires, "
+                "any command runs without a prompt. Scope it to the script the "
+                "skill runs, e.g. Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check.py *).",
+                rule="bare-bash"))
+        writes = sorted(set(entries) & WRITE_TOOLS)
+        if writes:
+            findings.append(Finding(
+                "warning", label,
+                f"`allowed-tools` pre-approves file writes ({', '.join(writes)})",
+                "Every write on the turn the skill fires goes through without a "
+                "prompt. Leave writes to the normal permission flow.",
+                rule="write-grant"))
 
     model = data.get("model", "")
     if model and model not in KNOWN_MODELS:
@@ -242,37 +324,231 @@ def audit_one(path, findings):
                 f"references/{reference.name} is never mentioned in SKILL.md",
                 "A reference nothing points at is never loaded."))
 
+    # The other direction: a body that sends the reader to a file the skill
+    # does not ship. Claude Code will not find it either — the instruction is
+    # a dead end wherever the skill is installed.
+    for cited in cited_files(body):
+        if not (directory / cited).exists() and \
+                not (directory.parent.parent / cited).exists():
+            findings.append(Finding(
+                "error", label, f"points at `{cited}`, which is not here",
+                "Nothing ships that path, so whoever follows the instruction "
+                "finds nothing. Ship the file, or say the thing inline."))
+
     return {"name": name or label, "description": description, "label": label}
 
 
-def check_overlap(skills, findings):
+def neighbours(target):
+    """Agents and commands sitting beside a skills directory.
+
+    A skill does not compete only with other skills. It competes with the
+    agents and commands installed alongside it, which the model chooses
+    between on the same evidence: their descriptions.
+    """
+    target = Path(target)
+    if target.is_file():
+        target = target.parent
+    plugin = target.parent if target.name == "skills" else None
+    if plugin is None:
+        return []
+
+    others = []
+    for kind, subdir in (("agent", "agents"), ("command", "commands")):
+        for path in sorted((plugin / subdir).glob("*.md")):
+            try:
+                data, body, error = parse_frontmatter(path.read_text(encoding="utf-8"))
+            except OSError:
+                continue
+            if error or not data.get("description"):
+                continue
+            others.append({
+                "name": data.get("name") or path.stem,
+                "description": data["description"],
+                "label": f"{kind} {path.stem}",
+                # A command whose body launches an agent is that agent's front
+                # door. Restating its description is the point, not a clash.
+                "launches": kind == "command" and "subagent" in body.lower(),
+            })
+    return others
+
+
+
+# --- subagents ---
+
+# Tools that change files. A reviewer with these has been given the ability to
+# "just fix it", which is the one thing a review must not do.
+EDIT_TOOLS = {"Write", "Edit", "NotebookEdit"}
+
+# An agent that reads and reports. Named from its own description, because
+# that is what the main thread reads when it decides to delegate.
+REVIEWING = re.compile(
+    r"\b(review|audit|inspect|analys|analyz|report|check|diagnos)\w*", re.I)
+
+# A section where the agent says what it could not do. A summary is all that
+# comes back from a subagent, so a gap it does not state is invisible.
+GAP_SECTION = re.compile(
+    r"^#{1,4}\s*(obstacles|not verified|what i could not|limitations|gaps|"
+    r"unverified|caveats)", re.I | re.M)
+
+# "You are a senior X expert" and its relatives.
+PERSONA = re.compile(
+    r"\byou are\s+(?:a|an|the)?\s*[^.\n]{0,40}?"
+    r"\b(expert|specialist|guru|ninja|wizard|master|authority|veteran)\b",
+    re.I)
+
+# Phrases that tell the main thread what to hand over when it delegates.
+HANDOVER = re.compile(
+    r"\b(pass|give it|hand it|provide|name the|tell it|say which|include the"
+    r"|specify)\b", re.I)
+
+
+def find_agents(target):
+    """Agent files under this path, or beside a skills directory."""
+    target = Path(target)
+    if target.is_file() and target.suffix == ".md" and target.parent.name == "agents":
+        return [target]
+    if not target.is_dir():
+        return []
+    if target.name == "agents":
+        return sorted(target.glob("*.md"))
+    if target.name == "skills":
+        return sorted((target.parent / "agents").glob("*.md"))
+    return sorted(target.glob("agents/*.md"))
+
+
+def audit_agent(path, findings):
+    """A subagent is judged on what comes back, because that is all that does."""
+    label = path.stem
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        findings.append(Finding("error", label, f"cannot be read: {error}"))
+        return None
+
+    data, body, error = parse_frontmatter(text)
+    if error:
+        findings.append(Finding(
+            "error", label, error,
+            "An agent needs frontmatter with at least `name` and "
+            "`description`: those are what the main thread sees."))
+        return None
+
+    name = data.get("name", "")
+    description = data.get("description", "")
+
+    if not name:
+        findings.append(Finding(
+            "error", label, "frontmatter has no `name`",
+            "The name is how the main thread delegates to it."))
+    elif name != label:
+        findings.append(Finding(
+            "warning", label,
+            f"`name` is {name!r} but the file is {label}.md",
+            "Delegation uses the name; everything else uses the filename. "
+            "Keep them the same."))
+
+    if not description:
+        findings.append(Finding(
+            "error", label, "frontmatter has no `description`",
+            "Every agent's description goes into the main thread's prompt. "
+            "Without one, nothing knows when to delegate here."))
+    else:
+        if not any(hint in description.lower() for hint in TRIGGER_HINTS):
+            findings.append(Finding(
+                "warning", label, "description never says when to delegate",
+                "The main thread chooses between agents on these descriptions "
+                "alone. Say the situation, in the words it would appear in."))
+        if not HANDOVER.search(description):
+            findings.append(Finding(
+                "warning", label, "description never says what to pass",
+                "The description also shapes the prompt the main thread "
+                "writes. Ask for what the agent needs — the files, the scope, "
+                "the sources — and the delegation will carry it."))
+
+    tools = tool_entries(data.get("tools", ""))
+    granted_edits = sorted(EDIT_TOOLS.intersection(tools))
+    if granted_edits and REVIEWING.search(description or label):
+        findings.append(Finding(
+            "error", label,
+            f"a reviewing agent with {', '.join(granted_edits)}",
+            "A review that can edit stops being a review: the finding gets "
+            "fixed in a context nobody sees, and the report says it was "
+            "fine. Leave the fixing to the thread that asked."))
+
+    persona = PERSONA.search(body) or PERSONA.search(description or "")
+    if persona:
+        findings.append(Finding(
+            "warning", label, f"persona line: {persona.group(0)!r}",
+            "It adds nothing the task description does not. Say what the "
+            "agent does, what it may touch, and what it returns."))
+
+    if not GAP_SECTION.search(body):
+        findings.append(Finding(
+            "warning", label, "the output format has no section for gaps",
+            "Only the summary comes back from a subagent, so anything it "
+            "could not check disappears unless the format keeps a heading "
+            "for it — \"Obstacles encountered\", \"Not verified\"."))
+
+    if len(body.splitlines()) < 5:
+        findings.append(Finding(
+            "warning", label, "body is barely there",
+            "The body is this agent's whole system prompt: what to look for, "
+            "how to work, and what to return."))
+
+    return {"name": name or label, "description": description,
+            "label": f"agent {label}"}
+
+def check_overlap(skills, findings, others=()):
     """Two descriptions that match the same prompts make the choice arbitrary."""
+    def compare(first, second, hint):
+        a, b = tokens(first["description"]), tokens(second["description"])
+        if not a or not b:
+            return
+        overlap = len(a & b) / min(len(a), len(b))
+        if overlap > 0.6:
+            findings.append(Finding(
+                "warning", first["label"],
+                f"description overlaps {int(overlap * 100)}% with "
+                f"{second['label']!r}", hint))
+
     for i, first in enumerate(skills):
         for second in skills[i + 1:]:
-            a, b = tokens(first["description"]), tokens(second["description"])
-            if not a or not b:
-                continue
-            shared = a & b
-            overlap = len(shared) / min(len(a), len(b))
-            if overlap > 0.6:
-                findings.append(Finding(
-                    "warning", first["label"],
-                    f"description overlaps {int(overlap * 100)}% with "
-                    f"{second['label']!r}",
+            compare(first, second,
                     "When both match a prompt, which one fires is arbitrary. "
-                    "Make each name the situation the other does not cover."))
+                    "Make each name the situation the other does not cover.")
+        for other in others:
+            if other.get("launches"):
+                continue
+            compare(first, other,
+                    "The model picks between a skill, an agent and a command "
+                    "on their descriptions alone. Say what this one does that "
+                    "the other does not — or drop one of them.")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("paths", nargs="+", help="skills directory, or a skill")
+    parser.add_argument("paths", nargs="+",
+                        help="a skills directory, a skill, or an agents directory")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     args = parser.parse_args()
 
     findings, skills, audited = [], [], 0
+    others, agents_seen = [], 0
 
     for target in args.paths:
-        found, missing = find_skills(target)
+        others.extend(neighbours(target))
+        for agent_path in find_agents(target):
+            agents_seen += 1
+            result = audit_agent(agent_path, findings)
+            if result:
+                skills.append(result)
+        found, missing, loose = find_skills(target)
+        for path in loose:
+            findings.append(Finding(
+                "error", f"{path.parent.name}/SKILL.md",
+                "SKILL.md sits loose in the skills root, so it never loads",
+                "Move it into a directory named after the skill: "
+                f"{path.parent.name}/<name>/SKILL.md."))
         for directory in missing:
             findings.append(Finding(
                 "error", directory.name,
@@ -285,7 +561,12 @@ def main():
             if result:
                 skills.append(result)
 
-    check_overlap(skills, findings)
+    # An agent audited here is already in `skills`; drop the copy neighbours()
+    # collected, or every agent overlaps 100% with itself.
+    audited_labels = {entry["label"] for entry in skills}
+    others = [entry for entry in others if entry["label"] not in audited_labels]
+
+    check_overlap(skills, findings, others)
 
     errors = [f for f in findings if f.level == "error"]
     warnings = [f for f in findings if f.level == "warning"]
@@ -293,14 +574,15 @@ def main():
     if args.json:
         print(json.dumps({
             "audited": audited,
+            "agents": agents_seen,
             "errors": len(errors),
             "warnings": len(warnings),
             "findings": [f.as_dict() for f in findings],
         }, indent=2))
         return 1 if errors else 0
 
-    if not audited:
-        print("No skills found. Point this at a directory of skill directories.")
+    if not audited and not agents_seen:
+        print("Nothing found. Point this at a directory of skills or agents.")
         return 0
 
     for finding in findings:
@@ -309,11 +591,14 @@ def main():
         if finding.hint:
             print(f"        {finding.hint}")
 
+    counted = f"{audited} skill(s)"
+    if agents_seen:
+        counted += f" and {agents_seen} agent(s)"
     if not findings:
-        print(f"Clean — {audited} skill(s) audited, nothing to report.")
+        print(f"Clean — {counted} audited, nothing to report.")
     else:
         print()
-        print(f"{audited} skill(s) audited: {len(errors)} error(s), "
+        print(f"{counted} audited: {len(errors)} error(s), "
               f"{len(warnings)} warning(s)")
 
     return 1 if errors else 0

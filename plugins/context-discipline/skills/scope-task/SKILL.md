@@ -1,7 +1,7 @@
 ---
 name: scope-task
 description: Breaks a large or vague request into an explored, agreed plan before any code is written. Use when a request touches several files or systems, when it is open-ended or underspecified, when the user asks to refactor or migrate something, or when work has started and it is not clear what "done" looks like.
-allowed-tools: Read, Glob, Grep, Bash, TodoWrite
+allowed-tools: Read, Glob, Grep, TodoWrite
 ---
 
 # Scoping work before writing it

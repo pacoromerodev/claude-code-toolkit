@@ -6,28 +6,56 @@ back to Claude as feedback, so the model sees why and can correct itself.
 Any other exit code lets the call through: this guard never breaks a session
 because of its own bugs.
 
+Two checks:
+
+  - the paths a call writes — Write, Edit and NotebookEdit targets, and in a
+    shell command the targets of redirects, tee, cp, mv and install — against
+    files that hold credentials
+  - the content a call writes against patterns specific enough that a match is
+    a real key. A shell command that only searches or reads (grep, rg,
+    git log -S, cat …) and writes no file is not scanned: looking for a leaked
+    key is not leaking it
+
 Projects can allow specific strings in `.claude/secret-guard-allow`, one
-regular expression per line.
+regular expression per line. That file, like its sibling for the destructive
+guard, is itself blocked: an exception is the user's decision, not the agent's.
 """
 import json
 import os
 import re
+import shlex
 import sys
 from pathlib import Path
 
-# Paths that should never be written by an agent.
+SHELL_TOOLS = {"Bash", "PowerShell"}
+
+# Paths that should never be written by an agent. `/` or `\` before the name,
+# so Windows paths are covered too. `.env.example` and its siblings are
+# templates meant to be committed; their content is still scanned.
 BLOCKED_PATHS = re.compile(
-    r"(^|/)("
-    r"\.env(\.[\w.-]+)?"
+    r"(^|[/\\])("
+    r"\.env(\.(?!(example|sample|template|dist|defaults)$)[\w.-]+)?"
     r"|\.npmrc|\.pypirc|\.netrc"
     r"|id_rsa|id_dsa|id_ecdsa|id_ed25519"
-    r"|credentials|\.aws/credentials|\.ssh/config"
+    r"|credentials|\.aws[/\\]credentials|\.ssh[/\\]config"
     r"|secrets?\.ya?ml|secrets?\.json"
     r"|application-(prod|production|prd)\.(ya?ml|properties)"
     r"|service-account.*\.json|gcp-key.*\.json"
     r")$"
     r"|\.(pem|p12|pfx|jks|keystore)$"
 )
+
+# The guards' own exception lists. The agent is the party they constrain.
+GUARD_FILES = re.compile(
+    r"(^|[/\\])\.claude[/\\](secret|destructive)-guard-allow$"
+    r"|(^|[/\\])\.claude[/\\]secret-guard-redact$")
+
+# Opt-in: with this file present, a secret in a shell command is replaced by a
+# placeholder and the call goes to the user for confirmation, instead of being
+# refused outright. Only for the shell, and only for the command line: a file
+# written with a placeholder in place of a value would be a silent corruption.
+REDACT_MARKER = "secret-guard-redact"
+PLACEHOLDER = "${REDACTED_BY_GUARD}"
 
 # Literal secrets. Each pattern is specific enough that a match is a real
 # finding, not a variable named "token".
@@ -38,6 +66,7 @@ SECRETS = [
     ("Anthropic API key", re.compile(r"\bsk-ant-[A-Za-z0-9_-]{20,}")),
     ("OpenAI API key", re.compile(r"\bsk-(proj-)?[A-Za-z0-9]{32,}")),
     ("GitHub token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}")),
+    ("GitHub fine-grained token", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{60,}")),
     ("Stripe live key", re.compile(r"\b[sr]k_live_[A-Za-z0-9]{16,}")),
     ("Slack token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}")),
     ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
@@ -61,37 +90,46 @@ SECRETS = [
         r"Authorization[\"']?\s*:\s*[\"']?\s*Bearer\s+[A-Za-z0-9._~+/-]{30,}", re.I)),
     ("JDBC url with password", re.compile(
         r"jdbc:[\w:]+//[^\s\"']*[?&;]password=[^\s\"'&;]+", re.I)),
+    # The password part stops at a slash, so a host with a port followed by a
+    # path containing an at-sign (an API route such as /users/@me) is not read
+    # as a credential.
     ("connection string with password", re.compile(
-        r"://[^\s:/\"']+:[^\s@\"']{6,}@[\w.-]+", re.I)),
+        r"://[^\s:/\"']+:[^\s@\"'/]{6,}@[\w.-]+", re.I)),
 ]
 
 # Written by a human on purpose, or obviously not a real value.
 #
 # The word markers are deliberately case-sensitive. Lowercase "example" appears
-# inside the reserved documentation domains — example.com, example.net — and
-# matching it would let a real password through in
-# `mongodb://admin:hunter2@cluster0.example.net`. Placeholder conventions are
-# uppercase in practice, including AWS's own AKIAIOSFODNN7EXAMPLE.
+# inside the reserved documentation domains (example.com, example.net), and
+# matching it would let a real password through in a connection string to a
+# host under one of them. Placeholder conventions are uppercase in practice,
+# including the key AWS uses in its own documentation, which ends in EXAMPLE.
 ALLOW = re.compile(
     r"(EXAMPLE|PLACEHOLDER|REDACTED|CHANGEME|DUMMY|FAKE|SAMPLE|YOUR_[A-Z_]+"
     r"|<[^>]+>|\$\{[^}]+\}|\$[A-Z_]{3,}|\.\.\.|[xX]{5,})"
 )
 
-# Shell redirections and common writers, so `cat > .env` is caught the same
-# way a Write to .env is.
-REDIRECT = re.compile(r">>?\s*([^\s;&|>]+)")
-WRITERS = re.compile(
-    r"\b(?:tee|install)\s+(?:-\S+\s+)*([^\s;&|]+)"
-    r"|\bcp\s+(?:-\S+\s+)*\S+\s+([^\s;&|]+)"
-    r"|\bmv\s+(?:-\S+\s+)*\S+\s+([^\s;&|]+)"
-)
+# Shell programs that only read or search. A command made only of these, with
+# no redirect into a file, writes nothing, so its text is not scanned.
+READ_ONLY = {"grep", "egrep", "fgrep", "rg", "ag", "ack", "find", "ls", "cat",
+             "head", "tail", "wc", "less", "more", "sort", "uniq", "cut", "echo"}
+READ_ONLY_GIT = {"grep", "log", "show", "diff", "blame", "status"}
+SEPARATORS = {";", ";;", "&&", "||", "|", "|&", "&", "(", ")"}
+WRITE_REDIRECTS = {">", ">>", ">|", "&>", "&>>"}
+HARMLESS_TARGETS = {"/dev/null", "/dev/stdout", "/dev/stderr"}
 
 
-def project_allowlist():
+def working_directory(payload):
+    """Where Claude is now: the payload's cwd, which follows it into worktrees
+    and after cd, before CLAUDE_PROJECT_DIR, which does not."""
+    for candidate in (payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR"), os.getcwd()):
+        if candidate and Path(candidate).is_dir():
+            return Path(candidate).resolve()
+    return Path.cwd().resolve()
+
+
+def project_allowlist(root):
     """Regexes this project has explicitly allowed, if any."""
-    root = os.environ.get("CLAUDE_PROJECT_DIR")
-    if not root:
-        return []
     path = Path(root) / ".claude" / "secret-guard-allow"
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
@@ -110,18 +148,88 @@ def project_allowlist():
     return allowed
 
 
-def text_of(tool_input):
-    """Everything this call would write, as one string."""
+def shell_segments(command):
+    """[(tokens, [write targets])] for each command in a shell line."""
+    try:
+        lexer = shlex.shlex(command.replace("\n", " ; "), posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        tokens = list(lexer)
+    except ValueError:
+        tokens = command.split()
+    segments, current, targets, i = [], [], [], 0
+    while i < len(tokens):
+        token = tokens[i]
+        if token in SEPARATORS:
+            if current or targets:
+                segments.append((current, targets))
+            current, targets = [], []
+        elif token in WRITE_REDIRECTS:
+            if i + 1 < len(tokens):
+                targets.append(tokens[i + 1])
+                i += 1
+        elif token in {"<", "<<", "<<<", ">&", "<&"}:
+            i += 1  # an input source or fd duplication, not a file written
+        elif token.isdigit() and i + 1 < len(tokens) and tokens[i + 1] in WRITE_REDIRECTS:
+            pass  # the fd number in `2>file`
+        else:
+            current.append(token)
+        i += 1
+    if current or targets:
+        segments.append((current, targets))
+    return segments
+
+
+def shell_writes(command):
+    """(paths the command writes, whether it writes anything at all)."""
+    paths, writes = [], False
+    for tokens, targets in shell_segments(command):
+        real = [t for t in targets if t not in HARMLESS_TARGETS and not t.startswith("&")]
+        paths.extend(real)
+        writes = writes or bool(real)
+        if not tokens:
+            continue
+        program = os.path.basename(tokens[0])
+        positional = [t for t in tokens[1:] if not t.startswith("-")]
+        if program == "tee":
+            paths.extend(positional)
+            writes = writes or bool(positional)
+        elif program in {"cp", "mv", "install"} and len(positional) >= 2:
+            paths.append(positional[-1])
+            writes = True
+        elif program.lower() in {"out-file", "set-content", "add-content"}:
+            writes = True
+            if "-Path" in tokens and tokens.index("-Path") + 1 < len(tokens):
+                paths.append(tokens[tokens.index("-Path") + 1])
+    return paths, writes
+
+
+def only_reads(command):
+    """True when every command in the line is a read or a search."""
+    for tokens, _ in shell_segments(command):
+        if not tokens:
+            continue
+        program = os.path.basename(tokens[0])
+        if program == "git":
+            rest = [t for t in tokens[1:] if not t.startswith("-")]
+            if not rest or rest[0] not in READ_ONLY_GIT:
+                return False
+        elif program not in READ_ONLY:
+            return False
+    return True
+
+
+def text_of(tool_name, tool_input):
+    """Everything this call would put on disk, as one string."""
     parts = []
-    for key in ("content", "new_string", "command"):
+    for key in ("content", "new_string", "new_source"):
         value = tool_input.get(key)
         if isinstance(value, str):
             parts.append(value)
-    edits = tool_input.get("edits")
-    if isinstance(edits, list):
-        for edit in edits:
-            if isinstance(edit, dict) and isinstance(edit.get("new_string"), str):
-                parts.append(edit["new_string"])
+    command = tool_input.get("command")
+    if isinstance(command, str):
+        _, writes = shell_writes(command)
+        if writes or tool_name not in SHELL_TOOLS or not only_reads(command):
+            parts.append(command)
     return "\n".join(parts)
 
 
@@ -132,14 +240,64 @@ def written_paths(tool_input):
         value = tool_input.get(key)
         if isinstance(value, str) and value:
             paths.append(value)
-
     command = tool_input.get("command")
     if isinstance(command, str):
-        for match in REDIRECT.finditer(command):
-            paths.append(match.group(1))
-        for match in WRITERS.finditer(command):
-            paths.extend(group for group in match.groups() if group)
-    return paths
+        paths.extend(shell_writes(command)[0])
+    return [p.strip("\"'") for p in paths]
+
+
+def redaction_enabled(root):
+    return (root / ".claude" / REDACT_MARKER).exists()
+
+
+def merge(spans):
+    """Overlapping matches become one span.
+
+    Two patterns often cover the same value — a Bearer header and the key
+    inside it — and replacing both in turn would eat the text between them.
+    """
+    merged = []
+    for start, end in sorted(spans):
+        if merged and start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return [(start, end) for start, end in merged]
+
+
+def redact(command, spans):
+    """The command with each secret replaced, right to left so offsets hold."""
+    for start, end in sorted(merge(spans), reverse=True):
+        command = command[:start] + PLACEHOLDER + command[end:]
+    return command
+
+
+def ask_with(tool_input, command, labels):
+    """Hand the rewritten call back for the user to confirm.
+
+    `updatedInput` replaces the tool's input outright rather than merging, so
+    every field of the original goes back with it.
+    """
+    updated = dict(tool_input)
+    updated["command"] = command
+    kinds = ", ".join(sorted(set(labels)))
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "ask",
+            "permissionDecisionReason": (
+                f"guard_secrets replaced what looked like a real {kinds} "
+                f"with {PLACEHOLDER}. Run it only if the "
+                f"placeholder is resolved from the environment."
+            ),
+            "updatedInput": updated,
+        }
+    }))
+    return 0
+
+
+def clip(text, limit=200):
+    return text if len(text) <= limit else text[:limit - 1] + "…"
 
 
 def main():
@@ -151,23 +309,52 @@ def main():
     tool_input = payload.get("tool_input") or {}
     if not isinstance(tool_input, dict):
         return 0
+    tool_name = payload.get("tool_name") or ""
 
     for path in written_paths(tool_input):
-        if BLOCKED_PATHS.search(path.strip("\"'")):
+        if GUARD_FILES.search(path):
             print(
-                f"Blocked: {path} holds credentials and must not be written by "
-                f"an agent.\n"
-                "Put the value in your secret manager and reference it from "
-                "config, or ask the user to edit this file themselves.",
+                f"Blocked by guard_secrets: {clip(path)} is a guard's exception "
+                "list. Adding an exception is the user's decision.\n"
+                "Do not write it another way. If a string really must be "
+                "allowed, tell the user which one and why, and ask them to add "
+                "it themselves.",
+                file=sys.stderr,
+            )
+            return 2
+        if BLOCKED_PATHS.search(path):
+            print(
+                f"Blocked by guard_secrets: {clip(path)} has the name of a "
+                "credential file, and an agent never writes one, whatever the "
+                "content. Nothing was written.\n"
+                "Do not retry through another tool, a shell redirect, or a copy "
+                "or rename. If it is a template with placeholder values, name it "
+                "like one (.env.example). If real values are needed, list the "
+                "keys the file must contain and let the user fill them in.",
                 file=sys.stderr,
             )
             return 2
 
-    body = text_of(tool_input)
+    body = text_of(tool_name, tool_input)
     if not body:
         return 0
 
-    allowlist = project_allowlist()
+    root = working_directory(payload)
+    allowlist = project_allowlist(root)
+
+    if tool_name in SHELL_TOOLS and redaction_enabled(root):
+        spans, labels = [], []
+        for label, pattern in SECRETS:
+            for match in pattern.finditer(body):
+                snippet = match.group(0)
+                if ALLOW.search(snippet):
+                    continue
+                if any(rule.search(snippet) for rule in allowlist):
+                    continue
+                spans.append((match.start(), match.end()))
+                labels.append(label)
+        if spans:
+            return ask_with(tool_input, redact(body, spans), labels)
 
     for label, pattern in SECRETS:
         for match in pattern.finditer(body):
@@ -176,16 +363,33 @@ def main():
                 continue
             if any(rule.search(snippet) for rule in allowlist):
                 continue
-            line = body[: match.start()].count("\n") + 1
             masked = snippet[:6] + "…" + snippet[-2:] if len(snippet) > 12 else "…"
+            if tool_name in SHELL_TOOLS:
+                where = "this command line"
+                instead = (
+                    "- Writing or passing it: don't. Reference an environment "
+                    "variable the user has set ($NAME) and ask them to set it "
+                    "if it is missing.\n"
+                    "- Looking for where it leaked: search for the pattern, "
+                    "not the value, e.g. grep -rnE 'AKIA[0-9A-Z]{16}' ."
+                )
+            else:
+                line = body[: match.start()].count("\n") + 1
+                where = f"the text you are writing (line {line} of it, not of the file)"
+                instead = (
+                    "- The code needs it at runtime: read it from an environment "
+                    "variable and tell the user which variable to set.\n"
+                    "- It is test or sample data: use an obviously fake value "
+                    "containing EXAMPLE, or a ${PLACEHOLDER}."
+                )
             print(
-                f"Blocked: this writes what looks like a real {label} "
-                f"(line {line} of the new content, {masked}).\n"
-                "Replace it with an environment variable or a secret-manager "
-                "lookup. If the value is fake, make that obvious — use EXAMPLE "
-                "or a ${PLACEHOLDER} — and try again.\n"
-                "If this project legitimately needs the string, add a regex "
-                "for it to .claude/secret-guard-allow.",
+                f"Blocked by guard_secrets: {where} contains a string shaped "
+                f"like a real {label} ({masked}). Nothing was written.\n"
+                "Do not retry with the value split, encoded or moved to another "
+                "file; that still puts the secret on disk.\n"
+                f"{instead}\n"
+                "- The user says this exact string must be kept: stop and ask "
+                "them to add the exception themselves.",
                 file=sys.stderr,
             )
             return 2

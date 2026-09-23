@@ -11,11 +11,11 @@ Verification before you trust a change.
 | Component | Type | Fires when |
 |---|---|---|
 | `verify-changes` | Skill | You ask to verify, double-check or confirm a change, or are about to commit or open a PR |
-| `code-reviewer` | Subagent | You ask for a review or a second opinion, or `/review` is run |
-| `guard_secrets` | PreToolUse hook | Always, on `Write`, `Edit`, `NotebookEdit` and `Bash` |
+| `code-reviewer` | Subagent | You ask for a review or a second opinion, or `/review-diff` is run |
+| `guard_secrets` | PreToolUse hook | Always, on `Write`, `Edit`, `NotebookEdit`, `Bash` and `PowerShell` |
 | `guard_destructive` | PreToolUse hook | Always, on `Bash` |
 | `test_gate` | Stop hook | Only in projects that opt in |
-| `/verify`, `/review` | Commands | Typed |
+| `/review-diff` | Command | Typed, to launch the subagent |
 
 ## verify-changes
 
@@ -46,14 +46,24 @@ connection strings carrying a password.
 
 **Paths:** `.env` and its variants, `credentials`, `.aws/credentials`,
 `id_rsa`, `id_ed25519`, `.npmrc`, `.pypirc`, `secrets.yaml`,
-`application-prod.yaml`.
+`application-prod.yaml` — whether they are named by a Write, a redirect, `tee`,
+`cp`, `mv` or `install`, with `/` or `\` separators. `.env.example` and its
+siblings are templates, so only their content is checked.
+
+**Also blocked:** `.claude/secret-guard-allow` and
+`.claude/destructive-guard-allow`. Both guards' exception lists are the user's
+to edit; an agent that can write them can switch the guard off.
+
+**Not scanned:** a shell command that only reads or searches — `grep`, `rg`,
+`git log -S`, `cat` — and writes no file. Looking for a leaked key is not
+leaking it. Anything that writes, including `aws configure set`, is scanned.
 
 **Allowed through:** values that are obviously not real — `EXAMPLE`,
 `PLACEHOLDER`, `REDACTED`, `CHANGEME`, `DUMMY`, `FAKE`, `YOUR_*`, `<angle
 brackets>`, `${VARS}`, `$UPPERCASE`, five or more `x`. These markers are
 **case-sensitive** on purpose: lowercase `example` appears in the reserved
-documentation domains, and matching it would let a real password through in
-`mongodb://admin:hunter2@cluster0.example.net`.
+documentation domains, and matching it would let a real password through in a
+connection string whose host is under one of them.
 
 If the guard itself fails — malformed payload, unexpected shape, any exception
 — it exits clean and lets the call through. A guard that silently stops
@@ -67,21 +77,34 @@ work back afterwards.
 
 | Blocked | Why |
 |---|---|
-| `git push --force` to main, master, develop, release, production | Rewrites history other people have pulled. `--force-with-lease` passes: it refuses to clobber work it has not seen |
-| `git reset --hard` with uncommitted changes | Names how many changes it would discard |
-| `git clean -fdx` | Deletes untracked files, including local config never meant to be committed |
+| A force-push to main, master, develop, release or production, in any spelling: `--force`, `-f`, `+main`, `--force-with-lease` | Rewrites history other people have pulled. `--force-with-lease` only protects against work you have not fetched, so to a shared branch it is not an alternative |
+| `git push --mirror`; deleting a protected remote branch | Overwrites or removes branches other people build on |
+| `git reset --hard`, `git checkout .`, `git restore .` over modified tracked files | Names the files it would discard. Untracked files survive these commands, so they do not count |
+| `git clean -f…` | Deletes untracked files, including local config never meant to be committed. `git clean -n` (a dry run) passes |
 | `git branch -D` | Force-deletes an unmerged branch; `-d` refuses instead |
-| `rm -r` outside the project directory | An agent should not reach past the project it was given |
-| `DROP` / `TRUNCATE` / bare `DELETE FROM` | Unless the command mentions a test, dev, local, staging or sandbox target |
+| `rm -r` / `find … -delete` outside the project directory, in any flag order, including `$VAR` targets | An agent should not reach past the project it was given |
+| `DROP` / `TRUNCATE` / `DELETE FROM` without `WHERE`, sent to a database client | Unless the connection arguments name a test, dev, local, staging or sandbox target |
 | `chmod 777`, `mkfs`, `dd` to a device | |
 | bulk `kubectl delete`, `terraform -auto-approve` | Outside an obviously non-production context |
 
-Relax it per project in `.claude/destructive-guard-allow`, one regex per line,
-matched against the whole command.
+**How commands are read.** The guard does not match one pattern against the
+whole string. It splits the line into the commands the shell would run (on
+`;`, `&&`, `||`, `|`, `&` and unquoted newlines), tokenises each one as the
+shell would, and drops wrappers such as `sudo`, `env` and `VAR=value`. So flag
+order and quoting do not change the verdict. Text that only travels as data —
+a heredoc written to a file, a quoted commit message — is not mistaken for a
+command. Text that runs — `bash -c "…"`, `$(…)`, a heredoc fed to a shell — is
+checked like any other command. SQL is read from inside the quotes, because
+that is how it reaches `psql` or `mysql`.
 
-Environment markers are matched as substrings, not whole words: `\btest\b`
-does not match `app_test` and `\blocal\b` does not match `localhost`, and
-both of those blocked a legitimate command until a fixture caught it.
+**Environment markers** count only in the database client's connection
+arguments, never in a redirect such as `2>/dev/null`. A letter on either side
+breaks the match: `app_test`, `dev-cluster` and `localhost` count, while
+`developer` and `latest` do not.
+
+Relax the guard per project in `.claude/destructive-guard-allow`, one regex per
+line. A rule exempts only the command it matches, not every command chained
+after it on the same line.
 
 ## test_gate
 
@@ -104,15 +127,28 @@ anything else, or to keep a slow suite out of the way of docs-only sessions:
 
 in `.claude/test-gate.json`. A `.claude/test-gate.sh` executable works too.
 
-On failure it prints the **first** failure with surrounding context, not the
+`Stop` fires at the end of **every turn**, not only when the session ends, so
+`only_when_changed` is what keeps a slow suite out of the way. It counts the
+working tree and anything committed on this branch but not yet on its
+upstream: a commit made mid-session is still this session's change.
+
+On failure it reports the **first** failure with surrounding context, not the
 tail of the log — on Maven and Gradle the last lines are the build summary,
-which says nothing about what broke.
+which says nothing about what broke. Lines are clipped to 300 characters and
+the whole report to 4,000, because it goes into the context.
 
-It never re-enters itself — it checks `stop_hook_active`, without which the gate
-fires again on the stop that follows its own feedback and the session cannot
-end. A timeout or a crash lets the session end.
+The report comes back as `hookSpecificOutput.additionalContext`: the turn
+continues so Claude can fix the failure, and it is shown as hook feedback
+rather than a hook error. Claude Code bounds the loop with `stop_hook_active`
+and its 8-continuation cap, so the gate does **not** skip its own re-entry —
+the next run is what checks the fix. A crash, an unreadable config or a
+missing runner lets the turn end, and says so to the user through
+`systemMessage` rather than disappearing.
 
-Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT`.
+Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT` or the config's
+`timeout`. Either way the gate clamps it below the hook's own 960 seconds: a
+longer one would be cut off by the harness, and the feedback would never be
+printed.
 
 ## Tests
 
@@ -120,7 +156,7 @@ Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT`.
 plugins/delivery-quality/tests/run.sh
 ```
 
-47 fixture cases across both guards and the gate: secrets that must block,
+102 fixture cases across both guards and the gate: secrets that must block,
 paths that must block, destructive commands that must block, legitimate values
 and commands that must pass, and malformed input that must fail open. Adding a
 pattern without a fixture — in both directions — is not done.

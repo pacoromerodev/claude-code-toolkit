@@ -3,7 +3,7 @@ name: tool-never-called
 description: >-
   A server whose tools are never chosen. The diagnosis must be the
   descriptions, and the fix must be the rewritten descriptions themselves.
-tags: [mcp-review, subagent]
+tags: [mcp-review, subagent, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -13,4 +13,4 @@ execution:
   max_turns: 16
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Task, Skill]
-runs: 1
+runs: 3

@@ -7,6 +7,15 @@ SCRIPTS="$HERE/../scripts"
 FIXTURES="$HERE/fixtures"
 PY="${PYTHON:-python3}"
 
+# Run from a throwaway directory, without bytecode: a hook that falls back to
+# the current directory, or an imported script writing __pycache__, must never
+# leave files in the repository.
+export PYTHONDONTWRITEBYTECODE=1
+unset CLAUDE_PROJECT_DIR
+SANDBOX="$(mktemp -d)"
+trap 'rm -rf "$SANDBOX"' EXIT
+cd "$SANDBOX" || exit 1
+
 pass=0
 fail=0
 
@@ -15,9 +24,9 @@ fail=0
 ok()  { printf 'ok    %-8s %s\n' "$1" "$2"; pass=$((pass + 1)); return 0; }
 bad() { printf 'FAIL  %-8s %s\n' "$1" "$2"; fail=$((fail + 1)); return 0; }
 
-bad_output="$("$PY" "$SCRIPTS/check_caching.py" "$FIXTURES/bad_caching.py" 2>&1)"
+bad_output="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/bad_caching.py" 2>&1)"
 bad_code=$?
-good_output="$("$PY" "$SCRIPTS/check_caching.py" "$FIXTURES/good_caching.py" 2>&1)"
+good_output="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/good_caching.py" 2>&1)"
 good_code=$?
 
 echo "== caching: planted faults must be found =="
@@ -51,13 +60,52 @@ fi
   || bad quiet "measured source length instead of value length"
 
 echo
+echo "== caching: a breakpoint on the newest turn is the normal pattern =="
+growing="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/growing_conversation.py" 2>&1)"
+growing_code=$?
+[[ "$growing_code" == 0 && "$growing" == *"Clean —"* ]] \
+  && ok quiet "a cached newest message raises nothing" \
+  || bad quiet "reported: $(printf '%s' "$growing" | head -2 | tr '\n' ' ')"
+[[ "$growing" != *"automatic"* ]] \
+  && ok quiet "top-level cache_control is not called uncached" \
+  || bad quiet "hinted at automatic caching for a request that uses it"
+
+varying="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/varying_tail.py" 2>&1)"
+[[ "$varying" == *"volatile-breakpoint"* ]] \
+  && ok finds "a timestamp in the block the breakpoint sits on" \
+  || bad finds "volatile breakpoint"
+
+echo
+echo "== request shapes that fail when they run =="
+requests_output="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/bad_requests.py" 2>&1)"
+requests_code=$?
+for probe in "thinking with temperature:thinking-with-temperature" \
+             "a thinking budget under the floor:thinking-budget-too-small" \
+             "a budget that leaves no room:thinking-budget-over-max" \
+             "effort as its own argument:effort-top-level" \
+             "effort inside thinking:effort-in-thinking" \
+             "system=None:system-none" \
+             "a tool loop with no is_error:tool-errors-unreported"; do
+  label="${probe%%:*}"; needle="${probe#*:}"
+  [[ "$requests_output" == *"$needle"* ]] && ok finds "$label" || bad finds "$label"
+done
+[[ "$requests_code" == 1 ]] && ok exit "bad requests exit 1" \
+  || bad exit "wanted 1, got $requests_code"
+
+good_requests="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/good_requests.py" 2>&1)"
+good_requests_code=$?
+[[ "$good_requests_code" == 0 && "$good_requests" == *"Clean —"* ]] \
+  && ok quiet "the correct shapes report nothing" \
+  || bad quiet "reported: $(printf '%s' "$good_requests" | head -2 | tr '\n' ' ')"
+
+echo
 echo "== caching: exit codes =="
 [[ "$bad_code" == 1 ]] && ok exit "errors present (1)" || bad exit "wanted 1, got $bad_code"
 [[ "$good_code" == 0 ]] && ok exit "nothing wrong (0)" || bad exit "wanted 0, got $good_code"
 
 echo
 echo "== caching: json output =="
-json="$("$PY" "$SCRIPTS/check_caching.py" "$FIXTURES/bad_caching.py" --json 2>/dev/null)"
+json="$("$PY" "$SCRIPTS/check_api_calls.py" "$FIXTURES/bad_caching.py" --json 2>/dev/null)"
 if printf '%s' "$json" | "$PY" -c \
    'import json,sys; d=json.load(sys.stdin); assert d["errors"]>0 and d["calls"]>0'; then
   ok json "parses and reports findings"

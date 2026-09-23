@@ -1,7 +1,7 @@
 ---
 name: java-21-modernize
 description: Applies modern Java language features — records, sealed types, pattern matching, text blocks, virtual threads — and says when each one is the wrong choice. Use when modernising older Java code, when the user asks whether to use a record, a sealed interface or virtual threads, or when reviewing code that could be simpler on Java 17 or 21.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Modern Java, and when not to

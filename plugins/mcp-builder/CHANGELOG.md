@@ -6,6 +6,52 @@ All notable changes to `mcp-builder`. Format follows
 
 ## [Unreleased]
 
+### Added
+- Four cases: `stdio-or-http`, `roots-are-advice`, `tool-or-resource` and
+  `server-from-an-api`. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
+### Changed
+- `mcp-review` says what an MCP server looks like in a file (`@mcp.tool` and
+  friends) and points at `tool-schema-review` for tools passed straight to the
+  API. The two had overlapping descriptions and no way to tell them apart.
+
+### Fixed
+- `choose-transport`, `mcp-roots-check` and `check_mcp_server.py` told apart
+  two different losses that had been described as one. `stateless_http=True`
+  ends every server-to-client *request* — sampling, **List Roots**,
+  elicitation, subscriptions — because there is no session for the reply to
+  land in. Progress and log notifications survive it: they travel on the
+  response stream of the call that emitted them. What drops those is
+  `json_response=True`, which answers a POST with a single JSON body. Settled
+  against the MCP Python SDK, whose transport says so directly.
+- List Roots was missing from the losses and from the pre-switch grep, which
+  is the one that matters most: a server that asked for its boundaries and can
+  no longer ask has no boundaries.
+- The `stateless-tradeoff` grader no longer rewards an answer claiming
+  progress and logging break under stateless mode.
+
+
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/mcp-new`; the skill answers to `/mcp-
+  builder:mcp-server-scaffold`. `/mcp-review` stays, because it launches the
+  subagent.
+
+### Fixed
+- `not-fired` eval grader states what a correct answer looks like, not only
+  what scores badly.
+
+### Security
+- Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
+  grants tools without a prompt on the turn a skill fires; it restricts
+  nothing. Read tools stay pre-approved, and Bash only for the plugin's own
+  script, as an exact prefix. Everything else goes through the normal prompt.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

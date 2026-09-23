@@ -264,13 +264,17 @@ def check_module(path, findings):
 
     source = path.read_text(encoding="utf-8")
 
-    # stateless_http silently removes half the protocol.
-    if "stateless_http=True" in source.replace(" ", ""):
+    # stateless_http ends every server-to-client request. json_response ends
+    # the notifications too. They are different losses and are reported apart.
+    packed = source.replace(" ", "")
+    if "stateless_http=True" in packed:
         lost = []
         if "create_message" in source:
             lost.append("sampling")
-        if "report_progress" in source:
-            lost.append("progress reporting")
+        if "list_roots" in source:
+            lost.append("List Roots")
+        if "elicit" in source:
+            lost.append("elicitation")
         if "subscribe" in source:
             lost.append("subscriptions")
         if lost:
@@ -278,16 +282,33 @@ def check_module(path, findings):
                 "error", file, 0, "stateless-conflict",
                 f"stateless_http=True, but this server uses "
                 f"{', '.join(lost)}",
-                "Stateless mode drops session ids and every server-to-client "
-                "request. Those features stop working — silently. Either run "
-                "stateful, or remove them."))
+                "Without a session there is nowhere for the client's answer "
+                "to land, so every server-to-client request fails. A "
+                "list_roots hit is the worst of them: a server that asked for "
+                "its boundaries and can no longer ask has no boundaries. "
+                "Either run stateful, or remove them."))
         else:
             findings.append(Finding(
                 "info", file, 0, "stateless-note",
                 "stateless_http=True",
-                "Scales behind a load balancer, at the cost of session ids, "
-                "server-to-client requests, sampling, progress and "
-                "subscriptions. Make sure none of those are wanted later."))
+                "Scales behind a load balancer, at the cost of session ids "
+                "and every server-to-client request: sampling, List Roots, "
+                "elicitation, subscriptions. Progress and logs during a call "
+                "still work. Make sure none of the rest is wanted later."))
+
+    if "json_response=True" in packed:
+        dropped = [name for name in ("report_progress", "ctx.info",
+                                     "ctx.debug", "ctx.warning")
+                   if name in source]
+        if dropped:
+            findings.append(Finding(
+                "error", file, 0, "json-response-conflict",
+                f"json_response=True, but this server calls "
+                f"{', '.join(dropped)}",
+                "That mode answers a POST with one JSON body, so there is no "
+                "stream before the result: progress and log notifications are "
+                "dropped on the floor. Keep streaming responses, or stop "
+                "emitting them."))
 
     if counts["tool"] and not counts["resource"] and "read" in source.lower():
         findings.append(Finding(

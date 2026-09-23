@@ -1,0 +1,11 @@
+schema_version: "1.0"
+name: not-fired
+description: Fixture.
+tags: [negative]
+execution:
+  prompt: |
+    Fixture prompt.
+  max_turns: 4
+  timeout_seconds: 60
+  allowed_tools: [Read]
+runs: 1

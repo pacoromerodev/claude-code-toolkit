@@ -19,7 +19,7 @@ so, and says to read the existing code first.
 | `java-21-modernize` | Skill | Modernising older Java; deciding on a record, sealed type or virtual threads |
 | `test-shape` | Skill | Adding tests; deciding what to mock; a test that breaks on every refactor |
 | `migration-review` | Subagent | A Flyway or Liquibase file changes, or before a release carrying a schema change |
-| `/review-migration`, `/new-endpoint` | Commands | Typed |
+| `/review-migration` | Command | Typed, to launch the subagent |
 
 ## The migration reviewer
 
@@ -101,6 +101,13 @@ claude plugin eval plugins/java-spring --scaffold --allow-tools Bash
 - **kafka-redelivery** — customers charged twice, with auto-commit on and a
   non-idempotent handler. The answer must start from at-least-once delivery,
   not from hunting a logic bug.
+- **records-or-lombok** — records against Lombok, entities included.
+- **out-of-order-updates** — a status that flips backwards, with a random partition key.
+- **transaction-boundary** — `@Transactional` on repositories, moving to controllers.
+- **what-to-test** — a discount rule and a proposed `@SpringBootTest`.
+- **legacy-date-parsing** — a shared `SimpleDateFormat` producing nonsense under load.
+- **config-in-service** — settings read and parsed at the point of use.
+- **flaky-time-test** — a test that sleeps, about to sleep longer.
 - **not-fired** — a language question about checked exceptions, which must not
   trigger a convention review.
 

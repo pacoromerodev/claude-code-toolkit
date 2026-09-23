@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: verify-project-command
+description: >-
+  A project that declares its own test command. The verification must run that
+  one, and report the failure it produces.
+tags: [verify-changes, skill, needs-bash]
+execution:
+  prompt: |
+    Tightened the weight boundaries in the shipping module. Verify it before
+    I commit.
+  max_turns: 20
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+context:
+  scaffold_script: scaffold.sh
+runs: 3

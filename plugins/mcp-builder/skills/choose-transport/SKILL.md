@@ -1,7 +1,7 @@
 ---
 name: choose-transport
 description: Chooses between stdio, StreamableHTTP and stateless HTTP for an MCP server, and names what each choice gives up. Use when deciding how to run or deploy an MCP server, when a server needs to scale behind a load balancer, or when sampling, progress reporting or subscriptions have stopped working.
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep
 ---
 
 # Choosing a transport
@@ -18,8 +18,10 @@ Three options, and the third one takes features away without telling you.
 | Session ids | Implicit | `mcp-session-id` header | **None** |
 | Server → client requests | Yes | Yes | **No** |
 | Sampling | Yes | Yes | **No** |
-| Progress reporting | Yes | Yes | **No** |
+| List Roots | Yes | Yes | **No** |
+| Elicitation | Yes | Yes | **No** |
 | Subscriptions | Yes | Yes | **No** |
+| Progress and logs during a call | Yes | Yes | Yes, unless `json_response` |
 | Scales horizontally | n/a | With sticky sessions | Freely |
 
 **Start with stdio.** A local tool, a single user, no deployment. It is the
@@ -34,16 +36,24 @@ requirement and you have checked the list below.
 
 ## What stateless mode removes
 
-Statelessness means no session, and without a session the server cannot send
-anything to the client on its own initiative. Everything built on that stops:
+Each request gets a fresh transport, so there is no session and no way for the
+server to open a request of its own to the client. What goes:
 
-- **Sampling** — the server can no longer ask the client for a completion
-- **Progress reporting** — `report_progress` has nowhere to go
-- **Subscriptions** — no resource change notifications
-- **Logging callbacks** — the same problem
+- **Sampling** — the server cannot ask the client for a completion
+- **List Roots** — it cannot ask which directories it may touch either, which
+  is the same call a boundary check depends on
+- **Elicitation** — no asking the user anything mid-call
+- **Subscriptions** — no resource-change notifications
 
-These do not raise. They quietly do nothing, which is why this is worth
-deciding on purpose rather than discovering later.
+These are server-to-client *requests*: without a session there is nowhere for
+the client's answer to land, so the SDK refuses them rather than hanging.
+
+**Progress and log notifications are a different case**, and this is the part
+worth getting right: they travel on the response stream of the call that
+produced them, which still exists in stateless mode. `report_progress` and
+`ctx.info` keep working. It is `json_response=True` that ends them — that mode
+answers a POST with one JSON body, so there is no stream to carry anything
+before the result, and the notifications are dropped.
 
 The gain is real: no initialisation handshake per session, and any instance can
 answer any request.
@@ -52,18 +62,24 @@ answer any request.
 mcp = FastMCP("service", stateless_http=True)
 ```
 
-`json_response=True` is a separate switch: plain JSON instead of streaming. It
-composes with either mode and costs only incremental delivery.
-
 ## Before switching to stateless
 
 Search the server for what would break:
 
 ```bash
-grep -rn "create_message\|report_progress\|subscribe\|ctx\.info" .
+grep -rn "create_message\|list_roots\|elicit\|subscribe" .
 ```
 
-Any hit is a feature that stops working. Either drop it, or stay stateful.
+Any hit is a server-to-client request, and stateless mode ends it. Either drop
+the feature or stay stateful. A `list_roots` hit is the one to look at
+hardest: a server that asked for its boundaries and now cannot is a server
+with no boundaries.
+
+If you are also setting `json_response=True`, widen the search:
+
+```bash
+grep -rn "report_progress\|ctx\.info\|ctx\.debug\|ctx\.warning" .
+```
 
 ## Deploying StreamableHTTP
 

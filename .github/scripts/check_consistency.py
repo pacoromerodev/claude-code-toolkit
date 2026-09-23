@@ -5,6 +5,8 @@
 that a new plugin was never added to the catalogue, or that plugin.json was
 bumped and the marketplace entry was not — which is the failure that makes
 `claude plugin tag` refuse a release.
+
+Usage: check_consistency.py [repository root]
 """
 import json
 import sys
@@ -12,19 +14,31 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+# A directory under plugins/ that holds none of these is scaffolding or a
+# leftover, not a plugin someone forgot to finish.
+PLUGIN_SIGNS = ("skills", "agents", "commands", "hooks", "scripts", "evals",
+                "README.md", "CHANGELOG.md")
 
-def load(path):
+
+def load(path, root):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return None
     except json.JSONDecodeError as error:
-        print(f"error: {path.relative_to(ROOT)} is not valid JSON: {error}")
+        print(f"error: {shown(path, root)} is not valid JSON: {error}")
         sys.exit(1)
 
 
-def main():
-    marketplace = load(ROOT / ".claude-plugin" / "marketplace.json")
+def shown(path, root):
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def main(root=ROOT):
+    marketplace = load(root / ".claude-plugin" / "marketplace.json", root)
     if marketplace is None:
         print("error: .claude-plugin/marketplace.json is missing")
         return 1
@@ -43,10 +57,22 @@ def main():
     problems = []
     seen = set()
 
-    for manifest_path in sorted((ROOT / "plugins").glob("*/.claude-plugin/plugin.json")):
+    # A directory with no manifest used to be skipped in silence, so a plugin
+    # whose manifest was never written looked like a repository with one fewer
+    # plugin (AUDIT L5).
+    for directory in sorted((root / "plugins").glob("*/")):
+        if not directory.is_dir() or (directory / ".claude-plugin" / "plugin.json").is_file():
+            continue
+        if any((directory / sign).exists() for sign in PLUGIN_SIGNS):
+            problems.append(
+                f"{shown(directory, root)}: no .claude-plugin/plugin.json — "
+                f"nothing here is installable, and every other check skips it"
+            )
+
+    for manifest_path in sorted((root / "plugins").glob("*/.claude-plugin/plugin.json")):
         directory = manifest_path.parents[1]
-        rel = directory.relative_to(ROOT).as_posix()
-        manifest = load(manifest_path)
+        rel = shown(directory, root)
+        manifest = load(manifest_path, root)
         name = manifest.get("name")
 
         if name != directory.name:
@@ -110,4 +136,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT))

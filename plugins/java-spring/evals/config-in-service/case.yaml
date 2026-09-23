@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: config-in-service
+description: >-
+  Configuration read with System.getenv inside a service. The answer must reach typed configuration and its validation.
+tags: [spring-boot-service, skill]
+execution:
+  prompt: |
+    Our services read settings with `System.getenv("PAYMENTS_TIMEOUT")` and
+    parse them inline, with a default when the variable is missing. It works.
+    Is there a reason to change it, other than taste?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

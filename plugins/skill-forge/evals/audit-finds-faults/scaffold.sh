@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Two skills, two faults: one name does not match its directory (so it never
-# resolves at all), and one description is a definition with no trigger.
+# Two skills, two faults. One SKILL.md sits loose in the skills root instead of
+# inside a directory of its own, so it never loads at all. The other loads, but
+# its description is a definition with no trigger, so it fires only by luck.
 set -euo pipefail
 
-mkdir -p .claude/skills/changelog-entry .claude/skills/migration-check
+mkdir -p .claude/skills/migration-check
 
-cat > .claude/skills/changelog-entry/SKILL.md <<'SKILL'
+cat > .claude/skills/SKILL.md <<'SKILL'
 ---
-name: write-changelog
+name: changelog-entry
 description: Writes a changelog entry from the commit range. Use when the user is preparing a release or asks what changed.
 ---
 Collect the commits since the last tag and group them.

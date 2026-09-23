@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: verify-not-fired
+description: >-
+  A question about the project's test layout, asked with a change in progress.
+  It is not a request to verify the change.
+tags: [negative]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    What testing framework does this project use, and where do its tests live?
+  max_turns: 6
+  timeout_seconds: 180
+  allowed_tools: [Read, Glob, Grep]
+runs: 1

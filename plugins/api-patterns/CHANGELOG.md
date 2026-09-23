@@ -6,6 +6,54 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+### Added
+- Three cases: `cache-ttl-mismatch`, `hybrid-or-rerank` and `tool-never-chosen`,
+  the last for the subagent, which had none. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
+### Changed
+- `tool-schema-review` says where the tools it reviews live — the `tools`
+  array of a Messages call, or the functions a tool runner builds one from —
+  and points at `mcp-review` for the other kind.
+- `eval-harness` credits the score jump to the right technique. The move from
+  about 3.9 to about 7.9 comes from explicit output guidelines — a length, a
+  structure, the elements the answer must contain, or the steps to work
+  through — not from examples, which the skill previously named. Examples are
+  now what you add next, for the edge cases and formats the guidelines cannot
+  carry, and the skill says to take them from the highest-scoring outputs
+  already in the eval rather than inventing them. It also says how to have a
+  fast model draft the dataset, and what to check before trusting it.
+- `prompt-cache-audit` and `check_caching.py` match the API as documented
+  today. Caching is not "never automatic": one `cache_control` at the top
+  level of a request caches the growing history by itself, and the skill now
+  says when to use that instead of explicit breakpoints. The minimum cacheable
+  prefix is per model — 512 to 4,096 tokens — not a single figure. The
+  five-minute lifetime is named as the default, with the one-hour option and
+  what it costs.
+- The `cache-on-tail` warning is gone, and `volatile-breakpoint` replaces it.
+  A breakpoint on the newest message is the normal pattern for a conversation:
+  everything before it is unchanged, so the next request still hits. The fault
+  is a block that varies — a timestamp in the message the breakpoint sits on
+  behaves exactly like one in the system prompt. Two new fixtures,
+  `growing_conversation.py` and `varying_tail.py`, hold the distinction.
+- `rag-retriever`: the contextual-retrieval prompt now carries the document,
+  not only the chunk. Generating context from the chunk alone cannot recover a
+  heading the chunk does not contain, which is the case the technique exists
+  for. The skill says what to pass when the document will not fit, what to
+  index, and what the ingest costs — and it is written in this repository's
+  own words, which the new wording check now enforces.
+
+### Fixed
+- `not-fired` eval grader states what a correct answer looks like, not only
+  what scores badly.
+
+### Security
+- Skills no longer pre-approve a bare `Bash`, `Write` or `Edit`. `allowed-tools`
+  grants tools without a prompt on the turn a skill fires; it restricts
+  nothing. Read tools stay pre-approved, and Bash only for the plugin's own
+  script, as an exact prefix. Everything else goes through the normal prompt.
+
 ## [0.1.0] — 2026-09-20
 
 ### Added

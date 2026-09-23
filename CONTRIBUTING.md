@@ -34,9 +34,17 @@ while it cannot brick a session.
 so the model sees the reason and can correct itself. Exit 1 does not block.
 Anything else is non-blocking.
 
-**Standard library only.** Hooks run on a machine where nothing has been
-installed. CI enforces this; widening the allowed set is a deliberate edit to
-`.github/scripts/check_stdlib_only.py`, not an accident.
+**Standard library only, on Python 3.8.** Hooks run on a machine where
+nothing has been installed, using whatever `python3` is already there — a
+stock macOS still answers 3.9. The floor is declared once, as `MINIMUM` in
+`.github/scripts/check_stdlib_only.py`, which also fails if the CI matrix
+stops testing it. `tomllib`, `zoneinfo` and `graphlib` are standard library
+and still rejected: they arrived after the floor, so they pass on the runner
+and fail on the machine that matters.
+
+This binds `plugins/*/scripts`; a CI script under `.github/scripts` runs only
+on a runner and may install what it needs, as the settings schema check does.
+Widening the allowed set is a deliberate edit to that script, not an accident.
 
 **Every rule is checkable.** "Handle errors properly" is not a rule. "Do not
 catch an exception without either re-raising or logging it with context" is.
@@ -71,6 +79,13 @@ claude plugin validate .                      # marketplace manifest
 claude plugin validate plugins/<name>         # plugin manifest
 python3 .github/scripts/check_consistency.py  # entries and versions agree
 python3 .github/scripts/check_stdlib_only.py  # no third-party imports
+python3 .github/scripts/check_eval_cases.py   # every eval case can pass
+python3 .github/scripts/check_hooks.py        # hooks point at scripts that exist
+python3 .github/scripts/check_names.py        # no two components share a name
+python3 .github/scripts/check_workflows.py    # workflows scoped, pinned, no interpolated shell
+python3 .github/scripts/check_course_wording.py # no sentence lifted from the notes
+python3 .github/scripts/check_eval_coverage.py --enforce  # two cases per skill, one negative
+python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
 plugins/<name>/tests/run.sh                   # fixture tests
 ```
 
@@ -78,8 +93,28 @@ CI runs all of these. Eval suites are not part of the pull-request gate —
 they cost money and need a credential — so run them by hand before a release:
 
 ```bash
-claude plugin eval plugins/<name> --scaffold --allow-tools Bash
+scripts/run-evals.sh [plugin ...]             # results outside the repo, never published
 ```
+
+Descriptions are a separate question, and `plugin eval` cannot answer it: it
+loads one plugin per run, so two components whose descriptions both match a
+prompt each score perfectly alone. Check routing with every plugin installed
+at once:
+
+```bash
+scripts/route_check.sh [--list] [case ...]      # one short session per prompt
+```
+
+It needs a logged-in CLI with this branch's plugins installed, so it is a
+before-a-release step, not a CI one. CI runs it against a stub instead, which
+tests that it reads a transcript and fails on a mis-route.
+
+The runner evaluates the working copy, one case at a time. `claude plugin
+eval` refuses any Bash-granting run while the Docker credential store holds a
+symbolic link (common on WSL with Docker Desktop). When that is the case the
+runner skips the cases tagged `needs-bash` and lists them as NOT RUN. It never
+works around the check: move the store's contents into a plain directory if
+you need those cases.
 
 ## Writing a skill
 
@@ -95,6 +130,11 @@ Every skill needs at least three eval cases: two prompts that should trigger it,
 worded differently from the description, and one in the same domain that should
 not. The negative case is not optional — a skill that fires on everything costs
 context on every unrelated turn.
+
+`check_eval_coverage.py` counts them, from the tags: the component's name plus
+`skill`, `subagent` or `hooks`, and `negative` for the case where nothing
+should fire. A tag naming no component in the plugin is a typo, and it is
+reported as one — a mistyped tag is a case that counts towards nothing.
 
 ## Writing a hook
 
@@ -119,3 +159,15 @@ Employer names, internal hostnames or URLs, repository or ticket identifiers,
 client-specific branch conventions. Real credentials in fixtures — use the
 `EXAMPLE` and `${PLACEHOLDER}` forms the guard already recognises. Text copied
 from Anthropic Academy: the concepts are free to use, the wording is not.
+
+`check_course_wording.py` checks the last one against
+`.github/scripts/data/course-shingles.txt` — hashes of every five-word run in
+the notes, no text, so the check works without the notes being public.
+Regenerate it from a local checkout when the notes change:
+
+```bash
+python3 .github/scripts/check_course_wording.py --update --notes <notes dir>
+```
+
+It sees verbatim English only. A paraphrase, and anything translated out of
+the Spanish prose, stays a manual read before publication.

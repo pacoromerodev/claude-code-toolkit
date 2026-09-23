@@ -3,7 +3,7 @@ name: migration-unsafe
 description: >-
   A migration that drops a column still read by the running code. The review
   must name the rolling-deploy failure and give the expand/contract split.
-tags: [migration-review, subagent]
+tags: [migration-review, subagent, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -12,4 +12,4 @@ execution:
   max_turns: 18
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Task, Skill]
-runs: 1
+runs: 3

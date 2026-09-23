@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: verify-phantom-package
+description: >-
+  A change that adds a dependency nobody publishes. The tests pass, and the
+  verification must still catch it.
+tags: [verify-changes, skill, needs-bash]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    Added retry handling. Tests are green — can you verify it before I push?
+  max_turns: 20
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Skill]
+runs: 3

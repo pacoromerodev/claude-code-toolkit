@@ -13,7 +13,6 @@ Deploy Claude across a team without the expensive mistakes.
 | `plan-rollout` | Skill | Planning a deployment; onboarding a group; deciding who gets what |
 | `settings-review` | Skill | Writing or reviewing settings; a hook does not fire |
 | `settings/*.json` | Templates | Copied and narrowed |
-| `/rollout-plan`, `/settings-check` | Commands | Typed |
 
 ## Five decisions, and the order is the content
 
@@ -52,19 +51,23 @@ python3 plugins/team-rollout/scripts/check_settings.py managed.json --managed
 | `bypassPermissions` as default mode | Disables the permission system for every session using the file |
 | A literal credential | Settings files get committed and shared — treat it as leaked and rotate |
 | No `strictKnownMarketplaces` | A plugin runs code with the user's privileges and its hooks stack with everyone else's |
+| `strictKnownMarketplaces: true` | It is an array of source objects. A boolean reads as locked down, is rejected as the wrong type, and restricts nothing |
+| `knownMarketplaces` | Not a setting. Nothing reads that key |
+| A git marketplace with no `ref` | Whatever the default branch holds today is what the team installs tomorrow, hooks included |
 | `./scripts/hook.sh` | Resolves against wherever the session started. The hook silently never runs |
 | No timeout on a `Stop` hook | A hook that hangs there leaves the session unable to finish |
-| Unparseable JSON | Claude Code ignores the file **silently** — every rule in it stops applying with no message |
+| Unparseable JSON, or a rejected value | An interactive session shows a Settings Error dialog; a `-p` run skips the file with no dialog and carries on. `claude doctor` lists what was dropped |
 
-## The four locations
+## Where a rule belongs
 
-Managed policy → user → project → local. More specific wins, except that a
-managed policy cannot be overridden — which makes it right for the few rules
-that must hold and wrong for preferences.
+Highest wins: managed settings, then `claude --settings`, then
+`.claude/settings.local.json`, then `.claude/settings.json`, then
+`~/.claude/settings.json`. Managed settings cannot be overridden below, which
+makes them right for the few rules that must hold and wrong for preferences.
 
 **A project file is a statement about the team.** Personal preferences belong
-in the user file. A correct rule in the wrong one of the four is a surprisingly
-common cause of "this is being ignored".
+in the user file. A correct rule in the wrong file is a surprisingly common
+cause of "this is being ignored".
 
 ## Tests
 
@@ -72,9 +75,22 @@ common cause of "this is being ignored".
 plugins/team-rollout/tests/run.sh
 ```
 
-22 assertions, including that the templates this plugin ships **pass the
+26 assertions, including that the templates this plugin ships **pass the
 checker this plugin ships**. A plugin whose own examples fail its own checker
 is not one anyone should copy from.
+
+Passing the checker is not the same as being accepted by Claude Code, which
+validates settings against its own schema and drops what does not match. CI
+holds the templates to that schema too:
+
+```bash
+python3 .github/scripts/validate_settings_schema.py
+```
+
+Neither check can prove the policy takes effect on a real machine. That part
+is manual, once, on a machine where the managed file is deployed: run
+`claude plugin marketplace add <a repo not on the list>` and confirm it is
+refused.
 
 ## Evals
 
@@ -87,6 +103,10 @@ claude plugin eval plugins/team-rollout --scaffold --allow-tools Bash
   credential treated as the urgent one.
 - **rollout-order** — a spend question asked first; the answer must surface
   what comes before it.
+- **connector-with-write** — one team asking for a write-capable connector.
+  The answer must reach the three gates, read before write, and whose
+  signature it needs.
+- **local-settings-committed** — a personal allow-list in the project file.
 - **not-fired** — "how do I switch permission modes", which deserves one line.
 
 ## Requirements

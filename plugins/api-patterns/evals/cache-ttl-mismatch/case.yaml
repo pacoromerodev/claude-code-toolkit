@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: cache-ttl-mismatch
+description: >-
+  Bursty traffic against a five-minute cache. The answer must be the lifetime, not the prompt size.
+tags: [prompt-cache-audit, skill]
+execution:
+  prompt: |
+    We cache a 40k-token system prompt. Traffic is bursty — a handful of
+    requests around 9am, then nothing until early afternoon, then a burst at
+    4pm. The bill went up after we added caching, not down. Do we need a
+    bigger prompt?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

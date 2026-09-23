@@ -3,19 +3,23 @@ type: llm
 weight: 1
 ---
 
-The server uses `report_progress`, `ctx.info` and `ctx.session.create_message`
-— progress, logging and sampling. All three are server-to-client messages, and
-all three stop working under `stateless_http=True`, without raising.
+The server uses `report_progress`, `ctx.info` and `ctx.session.create_message`.
+Only the last of those is a server-to-client *request*, and it is the one
+`stateless_http=True` ends: without a session, the client's reply has nowhere
+to land. Progress and log notifications travel on the response stream of the
+call that emitted them, which stateless mode still has — `json_response=True`
+is what would drop those.
 
 Score well when the response:
-- Names the conflict before recommending stateless mode
-- Lists which specific features break, pointing at the calls in this file
-- Stresses that they fail **silently** rather than erroring
+- Names `create_message` (sampling) as what breaks, pointing at the call in
+  this file, before recommending stateless mode
 - Offers the real choice: StreamableHTTP with sticky sessions at the load
-  balancer keeps the features; stateless scales freely and loses them
-- Mentions that sampling in particular has no workaround in stateless mode
+  balancer keeps sampling; stateless scales freely and loses it
+- Is accurate about progress and logging — either saying they survive
+  stateless mode, or not claiming they break
 
 Score badly when the response:
 - Recommends `stateless_http=True` as the answer with no caveat
+- Says progress and logging stop working under stateless mode, which would
+  send someone rewriting code that is fine
 - Discusses load balancers and replicas without reading what the server uses
-- Claims the features keep working

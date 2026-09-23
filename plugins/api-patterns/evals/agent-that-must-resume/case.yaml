@@ -1,0 +1,17 @@
+schema_version: "1.0"
+name: agent-that-must-resume
+description: >-
+  A long-running agent that must survive a network failure. The answer must
+  reach the three ways of running the loop, and pick the one that resumes.
+tags: [agent-or-workflow, skill]
+execution:
+  prompt: |
+    We need an agent that cleans up a few hundred thousand files in our
+    storage bucket — read each one, decide whether it is still referenced,
+    move or delete it. It will run for hours. Last attempt died two hours in
+    when the connection dropped and we had no idea what it had already done.
+    I was going to write the loop again with better retries. Sound right?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

@@ -11,6 +11,15 @@ FIXTURES="$HERE/fixtures"
 TEMPLATES="$HERE/../settings"
 PY="${PYTHON:-python3}"
 
+# Run from a throwaway directory, without bytecode: a hook that falls back to
+# the current directory, or an imported script writing __pycache__, must never
+# leave files in the repository.
+export PYTHONDONTWRITEBYTECODE=1
+unset CLAUDE_PROJECT_DIR
+SANDBOX="$(mktemp -d)"
+trap 'rm -rf "$SANDBOX"' EXIT
+cd "$SANDBOX" || exit 1
+
 pass=0
 fail=0
 
@@ -55,6 +64,19 @@ if [[ "$good_output" == *"Clean —"* ]]; then
 else
   bad quiet "reported: $(printf '%s' "$good_output" | head -2 | tr '\n' ' ')"
 fi
+
+echo
+echo "== the marketplace allowlist =="
+bool_output="$("$PY" "$CHECK" "$FIXTURES/bad-marketplace-bool.json" --managed 2>&1)"
+bool_code=$?
+for probe in "strict-not-a-list:strictKnownMarketplaces is bool" \
+             "unknown-setting:there is no knownMarketplaces setting" \
+             "unpinned-marketplace:registered from a git source with no ref"; do
+  label="${probe%%:*}"; needle="${probe#*:}"
+  [[ "$bool_output" == *"$needle"* ]] && ok finds "$label" || bad finds "$label"
+done
+[[ "$bool_code" == 1 ]] && ok exit "a rejected allowlist is an error (1)" \
+                        || bad exit "wanted 1, got $bool_code"
 
 echo
 echo "== invalid JSON =="

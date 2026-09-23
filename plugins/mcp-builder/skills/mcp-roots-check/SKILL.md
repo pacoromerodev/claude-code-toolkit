@@ -1,7 +1,7 @@
 ---
 name: mcp-roots-check
 description: Implements filesystem boundaries in an MCP server, because the SDK reports roots but does not enforce them. Use when a server reads or writes files, when adding path parameters to a tool, or when reviewing a server for path traversal.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_mcp_server.py *)
 ---
 
 # Roots, and the check the SDK does not do
@@ -91,7 +91,7 @@ allowed topics for a publish tool. Receiving the constraint is not applying it.
 ## Checking a server
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_mcp_server.py" server.py
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_mcp_server.py server.py
 ```
 
 It flags tools that touch the filesystem with no visible path check.

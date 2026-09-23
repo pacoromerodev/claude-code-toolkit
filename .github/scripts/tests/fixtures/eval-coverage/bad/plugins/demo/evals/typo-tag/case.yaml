@@ -1,0 +1,6 @@
+schema_version: "1.0"
+name: typo-tag
+tags: [widgit-check, skill]
+execution:
+  prompt: |
+    Do the thing.

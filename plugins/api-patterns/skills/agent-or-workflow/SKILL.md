@@ -1,6 +1,6 @@
 ---
 name: agent-or-workflow
-description: Decides whether a task should be a fixed workflow or an agent with tools, and names the pattern to use. Use when designing anything that calls a model more than once, when an agent behaves unpredictably, or when the user asks how to structure an AI feature.
+description: Decides whether a task should be a fixed workflow or an agent with tools, names the pattern, and — for an agent — who should run its loop: your own code, the SDK's tool runner, or managed agents. Use when designing anything that calls a model more than once, when an agent behaves unpredictably or dies partway through a long run, or when the user asks how to structure or operate an AI feature.
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -51,6 +51,24 @@ Give it:
 - **Verification.** Tests, a validator, a check it can run itself. An agent
   that cannot tell whether it succeeded will report that it did.
 - **A stopping condition.** Maximum turns, a budget, a checkable goal.
+
+## Once it is an agent: who runs the loop
+
+Three ways to build the same thing, and they differ in what you operate, not
+in what the model does.
+
+| | You write | Reach for it when |
+|---|---|---|
+| **Your own loop** | Send messages with tools; on a tool-use stop, run each call, append the results, send again; stop on end turn | Something must happen *between* steps: an approval, an audit entry, a rule about which tool may run next |
+| **The tool runner** | Your existing functions, handed to the SDK's runner | The standard case. It builds the schemas from your types and docstrings and drives the loop, so there is no `while`, no dispatch on stop reason, and no schema kept in sync by hand |
+| **Managed agents** | The task, and the rubric for done | The work runs for minutes or hours, needs a sandbox, files, parallelism, memory across sessions, or resumption after a failure — and you do not want to operate that |
+
+The spectrum is how much of the loop you hand over: you run it, the runner
+runs it, or the whole agent runs elsewhere. Start at the middle unless
+something in the first column applies; the loop is not where the value is.
+
+Whichever you pick, the bounds are yours: a turn limit, a cost ceiling,
+timeouts, and tool errors returned as errors rather than swallowed.
 
 ## Choosing the model
 

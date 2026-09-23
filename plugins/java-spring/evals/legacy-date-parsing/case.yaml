@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: legacy-date-parsing
+description: >-
+  A SimpleDateFormat field shared across threads. The answer must reach the concurrency bug, not only the API age.
+tags: [java-21-modernize, skill]
+execution:
+  prompt: |
+    We have a service with `private static final SimpleDateFormat FORMAT =
+    new SimpleDateFormat("yyyy-MM-dd");` used by every request handler. It
+    mostly works but we see occasional nonsense dates in the logs under load.
+    Java 21, if it matters.
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

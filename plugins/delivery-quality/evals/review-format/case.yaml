@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: review-format
+description: >-
+  An uncommitted change with two real defects and one cosmetic edit. The review
+  must find both defects, anchor them to lines, keep the code-reviewer's fixed
+  structure, and not report the cosmetic edit.
+tags: [code-reviewer, subagent, needs-bash]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    Review the uncommitted changes in this repository and tell me what you find.
+  max_turns: 14
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Bash, Task, Skill]
+runs: 3

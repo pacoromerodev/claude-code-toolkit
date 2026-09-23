@@ -10,6 +10,15 @@ CHECK="$HERE/../scripts/check_mcp_server.py"
 FIXTURES="$HERE/fixtures"
 PY="${PYTHON:-python3}"
 
+# Run from a throwaway directory, without bytecode: a hook that falls back to
+# the current directory, or an imported script writing __pycache__, must never
+# leave files in the repository.
+export PYTHONDONTWRITEBYTECODE=1
+unset CLAUDE_PROJECT_DIR
+SANDBOX="$(mktemp -d)"
+trap 'rm -rf "$SANDBOX"' EXIT
+cd "$SANDBOX" || exit 1
+
 pass=0
 fail=0
 
@@ -67,6 +76,9 @@ echo "== exit codes =="
 
 echo
 echo "== stateless conflict detection =="
+# Stateless mode ends server-to-client REQUESTS. Progress and logs ride the
+# response stream of the call that produced them, so they survive it — and
+# json_response is what ends those. The two must not be conflated.
 conflict="$(mktemp -d)/srv.py"
 cat > "$conflict" <<'PY'
 from mcp.server.fastmcp import Context, FastMCP
@@ -82,21 +94,55 @@ async def crawl_site(url: str, ctx: Context) -> str:
     RuntimeError when the site is unreachable.
     """
     await ctx.report_progress(1, 10)
+    roots = await ctx.session.list_roots()
     await ctx.session.create_message(messages=[], max_tokens=10)
-    return "ok"
+    return str(len(roots.roots))
 PY
 conflict_output="$("$PY" "$CHECK" "$conflict" 2>&1)"
 conflict_code=$?
 [[ "$conflict_output" == *"stateless-conflict"* ]] \
-  && ok finds "stateless mode used together with sampling and progress" \
+  && ok finds "stateless mode used with server-to-client requests" \
   || bad finds "stateless conflict not detected"
-[[ "$conflict_output" == *"sampling"* && "$conflict_output" == *"progress"* ]] \
-  && ok says "names both features that stop working" \
-  || bad says "does not name the broken features"
+[[ "$conflict_output" == *"sampling"* && "$conflict_output" == *"List Roots"* ]] \
+  && ok says "names sampling and List Roots" \
+  || bad says "does not name both requests that stop working"
+[[ "$conflict_output" != *"this server uses"*"progress"* ]] \
+  && ok quiet "does not blame stateless mode for progress reporting" \
+  || bad quiet "called progress reporting a stateless loss"
 [[ "$conflict_code" == 1 ]] \
   && ok exit "stateless conflict is an error (1)" \
   || bad exit "wanted 1, got $conflict_code"
 rm -rf "$(dirname "$conflict")"
+
+echo
+echo "== json_response drops the notifications =="
+jsonmode="$(mktemp -d)/srv.py"
+cat > "$jsonmode" <<'PY'
+from mcp.server.fastmcp import Context, FastMCP
+
+mcp = FastMCP("x", json_response=True)
+
+
+@mcp.tool()
+async def crawl_site(url: str, ctx: Context) -> str:
+    """Crawl a site and index every page found, returning a count.
+
+    Use when the user asks to index a site. Returns the page count; raises
+    RuntimeError when the site is unreachable.
+    """
+    await ctx.report_progress(1, 10)
+    await ctx.info("started")
+    return "ok"
+PY
+json_output="$("$PY" "$CHECK" "$jsonmode" 2>&1)"
+json_code=$?
+[[ "$json_output" == *"json-response-conflict"* && "$json_output" == *"report_progress"* ]] \
+  && ok finds "json_response together with progress and logs" \
+  || bad finds "json_response conflict not detected"
+[[ "$json_code" == 1 ]] \
+  && ok exit "json_response conflict is an error (1)" \
+  || bad exit "wanted 1, got $json_code"
+rm -rf "$(dirname "$jsonmode")"
 
 echo
 echo "== json output =="

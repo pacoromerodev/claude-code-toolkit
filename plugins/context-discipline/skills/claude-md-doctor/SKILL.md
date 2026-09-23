@@ -1,7 +1,7 @@
 ---
 name: claude-md-doctor
 description: Reviews a CLAUDE.md and rewrites the rules that get ignored — vague standards, prohibitions with no alternative, emphasis on everything, and length that pushes rules out of attention. Use when instructions in CLAUDE.md are not being followed, when writing or trimming one, or when the user asks to review their project instructions.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_claude_md.py *)
 ---
 
 # Fixing a CLAUDE.md
@@ -10,17 +10,31 @@ CLAUDE.md is **guidance, not configuration**. It is read, not executed. Nothing
 enforces it, so every line has to earn its place by being followed — and every
 line competes with every other line, on every single turn.
 
-That is the whole frame. Most fixes follow from it.
+That is the whole frame. Most fixes follow from it, including the two that
+come before any rewriting:
+
+**A rule that must never be broken does not belong here.** This file asks; a
+`PreToolUse` hook that exits 2 refuses. "Never push to main" in CLAUDE.md is a
+preference the model weighs against everything else in its context. The same
+sentence as a hook is a fact about the machine. Move it, and delete the line —
+a rule kept in both places is a rule nobody knows which copy governs.
+
+**The best CLAUDE.md is the one that was never written.** Start with none. Add
+a line the first time a correction repeats — the same fix, twice, for the same
+reason. A file assembled from what someone imagined the model would get wrong
+is mostly lines that have never been needed, competing with the ones that
+have.
 
 ## Run the mechanical pass first
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/check_claude_md.py" CLAUDE.md
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_claude_md.py CLAUDE.md
 ```
 
 It finds length, emphasis inflation, vague standards, prohibitions with no
-alternative, broken and oversized imports, and structure. Then do what it
-cannot: judge whether each rule is worth its space.
+alternative, broken and oversized imports, structure, rules a hook could
+enforce instead, and emphasis buried in the middle of a long file. Then do
+what it cannot: judge whether each rule is worth its space.
 
 ## The four rewrites
 
@@ -65,6 +79,14 @@ What to cut first:
 - **Aspirations nobody follows.** If the codebase contradicts the rule, either
   the rule goes or the codebase does. Leaving both teaches that rules here are
   optional.
+
+## Put what must hold at both ends
+
+Within the file, position is signal. The opening lines are read with the most
+attention and the closing lines are the most recent thing before the task, so
+a rule that genuinely overrides goes first — and is worth repeating in one
+line at the end. The middle of a long file is where instructions go quiet,
+which is exactly where a rule migrates to as sections are appended above it.
 
 ## Imports do not save context
 

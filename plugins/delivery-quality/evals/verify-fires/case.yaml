@@ -3,7 +3,7 @@ name: verify-fires
 description: >-
   A green test suite hiding a broken change: the verification skill must catch
   that an assertion was weakened rather than trusting the passing run.
-tags: [verify-changes, skill]
+tags: [verify-changes, skill, needs-bash]
 context:
   scaffold_script: scaffold.sh
 execution:
@@ -13,4 +13,4 @@ execution:
   max_turns: 20
   timeout_seconds: 420
   allowed_tools: [Read, Glob, Grep, Bash, Skill]
-runs: 1
+runs: 3

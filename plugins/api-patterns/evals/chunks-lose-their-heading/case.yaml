@@ -1,0 +1,17 @@
+schema_version: "1.0"
+name: chunks-lose-their-heading
+description: >-
+  Chunks that only make sense under their heading. The answer must be
+  contextual retrieval, with the document in the prompt that generates the
+  context.
+tags: [rag-retriever, skill]
+execution:
+  prompt: |
+    Our policy documents are chunked by paragraph and search keeps missing the
+    obvious ones. Looking at the index, a chunk reads "It must be renewed 90
+    days before expiry" with no idea which policy it belongs to — the heading
+    is three chunks up. More chunks, or a bigger embedding model?
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill]
+runs: 3

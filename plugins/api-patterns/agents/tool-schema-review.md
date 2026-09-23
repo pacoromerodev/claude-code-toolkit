@@ -1,6 +1,6 @@
 ---
 name: tool-schema-review
-description: Reviews tool definitions passed to the Claude API for the things that make a model call them wrongly or not at all — vague descriptions, unexplained parameters, overlapping tools, unbounded results. Use proactively when tools are added or changed, and when a tool is never called, called with wrong arguments, or called instead of a better one.
+description: Reviews the tool definitions your own code passes to the Claude API — the `tools` array in a Messages call, or the functions a tool runner builds one from — for what makes a model call them wrongly or not at all: vague descriptions, unexplained parameters, overlapping tools, unbounded results. Use when those definitions change, or when a tool is never called, called with wrong arguments, or called instead of a better one. Pass the files holding the tool definitions, and the symptom if there is one. For tools exposed by an MCP server, use mcp-review.
 tools: Read, Glob, Grep, Bash
 model: inherit
 color: teal
@@ -40,6 +40,14 @@ choice arbitrary, and the model will pick inconsistently between runs.
 A description is three or four sentences: what it does, when to use it rather
 than the neighbouring tool, what it returns, how it fails. Parameter
 descriptions live in the schema, with units, formats and allowed values stated.
+
+## On Bedrock
+
+The Converse API wraps the same schema differently — `toolSpec`, with the
+schema under `inputSchema.json` — and a tool result carries `status:
+"success" | "error"` where the Anthropic API uses `is_error`. The review is
+the same; the field names are not. `skills/eval-harness/references/providers.md`
+in this plugin has the shapes side by side.
 
 ## Output format
 
