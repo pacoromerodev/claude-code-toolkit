@@ -57,8 +57,15 @@ with open(sys.argv[1], encoding="utf-8") as stream:
             event = json.loads(line)
         except ValueError:
             continue
-        message = event.get("message") or {}
-        for block in message.get("content") or []:
+        message = event.get("message")
+        if not isinstance(message, dict):
+            continue
+        # `content` is a list of blocks on a tool-using turn and a plain
+        # string on a text-only one. The string form carries no tool call.
+        content = message.get("content")
+        if not isinstance(content, list):
+            continue
+        for block in content:
             if not isinstance(block, dict) or block.get("type") != "tool_use":
                 continue
             payload = block.get("input") or {}
@@ -73,6 +80,18 @@ with open(sys.argv[1], encoding="utf-8") as stream:
 
 print(names[0] if names else "")
 PY
+}
+
+# `expected` may list alternatives separated by |: a subagent and the command
+# whose only job is to launch it are both correct routes to the same work.
+matches() {
+  local actual="$1" wanted="$2" option
+  while [[ "$wanted" == *"|"* ]]; do
+    option="${wanted%%|*}"
+    wanted="${wanted#*|}"
+    [[ "$actual" == *"$option"* ]] && return 0
+  done
+  [[ "$actual" == *"$wanted"* ]]
 }
 
 pass=0
@@ -92,7 +111,7 @@ while IFS=$'\t' read -r name expected prompt; do
   transcript="$OUT_DIR/$name.jsonl"
   "$CLAUDE_BIN" -p "$prompt" \
     --output-format stream-json --verbose \
-    --max-turns 4 \
+    --max-turns 8 \
     > "$transcript" 2>"$OUT_DIR/$name.err"
   status=$?
 
@@ -114,7 +133,7 @@ while IFS=$'\t' read -r name expected prompt; do
         "$name" "$actual"
       fail=$((fail + 1))
     fi
-  elif [[ "$actual" == *"$expected"* ]]; then
+  elif matches "$actual" "$expected"; then
     printf 'ok    %-26s %s\n' "$name" "$actual"
     pass=$((pass + 1))
   else

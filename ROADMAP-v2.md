@@ -71,11 +71,8 @@ writing each case once.
 
 ### Not done here, and why
 
-- **13.7's live routing run.** `scripts/route_check.sh` needs a logged-in CLI
-  with this branch's plugins installed. A throwaway config answers "Not logged
-  in", and installing a branch into the owner's own configuration is not this
-  work's to do. The script is tested against a stub in CI; the live run is a
-  release step.
+- **13.7's live routing run** — done after the merge, once `main` was the
+  installed copy. See *Routing, measured* below.
 - **The `ANTHROPIC_API_KEY` secret.** `gh secret list` is empty, so the weekly
   eval workflow stops at its own check. Only the repository owner can add it.
 - **Eighteen of the 53 eval cases.** `claude plugin eval` refuses a
@@ -597,6 +594,36 @@ conceptual prose that restates what the model already knows does not. The
 plugins whose value is a checker — `check_api_calls.py`, `check_settings.py`,
 `check_mcp_server.py`, the guards — are exactly the ones whose cases need
 Bash, and therefore the ones this machine could not measure at all.
+
+### Routing, measured
+
+`scripts/route_check.sh`, 15 prompts through a session holding every plugin,
+against `main`. **13 of 15 reach the component they belong to**, including the
+prompt that must fire nothing.
+
+Two do not, and both are findings rather than noise:
+
+- **`skill-describer` never fires.** The prompt asks for alternatives to a
+  description that does not match anything, and the main thread answers it
+  itself. That is the same result its eval case reports (0.00 against a
+  baseline of 0.67), reached a second way. The boundary sharpening is a
+  separate change; this is its "before".
+- **`tool-schema-review` loses to a bundled skill.** A prompt about a tool
+  definition that is never called goes to Claude Code's own `claude-api`
+  skill, whose description claims any prompt naming the Messages API. Nothing
+  here can outrank it by wanting to: the difference to write into the
+  description is that this subagent reviews *your* definitions and returns
+  rewrites, rather than answering a question about the API.
+
+What the first run measured was mostly my own harness. It reported five
+failures: two were prompts that named files the repository does not have, so
+the model went looking with Bash and hit the turn cap; two were expectations
+that did not accept the launcher command as a route to its subagent, which it
+is; and one was a parser that read `content` as a list when the CLI sends a
+plain string on a text-only turn. The stub test now covers that last one — it
+had passed the bug through, because the stub only ever emitted the list form.
+
+---
 
 ### Proposed for removal: `java-spring`
 
