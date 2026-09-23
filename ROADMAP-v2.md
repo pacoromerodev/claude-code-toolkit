@@ -14,6 +14,79 @@ that cannot be checked is listed under *Excluded*.
 
 ---
 
+## Status — 2026-09-23
+
+Every phase is implemented, one commit per item and one pull request per
+phase, stacked in the order the work was done. CI is green on every one of
+them, including the Python 3.8 leg.
+
+| Phase | Pull request | Done-criterion |
+|---|---|---|
+| 8 | pacoromerodev/claude-code-toolkit#2 | Met. Suites run from a sandbox; a fresh worktree stays clean after all seven |
+| 9 | pacoromerodev/claude-code-toolkit#3 | Met. Re-running AUDIT C2's probe: all eleven rows now exit 2. A key still passes once the user writes an allow file of `.*` — the model can no longer write that file, which was the defect |
+| 10 | pacoromerodev/claude-code-toolkit#4 | Met, except the manual refusal on a managed machine (see *Not automatable*) |
+| 11 | pacoromerodev/claude-code-toolkit#5 | Met. The broken branch was pushed and failed: pacoromerodev/claude-code-toolkit#6 |
+| 13 | pacoromerodev/claude-code-toolkit#7 | Met, except 13.7's live routing run (below) |
+| 14 | pacoromerodev/claude-code-toolkit#8 | Met |
+| 15 | pacoromerodev/claude-code-toolkit#9 | Met. `check_claude_md.py CLAUDE.md` is clean, and CI runs it |
+| 12 | pacoromerodev/claude-code-toolkit#10 | Coverage met (`--enforce` exits 0). The per-plugin bar is met by three of seven; see the results below |
+
+**Order.** Phases 13 and 14 were done before 12. Every row of both carries an
+eval case, and those cases are Phase 12's coverage; writing them first meant
+writing each case once.
+
+### Where the work departed from this plan
+
+- **9.1 is stricter than written.** No skill pre-approves `Write` or `Edit`,
+  including the scaffolders the plan would have allowed to keep them. File
+  changes go through the normal permission prompt everywhere.
+- **11.4 ships hashes, not a checkout.** The academy repository is private, so
+  CI cannot clone it. `data/course-shingles.txt` holds 350 truncated hashes and
+  no text. The window is five words with a content-word floor, not eight: eight
+  missed the one passage the audit found, and five alone flagged a stock phrase
+  in six descriptions.
+- **11.6 kept the 3.8 floor** — a hook uses whatever `python3` is installed,
+  and a stock macOS answers 3.9 — and pinned that leg to `ubuntu-24.04`, since
+  no 3.8 build exists for 26.04.
+- **13.11 and 13.12 renamed two commands** the plan kept: `/review` became
+  `/review-diff` and `/context` became `/context-budget`. Both short names are
+  commands Claude Code ships, which `check_names.py` (11.2) found once its
+  built-in list was read from the documentation.
+- **13.13's criterion could not be met as written.** `grep -ci private
+  README.md` counts "private keys" in the list of credentials the guard blocks.
+  The criterion that holds is that no sentence claims the repository is
+  private.
+- **13.6's criterion** asked that `${CLAUDE_PLUGIN_ROOT}` appear only on
+  invocation lines. It also appears once in prose, saying what it is not for.
+- **13.12's token drop is mostly 9.1's.** 2,921 → 2,011 always-on tokens. The
+  projection counts the frontmatter, so narrowing `allowed-tools` took about 30
+  tokens off every skill; deleting the eight wrapper commands is the rest.
+- **Several claims were settled against the live documentation or the SDK
+  rather than the notes,** which had gone stale: automatic caching and the
+  per-model minimum (13.4), what stateless mode and `json_response` each drop
+  (13.3, against the MCP Python SDK), which frontmatter fields are required and
+  where descriptions are truncated (13.5), what a broken settings file does
+  (13.6), and that `updatedInput` replaces the tool input rather than merging
+  (14.3).
+
+### Not done here, and why
+
+- **13.7's live routing run.** `scripts/route_check.sh` needs a logged-in CLI
+  with this branch's plugins installed. A throwaway config answers "Not logged
+  in", and installing a branch into the owner's own configuration is not this
+  work's to do. The script is tested against a stub in CI; the live run is a
+  release step.
+- **The `ANTHROPIC_API_KEY` secret.** `gh secret list` is empty, so the weekly
+  eval workflow stops at its own check. Only the repository owner can add it.
+- **Eighteen of the 53 eval cases.** `claude plugin eval` refuses a
+  Bash-granting run while the Docker credential store holds a symbolic link,
+  as it does on the machine this ran on, so every case tagged `needs-bash` was
+  skipped and listed as NOT RUN. That includes seven of delivery-quality's
+  eight, which is to say the whole of its measurable surface: the guards, the
+  gate and the two Phase 14 lenses. They run in CI once the secret exists.
+
+---
+
 ## Why the order
 
 ```
@@ -380,6 +453,190 @@ base, the stack rebased, and #6 closed.
   roughly 60 cases × 3 runs × 2 arms comes to about $55–60 per full pass, plus
   the pilot runs. That is why the weekly CI run stays at `runs: 1` (about
   $20 a week at 60 cases). Budget both before starting.
+
+### What the pilot showed
+
+Run on 2026-09-22 and 23 against the working copy, `runs: 3`, both arms, at a
+cost of about $18. Every case tagged `needs-bash` is missing from these
+numbers, for the reason under *Not done here* — including seven of
+delivery-quality's eight, which is its whole measurable surface.
+
+| Plugin | Case | With | Baseline | Δ |
+|---|---|---|---|---|
+| api-patterns | `agent-that-must-resume` | 0.67 | 0.33 | +0.33 |
+| api-patterns | `bedrock-model-not-found` | 1.00 | 0.67 | +0.33 |
+| api-patterns | `cache-ttl-mismatch` | 1.00 | 1.00 | +0.00 |
+| api-patterns | `chunks-lose-their-heading` | 1.00 | 1.00 | +0.00 |
+| api-patterns | `hybrid-or-rerank` | 1.00 | 1.00 | +0.00 |
+| api-patterns | `not-fired` | 1.00 | 1.00 | +0.00 |
+| api-patterns | `score-jumped-after-examples` | 1.00 | 1.00 | +0.00 |
+| api-patterns | `tool-never-chosen` | 1.00 | 1.00 | +0.00 |
+| api-patterns | `workflow-not-agent` | 1.00 | 1.00 | +0.00 |
+| context-discipline | `context-cannot-be-measured` | 0.67 | 0.00 | +0.67 |
+| context-discipline | `fix-before-scope` | — | — | not re-measured after its repair |
+| context-discipline | `not-fired` | 1.00 | 1.00 | +0.00 |
+| context-discipline | `rules-nobody-follows` | 1.00 | 1.00 | +0.00 |
+| delivery-quality | `verify-not-fired` | 1.00 | 1.00 | +0.00 |
+| java-spring | `config-in-service` | 1.00 | 1.00 | +0.00 |
+| java-spring | `flaky-time-test` | 1.00 | 1.00 | +0.00 |
+| java-spring | `legacy-date-parsing` | 1.00 | 1.00 | +0.00 |
+| java-spring | `not-fired` | 1.00 | 1.00 | +0.00 |
+| java-spring | `out-of-order-updates` | 1.00 | 1.00 | +0.00 |
+| java-spring | `records-or-lombok` | 1.00 | 1.00 | +0.00 |
+| java-spring | `transaction-boundary` | 1.00 | 1.00 | +0.00 |
+| java-spring | `what-to-test` | 1.00 | 1.00 | +0.00 |
+| mcp-builder | `not-fired` | 1.00 | 1.00 | +0.00 |
+| mcp-builder | `roots-are-advice` | 1.00 | 1.00 | +0.00 |
+| mcp-builder | `server-from-an-api` | — | — | not re-measured after its repair |
+| mcp-builder | `stdio-or-http` | 1.00 | 1.00 | +0.00 |
+| mcp-builder | `tool-or-resource` | 1.00 | 1.00 | +0.00 |
+| skill-forge | `description-rewrite` | 0.00 | 0.67 | -0.67 |
+| skill-forge | `not-fired` | 1.00 | 1.00 | +0.00 |
+| skill-forge | `procedure-into-skill` | — | — | not re-measured after its repair |
+| skill-forge | `skill-or-subagent` | 0.67 | 0.67 | +0.00 |
+| team-rollout | `connector-with-write` | 1.00 | 0.00 | +1.00 |
+| team-rollout | `local-settings-committed` | 1.00 | 1.00 | +0.00 |
+| team-rollout | `not-fired` | 1.00 | 1.00 | +0.00 |
+| team-rollout | `rollout-order` | 1.00 | 0.00 | +1.00 |
+
+32 cases measured both ways; mean score 0.94, mean delta +0.08. 18 of the suite's 53 cases need Bash and did not run.
+
+**The baseline answers most of these prompts correctly.** That is the finding,
+and it is the same one AUDIT §1.5 reported at `runs: 1`: on a conceptual
+question — where `@Transactional` goes, whether to use a record, why a
+reranker cannot recover a document that was never retrieved — the model
+without any plugin gives an answer that satisfies a grader written from the
+skill's own content. A skill that repeats what the model already knows costs
+context and returns nothing.
+
+Delta comes from four kinds of case, and only those:
+
+1. **Facts the model cannot have current.** `bedrock-model-not-found`
+   (+0.33): the error says the model does not exist, and the answer is a
+   cross-region inference profile.
+2. **Facts about the model's own situation.** `context-cannot-be-measured`
+   (+0.67): without the plugin it invents a percentage, which is what the user
+   asked for and the one thing it cannot know.
+3. **An order or a framing the model does not reach on its own.**
+   `rollout-order` (+1.00) and `connector-with-write` (+1.00): spend answered
+   before identity, and a write-capable connector treated as a switch rather
+   than as three gates and a signature. Both score 0.00 without the plugin.
+4. **A decision the content added in Phase 13.**
+   `agent-that-must-resume` (+0.33), after its repair.
+
+Everything else — nineteen cases — is 1.00 against 1.00.
+
+One case still scores **below** the baseline: `description-rewrite`, at 0.00
+against 0.67. It is not an environment artefact. With skill-forge loaded, the
+main thread rewrites the description itself instead of delegating to
+`skill-describer`, and returns one candidate where the grader wants several
+compared. That is a finding about the subagent, not about the case: a
+subagent nothing delegates to is context spent on a description nobody acts
+on. It stays as it is, unfixed, because the fix is a decision about the
+component — sharpen the boundary or drop the subagent — and that belongs in a
+later phase, not in a grader.
+
+Four cases were repaired rather than kept, because the pilot showed they
+measured nothing. Two of the four — `fix-before-scope` and
+`server-from-an-api` — ran in an empty sandbox, so the case described a
+repository that was not there; the plugin arm went looking for it and the
+baseline simply answered. Both now scaffold what the prompt describes. Neither
+has been re-measured: the re-runs died on a usage limit and on a turn limit
+that has since been raised.
+
+- `procedure-into-skill` asked for a skill where a command is the right
+  answer: cutting a release is user-initiated. Both arms proposed a command
+  and the grader called that wrong. It now describes a correction that recurs
+  on its own.
+- `agent-that-must-resume` failed both arms. The plugin's answers were correct
+  engineering — persist a record of progress — and the grader demanded the
+  skill's own phrasing instead. The grader now requires the part the skill
+  adds (who runs the loop) and accepts a checkpointed self-run loop; the
+  skill's description gained the trigger it was missing, which is why it had
+  not fired.
+
+Per plugin, over the cases that ran:
+
+| Plugin | Cases | Mean score | Mean Δ |
+|---|---|---|---|
+| team-rollout | 4 | 1.00 | +0.50 |
+| context-discipline | 3 | 0.89 | +0.22 |
+| api-patterns | 9 | 0.96 | +0.07 |
+| delivery-quality | 1 | 1.00 | +0.00 |
+| java-spring | 8 | 1.00 | **+0.00** |
+| mcp-builder | 4 | 1.00 | **+0.00** |
+| skill-forge | 3 | 0.56 | **−0.22** |
+
+**What this means for the plugins.** The bar this plan set was
+`overallScore ≥ 0.8` and `meanDelta > 0`. Three plugins clear it;
+delivery-quality has one measurable case and is not judged on it. Three do
+not, and the rule was that they are proposed for removal here rather than
+re-graded:
+
+- **java-spring** — eight cases, delta exactly zero. The proposal is below.
+- **mcp-builder** — four cases, delta zero, with two of its five repaired or
+  unmeasured. It needs the `needs-bash` cases and a re-run of
+  `server-from-an-api` before anything is decided; those three cases are its
+  checker and its transport losses, which is where a delta would be.
+- **skill-forge** — the only negative mean, and it comes from one case where
+  the plugin makes the answer worse by not delegating. Its other two
+  measurable cases are unrepaired or tied. The same re-run applies.
+
+The honest reading of the whole table is narrower than "the plugins help": a
+current fact helps, an order of decisions helps, a checker probably helps, and
+conceptual prose that restates what the model already knows does not. The
+plugins whose value is a checker — `check_api_calls.py`, `check_settings.py`,
+`check_mcp_server.py`, the guards — are exactly the ones whose cases need
+Bash, and therefore the ones this machine could not measure at all.
+
+### Proposed for removal: `java-spring`
+
+The rule this plan set for Phase 12 is that a plugin which cannot reach
+`meanDelta > 0` is proposed for removal here, rather than having its graders
+loosened. `java-spring` is in that position, and this is the proposal.
+
+**The measurement.** Eight cases ran, `runs: 3`, both arms. Every one scored
+**1.00 with the plugin and 1.00 without it**: mean delta exactly 0.00. The
+cases were not soft — they carry a wrong plan for the answer to push back on
+(commit offsets earlier, raise the sleep, move `@Transactional` to the
+controller, convert entities to records) — and the model refused every one of
+them with no plugin loaded.
+
+**What is not measured.** Two of its ten cases need Bash, so they did not run
+here: `migration-unsafe` (the `migration-review` subagent, on a real
+repository with a checked-in query the migration breaks) and
+`kafka-redelivery`. The subagent is the component with the most plausible
+remaining value: its output format, and the deploy order it returns, are not
+things a plain answer produces. Neither has been shown to help.
+
+**The three options, and the recommendation.**
+
+1. **Remove the plugin.** Honest, and it loses the migration subagent along
+   with everything else, unmeasured.
+2. **Keep it and say what it is for.** Its README would have to say that on
+   general Spring and Kafka questions the model does as well without it, and
+   that what it adds is the review subagent's shape and the house rules a
+   particular team wants enforced. That is a real use — a team's conventions
+   are not in the model — but it is not what the plugin claims today.
+3. **Reduce it to the parts that could still show a delta**: the
+   `migration-review` subagent and the conventions that are genuinely local,
+   dropping the skills that restate what the model knows. Four skills at ~449
+   always-on tokens would become one subagent at a fraction of that.
+
+**Recommended: (3), after the two Bash cases run.** Removing a plugin on
+evidence that excludes its strongest component would be the same mistake this
+audit was written to stop. The gate is CI with the `ANTHROPIC_API_KEY` secret
+set, which runs the `needs-bash` cases this machine cannot. If
+`migration-unsafe` also shows no delta, (1) follows.
+
+`mcp-builder` and `skill-forge` are in the same position on the numbers, and
+neither gets a proposal yet for the same reason: too much of each is
+unmeasured. mcp-builder's three `needs-bash` cases are its checker and its
+transport losses; skill-forge's are its auditor. Those are where a delta would
+be if there is one, and they run in CI as soon as the secret exists.
+
+The same question is open, less sharply, for the conceptual skills in every
+plugin: see the deltas in the table above.
 
 ---
 
