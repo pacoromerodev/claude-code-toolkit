@@ -160,8 +160,13 @@ context on every unrelated turn, and nothing in the audit can detect that.
 
 Check in this order. It is almost always the first one.
 
-1. **The description.** Does it name the situation in the user's words? Try
-   `skill-describer` for three alternatives and what each would match.
+1. **The description.** Does it name the situation in the user's words?
+   **Delegate this one.** Rewriting a description from the body is not a
+   one-shot edit: it needs candidates that differ in coverage, each with the
+   prompts it would catch and the prompts it would wrongly catch. Launch the
+   `skill-describer` subagent with the body and the skills it sits beside, and
+   use what comes back. Writing a single replacement yourself is the failure
+   this skill exists to prevent — it reads better and matches the same nothing.
 2. **The name and the directory** — do they match exactly?
 3. **Is `SKILL.md` inside a directory of that name**, not loose?
 4. **Does another skill's description overlap?** When both match, which fires

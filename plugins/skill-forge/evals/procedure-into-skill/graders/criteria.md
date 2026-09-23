@@ -3,25 +3,28 @@ type: llm
 weight: 1
 ---
 
-A correction that repeats, on a situation the model can recognise, and the
-user has ruled out typing anything. That is a skill: it fires on its own
-description when a migration is being written.
+The mechanism is settled in the question: the user asked for a skill. What is
+left is writing one that works, and the part that decides whether it ever
+fires is the description.
 
 Score well when the response:
-- Proposes a skill rather than a command, and connects that to what the user
-  said — nothing is typed, it has to fire on its own
-- Treats the description as the part that decides whether it ever fires, and
-  writes one that says both what it does and when: adding or changing a
-  migration, altering a table, a Flyway or Liquibase file
-- Writes the body as the rules, as a procedure rather than prose
-- Says where the file goes — a directory named after the skill, with
-  `SKILL.md` inside it
-- Mentions at least one of: the negative case (what must not fire it), that
-  `allowed-tools` grants rather than restricts, or auditing the result
+- Produces a `SKILL.md` with frontmatter, in a directory named after the
+  skill, and says where that directory goes
+- Writes a description that names both what it does and the situation it
+  fires in, in words someone would type — adding or changing a migration,
+  altering a table, a Flyway or Liquibase file — rather than restating the
+  topic
+- Writes the body as the rules in order, as instructions rather than prose
+- Keeps `allowed-tools` read-only, or omits it. A bare `Bash`, `Write` or
+  `Edit` is wrong here: the field grants without a prompt, it does not
+  restrict
+- Mentions how to tell whether it works: the eval cases, or what must not
+  fire it
 
 Score badly when the response:
-- Recommends a slash command, or a CLAUDE.md rule, as the main answer
 - Writes the body and leaves the description as a restatement of the topic
-- Suggests a hook for a rule the model has to apply while writing SQL, with
-  no way to check the output
-- Answers with general advice about migrations instead of setting this up
+  ("Database migration rules"), with no situation in it
+- Grants a bare `Bash`, `Write` or `Edit` in `allowed-tools`
+- Argues for a command, a hook or a CLAUDE.md rule instead of writing what
+  was asked for
+- Produces prose about migrations rather than a procedure

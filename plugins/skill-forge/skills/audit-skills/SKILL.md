@@ -58,5 +58,8 @@ Lead with the errors — those are breakage, not opinion. Then the warnings,
 grouped by skill, each with the fix rather than a restatement of the problem.
 
 If the audit is clean but the skill still does not fire, the problem is the
-description's wording, not its structure. Hand it to `skill-describer` for
-alternatives.
+description's wording, not its structure — and that is the `skill-describer`
+subagent's job, not this one's. Launch it with the body and the neighbouring
+skills, and report what it returns. Do not write the replacement here: one
+candidate with no coverage argument behind it is how the current description
+was arrived at.
