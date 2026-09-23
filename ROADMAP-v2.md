@@ -473,7 +473,7 @@ delivery-quality's eight, which is its whole measurable surface.
 | api-patterns | `tool-never-chosen` | 1.00 | 1.00 | +0.00 |
 | api-patterns | `workflow-not-agent` | 1.00 | 1.00 | +0.00 |
 | context-discipline | `context-cannot-be-measured` | 0.67 | 0.00 | +0.67 |
-| context-discipline | `fix-before-scope` | — | — | not re-measured after its repair |
+| context-discipline | `fix-before-scope` | — | — | still unmeasured: two re-runs voided |
 | context-discipline | `not-fired` | 1.00 | 1.00 | +0.00 |
 | context-discipline | `rules-nobody-follows` | 1.00 | 1.00 | +0.00 |
 | delivery-quality | `verify-not-fired` | 1.00 | 1.00 | +0.00 |
@@ -487,19 +487,19 @@ delivery-quality's eight, which is its whole measurable surface.
 | java-spring | `what-to-test` | 1.00 | 1.00 | +0.00 |
 | mcp-builder | `not-fired` | 1.00 | 1.00 | +0.00 |
 | mcp-builder | `roots-are-advice` | 1.00 | 1.00 | +0.00 |
-| mcp-builder | `server-from-an-api` | — | — | not re-measured after its repair |
+| mcp-builder | `server-from-an-api` | 0.33 | 0.67 | **−0.33** |
 | mcp-builder | `stdio-or-http` | 1.00 | 1.00 | +0.00 |
 | mcp-builder | `tool-or-resource` | 1.00 | 1.00 | +0.00 |
 | skill-forge | `description-rewrite` | 0.00 | 0.67 | -0.67 |
 | skill-forge | `not-fired` | 1.00 | 1.00 | +0.00 |
-| skill-forge | `procedure-into-skill` | — | — | not re-measured after its repair |
+| skill-forge | `procedure-into-skill` | — | — | still unmeasured: re-run voided |
 | skill-forge | `skill-or-subagent` | 0.67 | 0.67 | +0.00 |
 | team-rollout | `connector-with-write` | 1.00 | 0.00 | +1.00 |
 | team-rollout | `local-settings-committed` | 1.00 | 1.00 | +0.00 |
 | team-rollout | `not-fired` | 1.00 | 1.00 | +0.00 |
 | team-rollout | `rollout-order` | 1.00 | 0.00 | +1.00 |
 
-32 cases measured both ways; mean score 0.94, mean delta +0.08. 18 of the suite's 53 cases need Bash and did not run.
+33 cases measured both ways; mean score 0.92, mean delta +0.07. 18 of the suite's 53 cases need Bash and did not run.
 
 **The baseline answers most of these prompts correctly.** That is the finding,
 and it is the same one AUDIT §1.5 reported at `runs: 1`: on a conceptual
@@ -540,9 +540,18 @@ Four cases were repaired rather than kept, because the pilot showed they
 measured nothing. Two of the four — `fix-before-scope` and
 `server-from-an-api` — ran in an empty sandbox, so the case described a
 repository that was not there; the plugin arm went looking for it and the
-baseline simply answered. Both now scaffold what the prompt describes. Neither
-has been re-measured: the re-runs died on a usage limit and on a turn limit
-that has since been raised.
+baseline simply answered. Both now scaffold what the prompt describes.
+
+`server-from-an-api` has since been re-measured against its 63-tool server,
+and the result is worse, not better: **0.33 against 0.67**. The case now
+measures what it claims to, and `mcp-server-scaffold` loses on it. That is a
+finding about the skill, and it is why mcp-builder's decision waits for its
+`needs-bash` cases rather than being settled on this one.
+
+`fix-before-scope` is still unmeasured after two attempts, both voided by a
+usage limit. Its one readable signal is the firing indicator added afterwards,
+which reports `scope-task` as **not loaded** — inconclusive, because those runs
+died at turn one.
 
 - `procedure-into-skill` asked for a skill where a command is the right
   answer: cutting a release is user-initiated. Both arms proposed a command
@@ -564,7 +573,7 @@ Per plugin, over the cases that ran:
 | api-patterns | 9 | 0.96 | +0.07 |
 | delivery-quality | 1 | 1.00 | +0.00 |
 | java-spring | 8 | 1.00 | **+0.00** |
-| mcp-builder | 4 | 1.00 | **+0.00** |
+| mcp-builder | 5 | 0.87 | **−0.07** |
 | skill-forge | 3 | 0.56 | **−0.22** |
 
 **What this means for the plugins.** The bar this plan set was
@@ -574,10 +583,10 @@ not, and the rule was that they are proposed for removal here rather than
 re-graded:
 
 - **java-spring** — eight cases, delta exactly zero. The proposal is below.
-- **mcp-builder** — four cases, delta zero, with two of its five repaired or
-  unmeasured. It needs the `needs-bash` cases and a re-run of
-  `server-from-an-api` before anything is decided; those three cases are its
-  checker and its transport losses, which is where a delta would be.
+- **mcp-builder** — five cases, mean delta **−0.07**, and the one case that
+  moved it is `server-from-an-api`, now measured against a real 63-tool server
+  and losing to the baseline. It still needs its three `needs-bash` cases —
+  its checker and its transport losses — before anything is decided.
 - **skill-forge** — the only negative mean, and it comes from one case where
   the plugin makes the answer worse by not delegating. Its other two
   measurable cases are unrepaired or tied. The same re-run applies.
