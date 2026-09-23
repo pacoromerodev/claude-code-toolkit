@@ -4,25 +4,30 @@ weight: 1
 ---
 
 This is genuinely an agent: what to do with each file depends on what was
-found. The question is who runs the loop, and "write it again with better
-retries" is the answer that puts hours of work back on a connection staying
-up.
+found. Two things are wrong with "rewrite the loop with better retries": a
+retry handles one failed request, not a process that died two hours in with
+no record of what it had done; and the question of who runs a multi-hour loop
+at all has not been asked.
+
+A durable record of progress is necessary whichever way it goes, so an answer
+that says so is right as far as it goes. What separates a complete answer is
+the second half.
 
 Score well when the response:
-- Accepts that this is an agent rather than arguing for a workflow
-- Lays out the choice: your own loop, the SDK's tool runner, or managed
-  agents, and says what each one costs to operate
-- Recommends managed agents here, for the reason in the question — a run
-  measured in hours that has to be resumable, with the sandbox and the
-  progress kept outside the caller's process
-- Says what to keep either way: a turn or cost ceiling, tool errors returned
-  as errors, and a record of what has already been processed so a resumed run
-  does not redo it
+- Says retries do not address the failure, and that the missing piece is a
+  durable record of what has been processed, so a resumed run does not redo
+  or skip work
+- Lays out who can run the loop — your own code, the SDK's tool runner, or
+  managed agents — and what each one leaves you operating
+- Makes a reasoned recommendation among them for a run measured in hours
+  that must survive a dropped connection. Managed agents are the natural fit;
+  a self-run loop with checkpointing is acceptable if the answer says what
+  that costs to operate
+- Says the tool runner does not help with resumption, if it mentions it: it
+  drives the loop inside the process that died
 
 Score badly when the response:
-- Helps write the hand-rolled loop with retries, as asked, without offering
-  the alternatives
-- Names the tool runner as the fix for resumption, which it is not: it drives
-  the loop in your process, and the process is what died
-- Treats the choice as a matter of taste, or answers with a general list of
-  agent best practices
+- Helps write the retry logic as asked and stops there
+- Never considers who runs the loop, only how to make the current one sturdier
+- Presents the tool runner as the fix for resumption
+- Treats the choice as a matter of taste

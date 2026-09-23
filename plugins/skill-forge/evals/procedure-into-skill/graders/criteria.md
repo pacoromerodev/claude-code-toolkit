@@ -3,24 +3,25 @@ type: llm
 weight: 1
 ---
 
-This is a skill: a procedure that recurs, with a situation that can be
-described in the words someone would use. The work is deciding what fires it
-and writing the body as a procedure — not writing a document about releases.
+A correction that repeats, on a situation the model can recognise, and the
+user has ruled out typing anything. That is a skill: it fires on its own
+description when a migration is being written.
 
 Score well when the response:
-- Proposes a skill, and says what makes it one: a recurring procedure with a
-  recognisable trigger
-- Writes a description that says both what it does and when it fires, in the
-  words someone would type ("cut a release", "ship a version")
-- Writes the body as the six steps in order, as instructions rather than
-  prose
-- Covers the frontmatter honestly: the description is what matters; any
-  `Bash` grant is scoped to the command it runs, not bare
-- Mentions the negative case — what should not fire it — or the eval cases
+- Proposes a skill rather than a command, and connects that to what the user
+  said — nothing is typed, it has to fire on its own
+- Treats the description as the part that decides whether it ever fires, and
+  writes one that says both what it does and when: adding or changing a
+  migration, altering a table, a Flyway or Liquibase file
+- Writes the body as the rules, as a procedure rather than prose
+- Says where the file goes — a directory named after the skill, with
+  `SKILL.md` inside it
+- Mentions at least one of: the negative case (what must not fire it), that
+  `allowed-tools` grants rather than restricts, or auditing the result
 
 Score badly when the response:
-- Suggests a slash command as the only option, with no mention of a skill
-  firing on its own
-- Produces a document about the release process rather than a procedure
-- Grants a bare `Bash` in `allowed-tools`
-- Writes a description that only names the topic, with no trigger
+- Recommends a slash command, or a CLAUDE.md rule, as the main answer
+- Writes the body and leaves the description as a restatement of the topic
+- Suggests a hook for a rule the model has to apply while writing SQL, with
+  no way to check the output
+- Answers with general advice about migrations instead of setting this up

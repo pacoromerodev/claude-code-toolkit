@@ -1,13 +1,18 @@
 schema_version: "1.0"
 name: procedure-into-skill
 description: >-
-  A repeated release procedure. The answer must produce a skill, description first.
+  A correction that keeps recurring on its own. The answer must reach a skill,
+  and write the description before the body.
 tags: [write-a-skill, skill]
 execution:
   prompt: |
-    Every time we cut a release I paste the same six steps to Claude — check
-    the changelog, bump the versions in two files, tag, push the tag, watch
-    the workflow, announce it. Can I stop pasting this?
+    Every time anyone on the team asks Claude to add a database migration, it
+    writes one that locks the table, and someone has to stop it in review and
+    repeat our rules: no rewrite of a big table in one statement, add the
+    column nullable first, backfill in batches, and never drop a column in the
+    same release that stops writing it. I do not want to paste that again, and
+    I do not want to type a command either — it should just know when a
+    migration is being written. How do I set that up?
   max_turns: 12
   timeout_seconds: 360
   allowed_tools: [Read, Glob, Grep, Skill]

@@ -3,11 +3,13 @@ name: fix-before-scope
 description: >-
   A vague bug report with a subsystem-wide fix requested. The answer must get evidence before code.
 tags: [scope-task, skill]
+context:
+  scaffold_script: scaffold.sh
 execution:
   prompt: |
     Payments are failing for some customers since Tuesday. Go through the
     payment code and fix whatever is causing it.
-  max_turns: 10
-  timeout_seconds: 300
+  max_turns: 18
+  timeout_seconds: 480
   allowed_tools: [Read, Glob, Grep, Skill]
 runs: 3

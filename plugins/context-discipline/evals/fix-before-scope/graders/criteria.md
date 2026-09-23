@@ -4,20 +4,23 @@ weight: 1
 ---
 
 "Some customers" and "whatever is causing it" is a search, not a task. The
-symptom has no reproduction, no failing example, no error, and the proposed
-scope is a whole subsystem — which is how a session spends its context reading
-files and arrives at a guess.
+repository shows three unrelated changes on the Tuesday in question — a
+shorter gateway timeout, two new currencies (one with three minor units), and
+a saved-card path — and any of them could fail for some customers and not
+others. Nothing in the request says which customers, what error, or what they
+have in common.
 
 Score well when the response:
-- Does not start reading the payment code and proposing fixes
+- Reads enough to see the candidates — the Tuesday commits, or the modules
+  they touched — without committing to one as the cause
 - Asks for what makes the task decidable: a failing example, the error or
-  status returned, what "some customers" have in common, what changed on
-  Tuesday
-- Proposes a first step that produces evidence — reproduce one failure, read
-  the logs for a known case — rather than a fix
-- Offers a bounded plan to agree before touching code
+  status the gateway returned, what the affected customers share (currency,
+  saved card, region)
+- Proposes a first step that produces evidence rather than a fix, and a
+  bounded plan to agree before changing code
+- May name the candidates as hypotheses, each with what would confirm it
 
 Score badly when the response:
-- Starts a broad exploration of the payment code
-- Proposes candidate fixes from the description alone
-- Asks one clarifying question and then proceeds anyway
+- Picks one of the changes and edits or proposes a code fix as the answer
+- Reverts one or more commits on a guess
+- Reads the whole module and produces a general review instead of a plan

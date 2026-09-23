@@ -1,6 +1,6 @@
 ---
 name: agent-or-workflow
-description: Decides whether a task should be a fixed workflow or an agent with tools, and names the pattern to use. Use when designing anything that calls a model more than once, when an agent behaves unpredictably, or when the user asks how to structure an AI feature.
+description: Decides whether a task should be a fixed workflow or an agent with tools, names the pattern, and — for an agent — who should run its loop: your own code, the SDK's tool runner, or managed agents. Use when designing anything that calls a model more than once, when an agent behaves unpredictably or dies partway through a long run, or when the user asks how to structure or operate an AI feature.
 allowed-tools: Read, Glob, Grep
 ---
 

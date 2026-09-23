@@ -346,6 +346,13 @@ Each new script gets its own fixtures under `.github/scripts/tests/`, run by a
 and fails. This is the ROADMAP 0.1 criterion that was never evidenced
 (AUDIT M9), and the PR link goes in this file.
 
+**Evidenced:** pacoromerodev/claude-code-toolkit#6 planted a bare `Bash` grant
+and a relative hook path. Run 35723853440 failed on both — the skill auditor
+and `check_hooks.py` — and on a third fault nobody planted: shellcheck's
+SC1007 in `scripts/tests/run-evals.test.sh`, which had been failing the Shell
+scripts job on every pull request of this stack since Phase 8. Fixed at the
+base, the stack rebased, and #6 closed.
+
 ---
 
 ## Phase 12 — Evals that can show a plugin helps *(H6)*
