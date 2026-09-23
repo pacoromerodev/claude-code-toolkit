@@ -86,6 +86,15 @@ jobs:
       - name: Install what the scaffolds need
         run: python3 -m pip install --quiet pytest
 
+      # `plugin eval` refuses a Bash-granting run it cannot confine, rather
+      # than running it unconfined. A bare runner has neither tool, so every
+      # case tagged needs-bash fails before it starts.
+      - name: Install the sandbox the eval requires
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap socat
+          bwrap --version && socat -V | head -1
+
       # Pinned: an eval measures the plugin, so the thing measuring it should
       # not change between runs without someone deciding it should.
       - name: Install Claude Code
