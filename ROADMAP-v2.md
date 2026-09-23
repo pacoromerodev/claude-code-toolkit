@@ -545,10 +545,18 @@ measures what it claims to, and `mcp-server-scaffold` loses on it. That is a
 finding about the skill, and it is why mcp-builder's decision waits for its
 `needs-bash` cases rather than being settled on this one.
 
-`fix-before-scope` is still unmeasured after two attempts, both voided by a
-usage limit. Its one readable signal is the firing indicator added afterwards,
-which reports `scope-task` as **not loaded** — inconclusive, because those runs
-died at turn one.
+`fix-before-scope` produced a clean result on its third attempt, on the plugin
+arm at least: three runs, no errors, and the indicator reporting `scope-task`
+as **not loaded** every time. The baseline arm died on a usage limit, so the
+delta is still unknown, but the firing result does not need it.
+
+The description was the reason. It claimed a request that is open-ended, a
+refactor, a migration — and never a bug reported with no failing example,
+which is the case where diving in wastes a whole session. That situation was
+not in the body either, so both were written: the body now says a reported
+symptom is not a task yet and what evidence to get before any hypothesis, and
+the description claims it. Re-measuring waits for the usage limit, like the
+other two.
 
 - `procedure-into-skill` asked for a skill where a command is the right
   answer: cutting a release is user-initiated. Both arms proposed a command
