@@ -71,11 +71,8 @@ writing each case once.
 
 ### Not done here, and why
 
-- **13.7's live routing run.** `scripts/route_check.sh` needs a logged-in CLI
-  with this branch's plugins installed. A throwaway config answers "Not logged
-  in", and installing a branch into the owner's own configuration is not this
-  work's to do. The script is tested against a stub in CI; the live run is a
-  release step.
+- **13.7's live routing run** — done after the merge, once `main` was the
+  installed copy. See *Routing, measured* below.
 - **The `ANTHROPIC_API_KEY` secret.** `gh secret list` is empty, so the weekly
   eval workflow stops at its own check. Only the repository owner can add it.
 - **Eighteen of the 53 eval cases.** `claude plugin eval` refuses a
@@ -473,7 +470,7 @@ delivery-quality's eight, which is its whole measurable surface.
 | api-patterns | `tool-never-chosen` | 1.00 | 1.00 | +0.00 |
 | api-patterns | `workflow-not-agent` | 1.00 | 1.00 | +0.00 |
 | context-discipline | `context-cannot-be-measured` | 0.67 | 0.00 | +0.67 |
-| context-discipline | `fix-before-scope` | — | — | not re-measured after its repair |
+| context-discipline | `fix-before-scope` | — | — | still unmeasured: two re-runs voided |
 | context-discipline | `not-fired` | 1.00 | 1.00 | +0.00 |
 | context-discipline | `rules-nobody-follows` | 1.00 | 1.00 | +0.00 |
 | delivery-quality | `verify-not-fired` | 1.00 | 1.00 | +0.00 |
@@ -487,19 +484,19 @@ delivery-quality's eight, which is its whole measurable surface.
 | java-spring | `what-to-test` | 1.00 | 1.00 | +0.00 |
 | mcp-builder | `not-fired` | 1.00 | 1.00 | +0.00 |
 | mcp-builder | `roots-are-advice` | 1.00 | 1.00 | +0.00 |
-| mcp-builder | `server-from-an-api` | — | — | not re-measured after its repair |
+| mcp-builder | `server-from-an-api` | 0.33 | 0.67 | **−0.33** |
 | mcp-builder | `stdio-or-http` | 1.00 | 1.00 | +0.00 |
 | mcp-builder | `tool-or-resource` | 1.00 | 1.00 | +0.00 |
 | skill-forge | `description-rewrite` | 0.00 | 0.67 | -0.67 |
 | skill-forge | `not-fired` | 1.00 | 1.00 | +0.00 |
-| skill-forge | `procedure-into-skill` | — | — | not re-measured after its repair |
+| skill-forge | `procedure-into-skill` | — | — | still unmeasured: re-run voided |
 | skill-forge | `skill-or-subagent` | 0.67 | 0.67 | +0.00 |
 | team-rollout | `connector-with-write` | 1.00 | 0.00 | +1.00 |
 | team-rollout | `local-settings-committed` | 1.00 | 1.00 | +0.00 |
 | team-rollout | `not-fired` | 1.00 | 1.00 | +0.00 |
 | team-rollout | `rollout-order` | 1.00 | 0.00 | +1.00 |
 
-32 cases measured both ways; mean score 0.94, mean delta +0.08. 18 of the suite's 53 cases need Bash and did not run.
+33 cases measured both ways; mean score 0.92, mean delta +0.07. 18 of the suite's 53 cases need Bash and did not run.
 
 **The baseline answers most of these prompts correctly.** That is the finding,
 and it is the same one AUDIT §1.5 reported at `runs: 1`: on a conceptual
@@ -540,9 +537,26 @@ Four cases were repaired rather than kept, because the pilot showed they
 measured nothing. Two of the four — `fix-before-scope` and
 `server-from-an-api` — ran in an empty sandbox, so the case described a
 repository that was not there; the plugin arm went looking for it and the
-baseline simply answered. Both now scaffold what the prompt describes. Neither
-has been re-measured: the re-runs died on a usage limit and on a turn limit
-that has since been raised.
+baseline simply answered. Both now scaffold what the prompt describes.
+
+`server-from-an-api` has since been re-measured against its 63-tool server,
+and the result is worse, not better: **0.33 against 0.67**. The case now
+measures what it claims to, and `mcp-server-scaffold` loses on it. That is a
+finding about the skill, and it is why mcp-builder's decision waits for its
+`needs-bash` cases rather than being settled on this one.
+
+`fix-before-scope` produced a clean result on its third attempt, on the plugin
+arm at least: three runs, no errors, and the indicator reporting `scope-task`
+as **not loaded** every time. The baseline arm died on a usage limit, so the
+delta is still unknown, but the firing result does not need it.
+
+The description was the reason. It claimed a request that is open-ended, a
+refactor, a migration — and never a bug reported with no failing example,
+which is the case where diving in wastes a whole session. That situation was
+not in the body either, so both were written: the body now says a reported
+symptom is not a task yet and what evidence to get before any hypothesis, and
+the description claims it. Re-measuring waits for the usage limit, like the
+other two.
 
 - `procedure-into-skill` asked for a skill where a command is the right
   answer: cutting a release is user-initiated. Both arms proposed a command
@@ -564,7 +578,7 @@ Per plugin, over the cases that ran:
 | api-patterns | 9 | 0.96 | +0.07 |
 | delivery-quality | 1 | 1.00 | +0.00 |
 | java-spring | 8 | 1.00 | **+0.00** |
-| mcp-builder | 4 | 1.00 | **+0.00** |
+| mcp-builder | 5 | 0.87 | **−0.07** |
 | skill-forge | 3 | 0.56 | **−0.22** |
 
 **What this means for the plugins.** The bar this plan set was
@@ -574,10 +588,10 @@ not, and the rule was that they are proposed for removal here rather than
 re-graded:
 
 - **java-spring** — eight cases, delta exactly zero. The proposal is below.
-- **mcp-builder** — four cases, delta zero, with two of its five repaired or
-  unmeasured. It needs the `needs-bash` cases and a re-run of
-  `server-from-an-api` before anything is decided; those three cases are its
-  checker and its transport losses, which is where a delta would be.
+- **mcp-builder** — five cases, mean delta **−0.07**, and the one case that
+  moved it is `server-from-an-api`, now measured against a real 63-tool server
+  and losing to the baseline. It still needs its three `needs-bash` cases —
+  its checker and its transport losses — before anything is decided.
 - **skill-forge** — the only negative mean, and it comes from one case where
   the plugin makes the answer worse by not delegating. Its other two
   measurable cases are unrepaired or tied. The same re-run applies.
@@ -588,6 +602,36 @@ conceptual prose that restates what the model already knows does not. The
 plugins whose value is a checker — `check_api_calls.py`, `check_settings.py`,
 `check_mcp_server.py`, the guards — are exactly the ones whose cases need
 Bash, and therefore the ones this machine could not measure at all.
+
+### Routing, measured
+
+`scripts/route_check.sh`, 15 prompts through a session holding every plugin,
+against `main`. **13 of 15 reach the component they belong to**, including the
+prompt that must fire nothing.
+
+Two do not, and both are findings rather than noise:
+
+- **`skill-describer` never fires.** The prompt asks for alternatives to a
+  description that does not match anything, and the main thread answers it
+  itself. That is the same result its eval case reports (0.00 against a
+  baseline of 0.67), reached a second way. The boundary sharpening is a
+  separate change; this is its "before".
+- **`tool-schema-review` loses to a bundled skill.** A prompt about a tool
+  definition that is never called goes to Claude Code's own `claude-api`
+  skill, whose description claims any prompt naming the Messages API. Nothing
+  here can outrank it by wanting to: the difference to write into the
+  description is that this subagent reviews *your* definitions and returns
+  rewrites, rather than answering a question about the API.
+
+What the first run measured was mostly my own harness. It reported five
+failures: two were prompts that named files the repository does not have, so
+the model went looking with Bash and hit the turn cap; two were expectations
+that did not accept the launcher command as a route to its subagent, which it
+is; and one was a parser that read `content` as a list when the CLI sends a
+plain string on a text-only turn. The stub test now covers that last one — it
+had passed the bug through, because the stub only ever emitted the list form.
+
+---
 
 ### Proposed for removal: `java-spring`
 

@@ -1,6 +1,6 @@
 ---
 name: scope-task
-description: Breaks a large or vague request into an explored, agreed plan before any code is written. Use when a request touches several files or systems, when it is open-ended or underspecified, when the user asks to refactor or migrate something, or when work has started and it is not clear what "done" looks like.
+description: Breaks a large or vague request into an explored, agreed plan before any code is written, and turns a reported symptom into evidence before a fix. Use when a request touches several files or systems, when it is open-ended or underspecified, when the user asks to refactor or migrate something, when a bug is reported with no failing example and the fix would be a search, or when work has started and it is not clear what "done" looks like.
 allowed-tools: Read, Glob, Grep, TodoWrite
 ---
 
@@ -24,6 +24,22 @@ when the intermediate detail is what you need.
 
 Finish this step able to answer: which files change, what currently depends on
 them, and what could break that nobody has mentioned.
+
+**A reported symptom is not a task yet.** "Payments fail for some customers
+since Tuesday, find it and fix it" names no failing case, no error, and
+nothing the affected users share. Reading the whole subsystem to guess is how
+a session is spent arriving at a plausible wrong answer — and the guess is
+expensive to disprove afterwards, because it has already been written.
+
+Get one piece of evidence before any hypothesis:
+
+- A single failing example: the input, the response, the time it happened
+- What the failures have in common — a currency, a plan, a region, a route
+- What changed around when it started, as candidates rather than as a verdict
+
+Then say which candidate each piece of evidence would rule in or out, and ask
+for the one thing that separates them. If nothing is available, say so and
+scope the smallest step that produces it, rather than the fix.
 
 ### 2. Plan
 

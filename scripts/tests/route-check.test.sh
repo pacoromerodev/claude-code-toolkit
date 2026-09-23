@@ -34,7 +34,7 @@ emit_task() {
 case "$prompt" in
   *"skills folder"*) emit_skill "skill-forge:audit-skills" ;;
   *"second opinion"*) emit_task "delivery-quality:code-reviewer" ;;
-  *"slash command"*) printf '{"type":"assistant","message":{"content":[{"type":"text","text":"A skill fires on its own; a command is typed."}]}}\n' ;;
+  *"slash command"*) printf '{"type":"assistant","message":{"content":"A skill fires on its own; a command is typed."}}\n' ;;
   *"retrieval"*) emit_skill "api-patterns:prompt-cache-audit" ;;
   *) printf '{"type":"assistant","message":{"content":[{"type":"text","text":"ok"}]}}\n' ;;
 esac
@@ -55,10 +55,16 @@ out="$(run_case review-the-diff)"
   && ok "a subagent that fired" "read from the Task block" \
   || bad "a subagent that fired" "$out"
 
+# The real CLI sends `content` as a plain string on a text-only turn, and as
+# a list of blocks only when a tool is used. Reading the string form as a list
+# is what broke the first live run.
 out="$(run_case plain-question)"
 [[ "$out" == *"ok    plain-question"* && "$out" == *"nothing fired"* ]] \
-  && ok "a prompt that needs nothing" "stays quiet" \
-  || bad "a prompt that needs nothing" "$out"
+  && ok "a text-only turn" "read as firing nothing, not as an error" \
+  || bad "a text-only turn" "$out"
+[[ "$out" != *"Traceback"* ]] \
+  && ok "a text-only turn" "does not raise" \
+  || bad "a text-only turn" "the parser raised"
 
 # The stub deliberately routes the retrieval question to the caching skill:
 # the wrong component, which is exactly the collision this script exists for.

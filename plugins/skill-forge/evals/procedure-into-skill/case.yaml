@@ -1,19 +1,18 @@
 schema_version: "1.0"
 name: procedure-into-skill
 description: >-
-  A correction that keeps recurring on its own. The answer must reach a skill,
-  and write the description before the body.
+  A recurring correction to turn into a skill. The answer must write the
+  description as the trigger, and not grant a bare Bash.
 tags: [write-a-skill, skill]
 execution:
   prompt: |
-    Every time anyone on the team asks Claude to add a database migration, it
-    writes one that locks the table, and someone has to stop it in review and
-    repeat our rules: no rewrite of a big table in one statement, add the
-    column nullable first, backfill in batches, and never drop a column in the
-    same release that stops writing it. I do not want to paste that again, and
-    I do not want to type a command either — it should just know when a
-    migration is being written. How do I set that up?
-  max_turns: 12
-  timeout_seconds: 360
-  allowed_tools: [Read, Glob, Grep, Skill]
+    Every time anyone asks Claude to add a database migration it writes one
+    that locks the table, and someone repeats our rules in review: add the
+    column nullable first, backfill in batches, never drop a column in the
+    same release that stops writing it. I want this as a skill, so it applies
+    without anyone typing anything. Write it for me — the file and its
+    frontmatter.
+  max_turns: 14
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Write, Skill]
 runs: 3
