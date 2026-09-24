@@ -109,12 +109,18 @@ It needs a logged-in CLI with this branch's plugins installed, so it is a
 before-a-release step, not a CI one. CI runs it against a stub instead, which
 tests that it reads a transcript and fails on a mis-route.
 
-Two things the eval needs that are easy to miss. `claude plugin eval` refuses
-a Bash-granting run it cannot confine, so the machine needs `bubblewrap` and
-`socat` — CI installs them; locally, `apt install bubblewrap socat`. And the
-`ANTHROPIC_API_KEY` must be **scoped to a workspace**: a key that is not makes
-every LLM grader fail with a 400 asking for an `anthropic-workspace-id`
-header, which reads as every case scoring zero.
+The eval runs on your machine, on whatever account `claude` is logged in as:
+a subscription pays for it out of the plan's usage, an API key out of its
+workspace's credit. There is no eval workflow — running these costs money or
+usage, and that is a decision for whoever runs them, not for a cron.
+
+One requirement is easy to miss: `claude plugin eval` refuses a Bash-granting
+run it cannot confine, rather than running it unconfined, so the machine needs
+`bubblewrap` and `socat` (`apt install bubblewrap socat`).
+
+When something is wrong with the credential or the sandbox, every case scores
+0.00 and the run costs $0.00 — identical to a suite where every plugin failed.
+Read one case's `error` field before concluding anything about a plugin.
 
 The runner evaluates the working copy, one case at a time. `claude plugin
 eval` refuses any Bash-granting run while the Docker credential store holds a
