@@ -137,6 +137,47 @@ out="$("$PY" "$SCRIPTS/check_course_wording.py" --fingerprints "$fp" \
 expect_exit "wording bad, report-only" "$?" 0
 
 echo
+echo "== check_eval_freshness.py =="
+out="$("$PY" "$SCRIPTS/check_eval_freshness.py" "$FIXTURES/freshness" 2>&1)"
+expect_exit "freshness report-only" "$?" 0
+expect_text "freshness" "$out" "ok     demo/measured-case"
+expect_text "freshness" "$out" "STALE  demo/edited-case"
+expect_text "freshness" "$out" "never  demo/new-case"
+expect_text "freshness" "$out" "1 measured, 1 changed since, 1 never run"
+out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --enforce "$FIXTURES/freshness" 2>&1)"
+expect_exit "freshness --enforce" "$?" 1
+
+echo
+echo "== record_measurement.py =="
+# A run whose every arm errored is not a measurement, and must not be written
+# down as one: those runs score 0.00 in the file, exactly like a plugin that
+# failed. Three attempts at this suite were misread that way.
+ledger_dir="$SANDBOX/ledger/demo"
+mkdir -p "$ledger_dir/evals/some-case"
+printf 'schema_version: "1.0"\nname: some-case\n' > "$ledger_dir/evals/some-case/case.yaml"
+cat > "$SANDBOX/good-result.json" <<'JSON'
+{"cases":[{"name":"some-case","arms":{"with":[{"score":1},{"score":1},{"score":0}],
+ "without":[{"score":0},{"score":0},{"score":0}]}}]}
+JSON
+cat > "$SANDBOX/failed-result.json" <<'JSON'
+{"cases":[{"name":"some-case","arms":{"with":[{"score":0,"error":"exit 1: Credit balance is too low"}],
+ "without":[{"score":0,"error":"exit 1: Credit balance is too low"}]}}]}
+JSON
+out="$("$PY" "$SCRIPTS/record_measurement.py" "$ledger_dir" "$SANDBOX/good-result.json" 2>&1)"
+expect_exit "record a real run" "$?" 0
+expect_text "record a real run" "$out" "Recorded 1 case(s)"
+recorded="$("$PY" -c 'import json,sys; d=json.load(open(sys.argv[1]))["cases"]["some-case"]; print(d["score"], d["baseline"], d["runs"])' "$ledger_dir/evals/measurements.json")"
+[[ "$recorded" == "0.67 0.0 3" ]] \
+  && ok "record a real run" "mean of the runs that happened" \
+  || bad "record a real run" "recorded $recorded"
+out="$("$PY" "$SCRIPTS/record_measurement.py" "$ledger_dir" "$SANDBOX/failed-result.json" 2>&1)"
+expect_text "record a failed run" "$out" "Not recorded, because every run errored"
+still="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"]["score"])' "$ledger_dir/evals/measurements.json")"
+[[ "$still" == "0.67" ]] \
+  && ok "record a failed run" "leaves the previous measurement alone" \
+  || bad "record a failed run" "overwrote it with $still"
+
+echo
 echo "== check_hooks.py =="
 out="$("$PY" "$SCRIPTS/check_hooks.py" "$FIXTURES/hooks/good" 2>&1)"
 expect_exit "hooks good" "$?" 0

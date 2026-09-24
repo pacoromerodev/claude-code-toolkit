@@ -1,0 +1,4 @@
+{
+  "command": ["bash", "scripts/gate.sh"],
+  "timeout": 300
+}

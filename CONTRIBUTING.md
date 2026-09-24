@@ -85,6 +85,7 @@ python3 .github/scripts/check_names.py        # no two components share a name
 python3 .github/scripts/check_workflows.py    # workflows scoped, pinned, no interpolated shell
 python3 .github/scripts/check_course_wording.py # no sentence lifted from the notes
 python3 .github/scripts/check_eval_coverage.py --enforce  # two cases per skill, one negative
+python3 .github/scripts/check_eval_freshness.py  # which cases have no current measurement
 python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
 plugins/<name>/tests/run.sh                   # fixture tests
 ```
@@ -116,12 +117,29 @@ a Bash-granting run it cannot confine, so the machine needs `bubblewrap` and
 every LLM grader fail with a 400 asking for an `anthropic-workspace-id`
 header, which reads as every case scoring zero.
 
+Each run writes what it measured into `plugins/<plugin>/evals/measurements.json`,
+with a fingerprint of the case at that moment. `check_eval_freshness.py`
+recompares it and reports a case that has been edited since, or never run — so
+the numbers in this repository always say how old they are. A run whose arms
+all errored is not recorded: those score 0.00 in the result file, which is
+indistinguishable from a plugin that failed.
+
 The runner evaluates the working copy, one case at a time. `claude plugin
 eval` refuses any Bash-granting run while the Docker credential store holds a
 symbolic link (common on WSL with Docker Desktop). When that is the case the
 runner skips the cases tagged `needs-bash` and lists them as NOT RUN. It never
 works around the check: move the store's contents into a plain directory if
 you need those cases.
+
+## This repository's own gate
+
+`scripts/gate.sh` runs every fixture suite, and `.claude/test-gate.json` is
+committed, so delivery-quality's Stop hook runs it at the end of a session for
+anyone who has that plugin installed. It is the deterministic half of the
+checking, moved from a pull request to the moment before you stop working.
+
+It does not replace the pull-request gate: `validate.yml` also validates the
+manifests, holds Python 3.8, and runs shellcheck.
 
 ## Writing a skill
 

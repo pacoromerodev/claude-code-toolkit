@@ -16,6 +16,11 @@
 # Environment:
 #   CLAUDE_BIN   the claude executable (default: claude); tests use a stub
 #   OUT_DIR      where results go (default: a new temporary directory)
+#   PYTHON       the interpreter that records the measurements
+#
+# After each plugin, what it measured is written into
+# plugins/<plugin>/evals/measurements.json, so that a case edited later shows
+# up as unmeasured rather than keeping an old number.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -85,6 +90,18 @@ for plugin in "${PLUGINS[@]}"; do
     echo "== $plugin/$name"
     "$CLAUDE_BIN" "${args[@]}" < /dev/null || failed=1
   done
+
+  # Write what this run measured next to the cases. A run whose arms all
+  # errored is not recorded: see record_measurement.py.
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    shopt -s nullglob
+    results=("$OUT_DIR/$plugin"/*.json)
+    shopt -u nullglob
+    if [[ ${#results[@]} -gt 0 ]]; then
+      "${PYTHON:-python3}" "$ROOT/.github/scripts/record_measurement.py" \
+        "$plugin_dir" "${results[@]}" || true
+    fi
+  fi
 done
 
 echo

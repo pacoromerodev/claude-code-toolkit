@@ -58,6 +58,13 @@ jobs:
       - name: Every skill has the cases CONTRIBUTING asks for
         run: python3 .github/scripts/check_eval_coverage.py --enforce
 
+      # Report-only on purpose: the runs are manual and cost money, so a red
+      # build here would teach people to ignore red builds. What it buys is
+      # that an unmeasured case is visible on every pull request instead of
+      # drifting quietly, which is how the first suite decayed.
+      - name: Which eval cases have no current measurement
+        run: python3 .github/scripts/check_eval_freshness.py
+
       - name: Eval cases are runnable and graded both ways
         run: python3 .github/scripts/check_eval_cases.py
 

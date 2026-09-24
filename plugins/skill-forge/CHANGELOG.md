@@ -7,6 +7,16 @@ All notable changes to `skill-forge`. Format follows
 ## [Unreleased]
 
 ### Added
+- Routing telemetry, opt-in per project with `.claude/routing-log`. A
+  `UserPromptSubmit` hook records the prompt and a `PreToolUse` hook on
+  `Skill|Task` records what fired; `routing_report.py` reports what fires, how
+  often, and which prompts fired nothing. That last list is the half an eval
+  cannot see: a case measures a prompt written for it, this measures the
+  prompt someone typed. The log lives outside the repository, the prompt is
+  truncated, and nothing is sent anywhere.
+
+
+### Added
 - Two cases: `procedure-into-skill` and `skill-or-subagent`. Every skill in this plugin now has the
   two positive cases and one negative that CONTRIBUTING has always
   asked for.
