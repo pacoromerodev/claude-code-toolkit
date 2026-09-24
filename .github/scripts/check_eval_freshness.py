@@ -12,10 +12,15 @@ Three states per case, from the plugin's `evals/measurements.json`:
   stale      the case has been edited since it was measured
   never      no entry at all
 
-Usage: check_eval_freshness.py [--enforce] [repository root]
+Usage: check_eval_freshness.py [--enforce] [--list-stale] [repository root]
+
 Report-only by default; --enforce exits 1 when anything is stale or never
 measured. Report-only is the honest default here: the runs are manual, so a
 red build would only teach people to ignore red builds.
+
+--list-stale prints `plugin/case` for everything without a current
+measurement, one per line and nothing else. `run-evals.sh --stale` reads it,
+which turns re-measuring from a full pass into whatever actually changed.
 """
 import sys
 from pathlib import Path
@@ -28,6 +33,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main(argv):
     enforce = "--enforce" in argv
+    listing = "--list-stale" in argv
     rest = [a for a in argv[1:] if not a.startswith("--")]
     root = Path(rest[0]).resolve() if rest else ROOT
 
@@ -53,6 +59,12 @@ def main(argv):
                 if delta is not None else f"{entry.get('score')}"
             rows.append((plugin.name, name, "measured",
                          f"{detail}  on {entry.get('measured', '?')}"))
+
+    if listing:
+        for plugin, name, state, _ in rows:
+            if state != "measured":
+                print(f"{plugin}/{name}")
+        return 0
 
     width = max((len(f"{p}/{c}") for p, c, _, _ in rows), default=10)
     for plugin, name, state, detail in rows:

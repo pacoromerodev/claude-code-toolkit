@@ -95,7 +95,12 @@ they cost money and need a credential — so run them by hand before a release:
 
 ```bash
 scripts/run-evals.sh [plugin ...]             # results outside the repo, never published
+scripts/run-evals.sh --stale                  # only what has no current measurement
 ```
+
+`--stale` is what makes this a habit rather than an event: the ledger knows
+which cases were edited since they were last run, so re-measuring costs a few
+cases instead of a full pass.
 
 Descriptions are a separate question, and `plugin eval` cannot answer it: it
 loads one plugin per run, so two components whose descriptions both match a

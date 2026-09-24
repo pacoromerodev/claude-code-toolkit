@@ -57,5 +57,41 @@ echo "== results stay outside the repository =="
 if grep -q -- "--output-dir $SANDBOX/out2/" "$SANDBOX/calls"; then ok "output dir is the one given"; else bad "output dir not passed"; fi
 
 echo
+echo "== --stale runs only what has no current measurement =="
+fixture="$SANDBOX/repo"
+mkdir -p "$fixture/plugins/demo/evals/fresh-case" "$fixture/plugins/demo/evals/changed-case" "$fixture/.github/scripts"
+cp "$HERE/../../.github/scripts/eval_ledger.py" \
+   "$HERE/../../.github/scripts/check_eval_freshness.py" "$fixture/.github/scripts/"
+for c in fresh-case changed-case; do
+  printf 'schema_version: "1.0"\nname: %s\ntags: [demo, skill]\n' "$c" \
+    > "$fixture/plugins/demo/evals/$c/case.yaml"
+done
+python3 - "$fixture" <<'PY'
+import pathlib, sys
+root = pathlib.Path(sys.argv[1])
+sys.path.insert(0, str(root / ".github/scripts"))
+from eval_ledger import case_fingerprint, write_ledger
+demo = root / "plugins/demo"
+write_ledger(demo, {
+    "fresh-case": {"score": 1.0, "measured": "2026-09-20",
+                   "fingerprint": case_fingerprint(demo / "evals/fresh-case")},
+    "changed-case": {"score": 1.0, "measured": "2026-09-20",
+                     "fingerprint": "0000000000000000"},
+})
+PY
+stale_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/stale-out" \
+  bash "$RUNNER" --stale --dry-run demo 2>&1)"
+[[ "$stale_out" == *"--case changed-case"* ]] \
+  && ok "--stale runs the case that changed" || bad "--stale skipped the changed case"
+[[ "$stale_out" != *"--case fresh-case"* ]] \
+  && ok "--stale skips the case already measured" || bad "--stale re-ran a measured case"
+[[ "$stale_out" == *"SKIPPED (1 case"* ]] \
+  && ok "--stale says how many it skipped" || bad "--stale did not report the skip"
+all_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/all-out" \
+  bash "$RUNNER" --dry-run demo 2>&1)"
+[[ "$all_out" == *"--case fresh-case"* && "$all_out" == *"--case changed-case"* ]] \
+  && ok "without --stale every case runs" || bad "without --stale did not run both"
+
+echo
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [[ "$fail" -eq 0 ]] || exit 1
