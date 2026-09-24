@@ -100,16 +100,27 @@ jobs:
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code@2.1.278
 
+      # Either credential works, and they bill differently. A subscription
+      # token bills the plan that issued it and needs no credit balance; an
+      # API key bills the workspace it belongs to, and a key with no workspace
+      # fails every call with a 400. When both are present the token wins, so
+      # a repository holding both does not spend credits by accident.
       - name: Run the eval suite
         env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PLUGIN: ${{ matrix.plugin }}
           THRESHOLD: ${{ inputs.threshold || '0.8' }}
           RUNS: ${{ inputs.runs || '1' }}
           MAX_COST: ${{ inputs.max_cost_usd || '5' }}
         run: |
-          if [ -z "${ANTHROPIC_API_KEY}" ]; then
-            echo "::error::ANTHROPIC_API_KEY is not set — add it as a repository secret"
+          if [ -n "${CLAUDE_CODE_OAUTH_TOKEN}" ]; then
+            unset ANTHROPIC_API_KEY
+            echo "Authenticating with the subscription token."
+          elif [ -n "${ANTHROPIC_API_KEY}" ]; then
+            echo "Authenticating with the API key; runs bill its workspace."
+          else
+            echo "::error::No credential. Add CLAUDE_CODE_OAUTH_TOKEN, from 'claude setup-token', or ANTHROPIC_API_KEY."
             exit 1
           fi
           claude plugin eval "plugins/${PLUGIN}" \
