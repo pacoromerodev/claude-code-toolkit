@@ -21,6 +21,7 @@ everything here is built around that fact.
 |---|---|---|
 | `write-a-skill` | Skill | You ask to write, create or scaffold a skill, or an existing one is not triggering |
 | `audit-skills` | Skill | You ask to check, review or audit skills or subagents, or one is not triggering. Also `/skill-forge:audit-skills` |
+| `log_routing` | Hooks | Opt-in, per project |
 | `skill-describer` | Subagent | A description needs writing or rewriting, or two skills overlap |
 
 ## The auditor
@@ -71,6 +72,29 @@ subagent is judged on what comes back, because that is all that does:
 The auditor runs as a script, never read into context — which is how it can be
 this thorough for the price of a one-line description.
 
+## Which components actually fire
+
+An eval answers whether a skill helps, and costs a session per case. It
+answers a smaller question on the way — did the skill fire at all — and that
+one is free, from ordinary use.
+
+```bash
+mkdir -p .claude && touch .claude/routing-log      # opt in, per project
+python3 plugins/skill-forge/scripts/routing_report.py
+```
+
+Two hooks feed one log: the prompt, and whatever `Skill` or `Task` the model
+reached for. The report says what fired and how often, and — the part worth
+reading — **which prompts fired nothing**. A case measures a prompt somebody
+wrote for it; this measures the prompt somebody typed.
+
+It logs what you type, so it stays off until you enable it, the log lives
+outside the repository under the plugin's data directory, and the prompt is
+truncated to 200 characters. Nothing leaves the machine.
+
+It cannot tell you whether firing helped. That needs both arms of an eval, and
+no log can produce them.
+
 ## skill-describer
 
 Returns three candidates that differ in **coverage**, not wording: narrow, broad
@@ -84,7 +108,7 @@ existing skills, and an "Obstacles encountered" section.
 plugins/skill-forge/tests/run.sh
 ```
 
-36 assertions: every planted fault in `fixtures/broken/` must be found, the
+45 assertions: every planted fault in `fixtures/broken/` must be found, the
 clean tree in `fixtures/clean/` must stay silent, exit codes must be right, the
 `--json` output must parse, and **this repository's own skills must pass**.
 

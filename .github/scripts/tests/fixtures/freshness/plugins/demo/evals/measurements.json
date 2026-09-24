@@ -1,0 +1,21 @@
+{
+  "$comment": "What each case scored when it was last run, and a fingerprint of the case at that moment. check_eval_freshness.py reports anything edited since. Written by scripts/run-evals.sh; do not edit by hand.",
+  "cases": {
+    "edited-case": {
+      "score": 1.0,
+      "baseline": 1.0,
+      "delta": 0.0,
+      "runs": 3,
+      "measured": "2026-09-20",
+      "fingerprint": "0000deadbeef0000"
+    },
+    "measured-case": {
+      "score": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "runs": 3,
+      "measured": "2026-09-20",
+      "fingerprint": "e30d81f464d81854"
+    }
+  }
+}

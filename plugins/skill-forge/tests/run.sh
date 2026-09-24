@@ -174,6 +174,73 @@ else
 fi
 
 echo
+echo "== routing log: opt-in, and what it records =="
+routing_project="$(mktemp -d)"
+routing_data="$(mktemp -d)"
+mkdir -p "$routing_project/.claude"
+
+# routing_send <payload json>  — returns the log's line count
+routing_send() {
+  printf '%s' "$1" | CLAUDE_PLUGIN_DATA="$routing_data" \
+    "$PY" "$HERE/../scripts/log_routing.py" > /dev/null 2>&1
+  local log="$routing_data/routing.jsonl"
+  [[ -f "$log" ]] && wc -l < "$log" | tr -d ' ' || echo 0
+}
+
+prompt_payload="$(printf '{"hook_event_name":"UserPromptSubmit","session_id":"abc12345","cwd":"%s","prompt":"why does my skill never fire"}' "$routing_project")"
+skill_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Skill","tool_input":{"skill":"skill-forge:audit-skills"}}' "$routing_project")"
+agent_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Task","tool_input":{"subagent_type":"delivery-quality:code-reviewer"}}' "$routing_project")"
+other_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Bash","tool_input":{"command":"ls"}}' "$routing_project")"
+
+# Without the marker the hook writes nothing at all.
+if [[ "$(routing_send "$prompt_payload")" == "0" ]]; then
+  printf 'ok    routing writes nothing until a project opts in\n'; ((pass++))
+else
+  printf 'FAIL  routing logged without the marker file\n'; ((fail++))
+fi
+
+touch "$routing_project/.claude/routing-log"
+[[ "$(routing_send "$prompt_payload")" == "1" ]] \
+  && { printf 'ok    routing records a prompt once enabled\n'; ((pass++)); } \
+  || { printf 'FAIL  routing did not record the prompt\n'; ((fail++)); }
+[[ "$(routing_send "$skill_payload")" == "2" ]] \
+  && { printf 'ok    routing records a skill that fired\n'; ((pass++)); } \
+  || { printf 'FAIL  routing missed the Skill call\n'; ((fail++)); }
+[[ "$(routing_send "$agent_payload")" == "3" ]] \
+  && { printf 'ok    routing records a subagent that fired\n'; ((pass++)); } \
+  || { printf 'FAIL  routing missed the Task call\n'; ((fail++)); }
+# A tool that says nothing about routing must not become a row.
+[[ "$(routing_send "$other_payload")" == "3" ]] \
+  && { printf 'ok    routing ignores an unrelated tool\n'; ((pass++)); } \
+  || { printf 'FAIL  routing logged a Bash call\n'; ((fail++)); }
+# Malformed input must not break the session.
+[[ "$(routing_send 'not json')" == "3" ]] \
+  && { printf 'ok    routing fails open on malformed input\n'; ((pass++)); } \
+  || { printf 'FAIL  routing reacted to malformed input\n'; ((fail++)); }
+
+# The log never lands inside the project being worked in.
+if [[ -z "$(find "$routing_project" -name 'routing.jsonl' 2>/dev/null)" ]]; then
+  printf 'ok    routing keeps the log out of the project\n'; ((pass++))
+else
+  printf 'FAIL  routing wrote the log into the project\n'; ((fail++))
+fi
+
+report="$("$PY" "$HERE/../scripts/routing_report.py" "$routing_data/routing.jsonl" 2>&1)"
+[[ "$report" == *"skill-forge:audit-skills"* && "$report" == *"delivery-quality:code-reviewer"* ]] \
+  && { printf 'ok    routing report names what fired\n'; ((pass++)); } \
+  || { printf 'FAIL  routing report: %s\n' "${report%%$'\n'*}"; ((fail++)); }
+
+# A prompt with nothing after it is the row worth reading.
+silent_project="$(mktemp -d)"; silent_data="$(mktemp -d)"
+mkdir -p "$silent_project/.claude" && touch "$silent_project/.claude/routing-log"
+printf '{"hook_event_name":"UserPromptSubmit","session_id":"zz","cwd":"%s","prompt":"this description matches nothing"}' "$silent_project" \
+  | CLAUDE_PLUGIN_DATA="$silent_data" "$PY" "$HERE/../scripts/log_routing.py" > /dev/null 2>&1
+silent_report="$("$PY" "$HERE/../scripts/routing_report.py" "$silent_data/routing.jsonl" 2>&1)"
+[[ "$silent_report" == *"fired nothing: 1 of 1"* ]] \
+  && { printf 'ok    routing report counts a prompt that fired nothing\n'; ((pass++)); } \
+  || { printf 'FAIL  routing report missed the silent prompt\n'; ((fail++)); }
+rm -r -f "$routing_project" "$routing_data" "$silent_project" "$silent_data"
+echo
 echo "== this repo's own skills must be clean =="
 own="$("$PY" "$AUDIT" "$HERE/../../"*/skills 2>&1)"
 own_code=$?

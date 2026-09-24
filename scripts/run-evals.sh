@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run the plugins' eval suites locally, and say plainly what did not run.
 #
-#   scripts/run-evals.sh [--runs N] [--dry-run] [plugin ...]
+#   scripts/run-evals.sh [--runs N] [--stale] [--dry-run] [plugin ...]
 #
 # Evaluates the working copy (plugins/<name>), not the installed plugin. Every
 # result goes to a directory outside the repository, and nothing is published.
@@ -15,19 +15,34 @@
 #
 # Environment:
 #   CLAUDE_BIN   the claude executable (default: claude); tests use a stub
+#   EVAL_ROOT    the repository to evaluate (default: this one)
 #   OUT_DIR      where results go (default: a new temporary directory)
+#   PYTHON       the interpreter that records the measurements
+#
+# After each plugin, what it measured is written into
+# plugins/<plugin>/evals/measurements.json, so that a case edited later shows
+# up as unmeasured rather than keeping an old number.
+#
+# --stale runs only the cases that ledger says have no current measurement:
+# edited since they were last run, or never run at all. A full pass costs
+# real money, so re-measuring what changed is what makes it a habit rather
+# than an event.
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# EVAL_ROOT exists so the tests can point this at a fixture tree; in normal
+# use it is the repository this script lives in.
+ROOT="${EVAL_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 OUT_DIR="${OUT_DIR:-$(mktemp -d)}"
 RUNS=""
 DRY_RUN=0
+STALE_ONLY=0
 PLUGINS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --runs) RUNS="$2"; shift 2 ;;
+    --stale) STALE_ONLY=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) sed -n '2,20p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) PLUGINS+=("$1"); shift ;;
@@ -56,7 +71,21 @@ fi
 # tags_of <case.yaml>  — the comma-separated tag list, spaces removed
 tags_of() { sed -n 's/^tags: *\[\(.*\)\] *$/\1/p' "$1" | tr -d ' '; }
 
+stale_list=""
+if [[ "$STALE_ONLY" -eq 1 ]]; then
+  stale_list="$("${PYTHON:-python3}" "$ROOT/.github/scripts/check_eval_freshness.py" \
+    --list-stale "$ROOT" 2>/dev/null)"
+  echo "Only cases with no current measurement: $(printf '%s' "$stale_list" | grep -c . ) of $(find "$ROOT"/plugins/*/evals -name case.yaml | wc -l | tr -d ' ')"
+fi
+
+# current <plugin/case>  — true when --stale is on and this one is measured
+current() {
+  [[ "$STALE_ONLY" -eq 1 ]] || return 1
+  ! printf '%s\n' "$stale_list" | grep -qx "$1"
+}
+
 not_run=()
+current_count=0
 failed=0
 for plugin in "${PLUGINS[@]}"; do
   plugin_dir="$ROOT/plugins/$plugin"
@@ -67,6 +96,10 @@ for plugin in "${PLUGINS[@]}"; do
   for case_file in "$plugin_dir"/evals/*/case.yaml; do
     [[ -f "$case_file" ]] || continue
     name="$(basename "$(dirname "$case_file")")"
+    if current "$plugin/$name"; then
+      current_count=$((current_count + 1))
+      continue
+    fi
     if [[ "$bash_blocked" -eq 1 && ",$(tags_of "$case_file")," == *",needs-bash,"* ]]; then
       not_run+=("$plugin/$name")
       continue
@@ -85,10 +118,25 @@ for plugin in "${PLUGINS[@]}"; do
     echo "== $plugin/$name"
     "$CLAUDE_BIN" "${args[@]}" < /dev/null || failed=1
   done
+
+  # Write what this run measured next to the cases. A run whose arms all
+  # errored is not recorded: see record_measurement.py.
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    shopt -s nullglob
+    results=("$OUT_DIR/$plugin"/*.json)
+    shopt -u nullglob
+    if [[ ${#results[@]} -gt 0 ]]; then
+      "${PYTHON:-python3}" "$ROOT/.github/scripts/record_measurement.py" \
+        "$plugin_dir" "${results[@]}" || true
+    fi
+  fi
 done
 
 echo
 echo "Results: $OUT_DIR"
+if [[ "$current_count" -gt 0 ]]; then
+  echo "SKIPPED ($current_count case(s) already measured against this exact case)"
+fi
 if [[ ${#not_run[@]} -gt 0 ]]; then
   echo "NOT RUN (${#not_run[@]} case(s) need Bash, which this machine cannot grant):"
   printf '  %s\n' "${not_run[@]}"
