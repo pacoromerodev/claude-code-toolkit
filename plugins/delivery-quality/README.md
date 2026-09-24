@@ -184,9 +184,9 @@ Four cases:
 **Known environment limitation:** on a machine where `~/.docker` contains a
 symlink — which Docker Desktop's WSL integration creates for `contexts` and
 `features.json` — the Bash sandbox cannot run, and any Bash-granting eval fails
-before it starts. This is a machine constraint, not a case defect. Run those
-cases in CI (`.github/workflows/evals.yml`), or on a machine without that
-layout. Cases that need no Bash run locally.
+before it starts. This is a machine constraint, not a case defect: run those
+cases on a machine whose Docker credential store holds no symlink, with
+`bubblewrap` and `socat` installed. Cases that need no Bash run anywhere.
 
 ## Requirements
 

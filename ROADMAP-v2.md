@@ -73,8 +73,15 @@ writing each case once.
 
 - **13.7's live routing run** — done after the merge, once `main` was the
   installed copy. See *Routing, measured* below.
-- **The `ANTHROPIC_API_KEY` secret.** `gh secret list` is empty, so the weekly
-  eval workflow stops at its own check. Only the repository owner can add it.
+- **The eighteen `needs-bash` cases, permanently.** The eval workflow was
+  removed on 2026-09-24, after four attempts to make it run: no secret, then
+  no sandbox on the runner, then a key with no workspace, then a workspace
+  with no credit, then a subscription token the API rejected. Each failure
+  looked the same from outside — 53 cases at 0.00, total cost $0.00 — and
+  none of them was about a plugin. Those cases now run only on a machine
+  whose Docker credential store holds no symlink, which is not this one, so
+  the guards, the gate and the three checkers remain unmeasured. Every
+  decision below that waits on them waits indefinitely.
 - **Eighteen of the 53 eval cases.** `claude plugin eval` refuses a
   Bash-granting run while the Docker credential store holds a symbolic link,
   as it does on the machine this ran on, so every case tagged `needs-bash` was
@@ -444,8 +451,8 @@ base, the stack rebased, and #6 closed.
     `overallScore ≥ 0.8` and `meanDelta > 0` in its JSON.
   - A plugin that cannot reach `meanDelta > 0` after Phase 13 is proposed for
     removal in this file, rather than having its graders loosened.
-- **Covered by.** The eval suites themselves. The weekly CI matrix (11.5) keeps
-  them honest.
+- **Covered by.** The eval suites themselves. The weekly CI matrix that was to
+  keep them honest no longer exists: see *Not done here*.
 - **Cost.** Extrapolated from this audit's $6.98 for 22 cases × 1 run × 2 arms:
   roughly 60 cases × 3 runs × 2 arms comes to about $55–60 per full pass, plus
   the pilot runs. That is why the weekly CI run stays at `runs: 1` (about
