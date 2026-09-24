@@ -13,10 +13,15 @@ Stop fires at the end of every turn, not only when the session ends.
 
 A failing suite comes back as `hookSpecificOutput.additionalContext`, which
 keeps the conversation going so Claude can fix it, shown as hook feedback
-rather than a hook error. Claude Code's own loop protection — the
-`stop_hook_active` input and the 8-consecutive-continuation cap — bounds it.
-The gate does not skip its own re-entry: the run after a failure is what
-checks the fix.
+rather than a hook error.
+
+The gate always re-runs on its own re-entry — the run after a failure is what
+checks the fix — but it blocks only once. When `stop_hook_active` says this
+stop already followed a block and the suite is still red, the turn is allowed
+to end and the user is told through `systemMessage`. Blocking again traps a
+turn whose right answer is a report: asked to verify rather than to fix,
+Claude has to be able to hand back a failing result instead of negotiating
+with the user about the hook.
 
 Anything unexpected exits 0 and lets the turn end: a broken gate must not
 trap a session.
@@ -240,6 +245,11 @@ def main():
     if not isinstance(payload, dict):
         return 0
 
+    # True when this stop is itself the result of a previous block by this
+    # hook. The tests still run; what changes is that a second block is not
+    # allowed. See the module docstring.
+    reentry = bool(payload.get("stop_hook_active"))
+
     root = project_root(payload)
     settings = config(root)
     if settings is None:
@@ -272,11 +282,14 @@ def main():
         return say(
             f"The project's test gate ran `{printable}` in {root} and killed it "
             f"after {timeout}s with no result.\n"
-            "Re-run it yourself with a per-test timeout (pytest --timeout=60, "
-            "mvn -Dsurefire.timeout=60), find the test that hangs, fix it and "
-            "report which one it was. Do not raise the gate's timeout to get "
-            "past this.",
-            keep_going=True)
+            + ("The turn is ending with the gate unresolved: it already "
+               "blocked once and the command still does not finish."
+               if reentry else
+               "Re-run it yourself with a per-test timeout (pytest --timeout=60, "
+               "mvn -Dsurefire.timeout=60), find the test that hangs, fix it and "
+               "report which one it was. Do not raise the gate's timeout to get "
+               "past this."),
+            keep_going=not reentry)
     except Exception as error:
         return say(f"Test gate could not start `{printable}`: {error}. This turn "
                    "ended without tests.", keep_going=False)
@@ -292,14 +305,30 @@ def main():
     else:
         heading = "First failure"
 
+    if reentry:
+        # The gate has already blocked this turn once and just re-ran, so the
+        # fix it asked for has been checked. It is still red, and a second
+        # block would only loop: the turn ends, and the user is told.
+        return say(
+            f"The project's test gate ran `{printable}` again in {root} after "
+            f"blocking once; it still exits {result.returncode}.\n\n"
+            f"{heading}:\n{bounded(detail)}\n\n"
+            "The turn was allowed to end with the suite red rather than "
+            "blocked a second time.",
+            keep_going=False)
+
     return say(
         f"The project's test gate ran `{printable}` in {root} before letting "
         f"this turn end; it exited {result.returncode}.\n\n"
         f"{heading}:\n{bounded(detail)}\n\n"
         "Fix the code so this command passes. Do not delete, skip, xfail or "
         "loosen a test to get green; if you think a test is wrong, stop and "
-        "tell the user which test and why. The gate runs again on your next "
-        "stop, so it will check the fix.",
+        "tell the user which test and why.\n\n"
+        "If the task was to verify, review or check rather than to fix, this "
+        "failure is the answer: report it, with this output and its cause, "
+        "and say the change is not verified. Do not ask the user for "
+        "permission to finish. The gate runs again on your next stop to check "
+        "any fix, and it will not block a second time.",
         keep_going=True)
 
 

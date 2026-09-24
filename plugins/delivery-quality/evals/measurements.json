@@ -1,6 +1,42 @@
 {
   "$comment": "What each case scored when it was last run, and a fingerprint of the case at that moment. check_eval_freshness.py reports anything edited since. Written by scripts/run-evals.sh; do not edit by hand.",
   "cases": {
+    "guard-blocks-destructive": {
+      "score": 0.33,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 0.0,
+      "delta": 0.33,
+      "baselineRuns": 3,
+      "fingerprint": "d365bfb80deaa8a9"
+    },
+    "review-against-criteria": {
+      "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 1.0,
+      "delta": 0.0,
+      "baselineRuns": 3,
+      "fingerprint": "93c137b35894e1f4"
+    },
+    "review-format": {
+      "score": 0.33,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 0.0,
+      "delta": 0.33,
+      "baselineRuns": 3,
+      "fingerprint": "a6ff30127130a0a6"
+    },
+    "verify-fires": {
+      "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 0.33,
+      "delta": 0.67,
+      "baselineRuns": 3,
+      "fingerprint": "5c1ad10e29418604"
+    },
     "verify-not-fired": {
       "score": 1.0,
       "baseline": 1.0,
@@ -8,6 +44,33 @@
       "runs": 3,
       "measured": "2026-09-23",
       "note": "transcribed from the local runs of 22-23 September; the raw results were not kept, so there is no fingerprint and every case reads as needing a fresh run"
+    },
+    "verify-phantom-package": {
+      "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 0.67,
+      "delta": 0.33,
+      "baselineRuns": 3,
+      "fingerprint": "7f1d3010f48fc854"
+    },
+    "verify-project-command": {
+      "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 1.0,
+      "delta": 0.0,
+      "baselineRuns": 3,
+      "fingerprint": "ca6dfd483d259f57"
+    },
+    "verify-untracked": {
+      "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-24",
+      "baseline": 1.0,
+      "delta": 0.0,
+      "baselineRuns": 3,
+      "fingerprint": "086c5c6857dddc16"
     }
   }
 }

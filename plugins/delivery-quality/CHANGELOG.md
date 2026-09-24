@@ -60,6 +60,15 @@ All notable changes to `delivery-quality`. Format follows
   characters per line and 4,000 in total.
 
 ### Fixed
+- The test gate no longer traps a turn whose right answer is a failing report.
+  It blocked on every stop while the suite was red, so a request to *verify* a
+  change — where reporting the failure is the whole job — turned into Claude
+  asking the user for permission to finish and explaining how to disable the
+  hook. It now re-runs on re-entry, so the fix it demanded is still checked,
+  but blocks only once: a second red run ends the turn with a `systemMessage`.
+  The block itself now says that a verification should report the failure and
+  stop. Measured: `verify-project-command` scored 0.00 against a 0.67 no-plugin
+  baseline, three judges, three runs.
 - `review-format` and `verify-not-fired` evals had no fixture and could never
   pass; both are now `case.yaml` cases with a scaffold.
 - `reset --hard` and `checkout .` were blocked by untracked files, which they

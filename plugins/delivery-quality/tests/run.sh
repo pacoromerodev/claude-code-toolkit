@@ -288,6 +288,12 @@ gate_run() {  # gate_run <project> [env assignments...]
   printf '{"cwd":"%s","hook_event_name":"Stop"}' "$dir" \
     | env "$@" "$PY" "$SCRIPTS/test_gate.py" 2>/dev/null
 }
+# The same stop, but one that already followed a block by this hook.
+gate_rerun() {  # gate_rerun <project> [env assignments...]
+  local dir="$1"; shift
+  printf '{"cwd":"%s","hook_event_name":"Stop","stop_hook_active":true}' "$dir" \
+    | env "$@" "$PY" "$SCRIPTS/test_gate.py" 2>/dev/null
+}
 gate_case() {  # gate_case <label> <output> <python assertion>
   if printf '%s' "$2" | "$PY" -c "$3" 2>/dev/null; then
     printf 'ok    %-28s %s\n' test_gate.py "$1"; ((pass++))
@@ -303,6 +309,25 @@ import json,sys
 ctx = json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]
 assert "exited 1" in ctx and "Do not delete, skip" in ctx
 assert "runs again on your next stop" in ctx'
+
+# A verification task ends in a failing suite on purpose. The first block must
+# say so, or Claude asks the user for permission instead of reporting.
+gate_case "the block tells a verification to report, not ask" "$(gate_run "$proj")" '
+import json,sys
+ctx = json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"]
+assert "verify, review or check" in ctx
+assert "not verified" in ctx and "permission" in ctx'
+
+# The second stop re-runs the suite — the fix it demanded has to be checked —
+# but it must not block again: that is the loop that made a turn whose right
+# answer was a report end in Claude negotiating about hook settings.
+gate_case "re-entry re-runs and lets the turn end" "$(gate_rerun "$proj")" '
+import json,sys
+out = json.load(sys.stdin)
+assert "hookSpecificOutput" not in out, "blocked a second time"
+msg = out["systemMessage"]
+assert "again" in msg and "still exits 1" in msg
+assert "allowed to end" in msg'
 
 printf '{"command": ["true"]}' > "$proj/.claude/test-gate.json"
 [[ -z "$(gate_run "$proj")" ]] && { printf 'ok    %-28s %s\n' test_gate.py "a passing suite says nothing"; ((pass++)); } \

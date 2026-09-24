@@ -139,11 +139,18 @@ the whole report to 4,000, because it goes into the context.
 
 The report comes back as `hookSpecificOutput.additionalContext`: the turn
 continues so Claude can fix the failure, and it is shown as hook feedback
-rather than a hook error. Claude Code bounds the loop with `stop_hook_active`
-and its 8-continuation cap, so the gate does **not** skip its own re-entry —
-the next run is what checks the fix. A crash, an unreadable config or a
-missing runner lets the turn end, and says so to the user through
-`systemMessage` rather than disappearing.
+rather than a hook error.
+
+The gate does **not** skip its own re-entry — the next run is what checks the
+fix — but it blocks only **once**. On the second stop it runs the suite again
+and, if it is still red, lets the turn end with a `systemMessage` instead of
+blocking. Otherwise a turn whose right answer is a failing report gets trapped:
+asked to *verify* a change rather than fix it, Claude has to be able to hand
+back the failure. For the same reason the block itself says that a
+verification should report the failure and stop, not ask permission to finish.
+
+A crash, an unreadable config or a missing runner lets the turn end, and says
+so to the user through `systemMessage` rather than disappearing.
 
 Override the 900-second limit with `CLAUDE_TEST_GATE_TIMEOUT` or the config's
 `timeout`. Either way the gate clamps it below the hook's own 960 seconds: a
