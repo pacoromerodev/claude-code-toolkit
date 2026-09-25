@@ -100,7 +100,7 @@ all_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/all-out" \
 echo
 echo "== the model is named, passed and recorded =="
 rm -f "$SANDBOX/calls"
-out="$(EVAL_MODEL= HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/nomodel" \
+out="$(EVAL_MODEL="" HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/nomodel" \
   bash "$RUNNER" "$plugin" 2>&1)"; code=$?
 [[ "$code" -eq 2 && ! -s "$SANDBOX/calls" && "$out" == *"--model"* ]] \
   && ok "refuses to run without a model" || bad "ran with no model named (exit $code)"
