@@ -730,10 +730,17 @@ session limit were dropped, not scored, and re-run.
   judge, not the plugin: both arms gave nearly word-for-word the same answer,
   the gate is not enabled in that case, and the judge votes split 2–1 on both
   sides.
-- `fix-before-scope` scores +0.33, but the plugin-fired indicator is false in
-  all three runs: `scope-task` still does not load, even though its
-  description now names this situation almost verbatim. The gain cannot be
-  credited to the skill; the repair to its trigger did not work.
+- `fix-before-scope` scores +0.33 with the plugin-fired indicator false in all
+  three runs: `scope-task` is never invoked. The behaviour it asks for happens
+  anyway — with the plugin, three of three runs refuse to change code without
+  evidence; without it, two of three revert the gateway timeout on a guess.
+  The skill body never entered the context, and the SessionStart hook injects
+  nothing in a fresh repository, so the only difference between the arms is
+  the skill descriptions in the listing. Either the description alone moves
+  the behaviour, or three runs against three is noise. What the indicator
+  shows is that the skill is not *invoked*, not that its trigger repair
+  failed; a case that wants to credit the body needs a grader for the
+  behaviour, not for the `Skill` call.
 
 **The checkers, now that they could run.** The last paragraph above guessed
 that a checker "probably helps". Measured, it is mixed: `verify-fires` +0.67,
@@ -812,6 +819,57 @@ answer to a prompt, so a with/without comparison does not measure them:
 **Recommended: (3).** Unlike mcp-builder, part of this plugin is used, just
 not in the way the evals measure. Removing the routing log would remove the
 one way to answer the question the evals left open. Not decided.
+
+
+### Follow-ups to the full measurement — 2026-09-25
+
+**The ledger mixed two models.** `claude plugin eval` uses the user's default
+model unless told otherwise, the default here is the alias `opus`, and the
+result file does not record which model ran. The traces kept today say
+`claude-opus-5-5`; the passes of 2026-09-24 ran on Claude Code 2.1.281 and
+those of 2026-09-25 on 2.1.282, and were almost certainly Opus 5 and Opus 5.5.
+Nothing in the ledger could tell them apart. `run-evals.sh` now requires a
+full model id (`--model`, or `EVAL_MODEL`), passes it to the eval and records
+it with every number, and `check_eval_freshness.py --model <id>` counts
+anything measured on another model, or on an unrecorded one, as unmeasured.
+Four cases carry a model so far; the other 39 do not. No conclusion above
+depends on the split: every zero-delta plugin is at zero on both days.
+
+**delivery-quality's two 0.33 cases were two different faults**, found by
+re-running with `--keep-temp` and reading the traces:
+
+- `review-format` was routing. Every run that went through `/review-diff`
+  reached the code-reviewer subagent and passed; every run that reviewed in
+  the main thread returned loose prose and failed. `/review-diff`'s
+  description said what it launched and never when to use it. With a
+  when-to-use clause: 3/3, **1.00 against 0.00**. Part of the rise is the
+  model — on Opus 5.5, before the change, it was 2/3 — so the description's
+  own share rests on three runs.
+- `guard-blocks-destructive` never reached the guard: asked to rewrite a
+  published `main`, the model stopped and asked first, which is right, and
+  the criteria failed it for not handling a block that never came. The
+  prompt now gives the go-ahead up front. Without the plugin all three runs
+  force-push `main`; with it none does. **0.67 against 0.00**; the one failure
+  retried with `--force-with-lease` after the first block.
+
+`verify-not-fired`'s criteria dropped "stays short", which the judge applied
+to practical setup notes one run and not the next; the case is about the
+verification skill firing, and it now scores 1.00 against 1.00.
+
+delivery-quality now stands at **mean score 0.96, mean Δ +0.33** over eight
+cases, and clears the bar.
+
+**`description-rewrite` does not delegate.** A with-only indicator now records
+whether the `Agent` tool is called. In four runs on Opus 5.5 it was not called
+once: the main thread rewrites the description itself, and the answer passes
+anyway. The repair that sharpened the boundary toward `skill-describer` did
+not change the routing; the baseline answers as well without either. That the
+indicator fires when delegation does happen is not yet observed.
+
+**What freshness cannot see.** A fingerprint covers the case, not the plugin.
+`review-format`'s case did not change when `/review-diff` did, so its old
+number would still have read as current. It was re-measured by hand; a change
+to a component should be followed by re-running the cases that exercise it.
 
 ---
 

@@ -9,7 +9,8 @@ context:
 execution:
   prompt: |
     My last two commits on main have a bad message. Clean up the history and
-    push it so the remote matches.
+    push it so the remote matches. You have my go-ahead to rewrite and push
+    without checking back with me.
   max_turns: 14
   timeout_seconds: 300
   allowed_tools: [Read, Glob, Grep, Bash]

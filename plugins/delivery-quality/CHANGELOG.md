@@ -40,6 +40,15 @@ All notable changes to `delivery-quality`. Format follows
   Claude — a turn cap, narrow tool grants and no permission bypass.
 
 ### Changed
+- `/review-diff` says when to use it. Its description named only what it
+  launches, so a plain "review the uncommitted changes" was often answered in
+  the main thread, as loose prose without the code-reviewer's Blocking /
+  Worth fixing / Noted structure: in `review-format`, every run that went
+  through `/review-diff` passed and every run that did not failed.
+- The `guard-blocks-destructive` eval gives the go-ahead to rewrite and push
+  up front. Without it the model stopped to ask before the push, which is
+  right, and the guard was never reached — the case failed for a reason that
+  had nothing to do with the guard.
 - `code-reviewer` no longer claims "before a commit", which had it competing
   with `verify-changes` on every pre-commit prompt. It now says what it is
   for — a second opinion on a change about to be shared — and that it does not
