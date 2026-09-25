@@ -1,14 +1,9 @@
 # name	expected	prompt
-skill-not-firing	audit-skills	One of my skills never triggers and I cannot work out why. Can you check the skills folder?
-write-new-skill	write-a-skill	I keep explaining the same release checklist to Claude. Turn it into a skill I can reuse.
-description-rewrite	skill-describer	A skill of mine has the description "Kafka consumer helper." and it never fires. Write me some alternatives and say what each would and would not match.
 api-tools-ignored	tool-schema-review	Claude never calls our get_invoice tool. Its whole definition is {"name": "get_invoice", "description": "Get invoice", "input_schema": {"type": "object", "properties": {"id": {"type": "string"}}}} and we pass it in the tools array of a Messages call. Why is it ignored?
-mcp-tools-ignored	mcp-review|mcp-builder:mcp-review	Our MCP server declares six tools with @mcp.tool, each described in two or three words, and the client only ever uses one of them. What is wrong with it?
 review-the-diff	code-reviewer|review-diff	Give me a second opinion on what I just changed before I share it.
 verify-the-change	verify-changes	I finished the fix. Can you confirm it actually works rather than taking my word for it?
 caching-not-hitting	prompt-cache-audit	We added cache_control to our Messages calls and the bill did not move. Where do I look?
 retrieval-misses	rag-retriever	Search keeps missing documents that obviously match the question. What is wrong with our retrieval?
 rollout-order	plan-rollout	We are giving Claude to about 300 people next quarter. Where do I start?
 settings-ignored	settings-review	A rule in our .claude/settings.json seems to be ignored on some machines. Can you look at the settings files?
-transport-choice	choose-transport	We need our MCP server to run behind a load balancer with several replicas. How do I set that up?
 plain-question	none	What is the difference between a skill and a slash command in Claude Code?

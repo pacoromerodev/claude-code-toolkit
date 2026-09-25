@@ -1,7 +1,8 @@
 schema_version: "1.0"
 name: not-fired
 description: >-
-  A question about skills in general is not a request to audit or author one.
+  What is left of this plugin is a linter and a passive routing log; neither
+  may change how a conceptual question about skills is answered.
 tags: [negative]
 execution:
   prompt: |

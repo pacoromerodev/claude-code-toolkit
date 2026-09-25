@@ -11,6 +11,6 @@ Score well when the response:
 - Makes that distinction: who triggers each, and when its content loads
 - May add that a skill can also be invoked by name, as a command is
 
-Score badly if the response scaffolds a skill, audits a directory, or launches
-the description subagent. Firing here is a false positive, and the cost lands
-on every conceptual question the user asks.
+Score badly if the response scaffolds a skill, runs an audit over a directory,
+or launches a subagent. Nothing in this plugin should act on a conceptual
+question; if something does, the cost lands on every question like it.

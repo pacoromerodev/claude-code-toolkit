@@ -763,9 +763,13 @@ not a case for removing it.
   `migration-unsafe` showed no delta, so by the rule written above option (1)
   followed, and the maintainer chose it. The plugin and its marketplace entry
   are gone; ROADMAP.md and AUDIT.md keep their record of it as history.
-- **mcp-builder** and **skill-forge** — proposals below. Nothing removed.
+- **mcp-builder** and **skill-forge** — proposals below, both decided the
+  same day: mcp-builder removed (option 1), skill-forge reduced to its tools
+  (option 3).
 
 ### Proposed for removal: `mcp-builder`
+
+*Decided 2026-09-25: option (1), removed.*
 
 **The measurement.** Eight cases, `runs: 3`, both arms, every one 1.00 against
 1.00. They include the three this plan said a delta would be in if there was
@@ -791,6 +795,15 @@ subagent has no case of its own that the baseline could not also pass.
 most likely to add something were measured and added nothing. Not decided.
 
 ### Proposed for removal: `skill-forge`
+
+*Decided 2026-09-25: option (3). `audit_skills.py`, the routing log and its
+report stay; `write-a-skill`, the `audit-skills` skill, `skill-describer` and
+their five cases are gone, and `not-fired` remains as the plugin's negative
+case. Doing it turned up a fault the evals could not: the routing log's
+`PreToolUse` matcher named `Task`, current Claude Code calls the subagent tool
+`Agent`, and so no delegation had ever been logged. `scripts/route_check.sh`
+made the same assumption and read every delegation as nothing fired. Both now
+accept either name, with tests that fail on the old code.*
 
 **The measurement.** Six cases, every one 1.00 against 1.00, including
 `audit-finds-faults` (the auditor) and `subagent-rambles`.

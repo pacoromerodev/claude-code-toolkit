@@ -1,6 +1,6 @@
 # skill-forge
 
-Write skills that actually fire, and find out why the ones that don't.
+Find out why a skill does not fire, and which ones fire in real use.
 
 ```
 /plugin install skill-forge@pacoromerodev
@@ -15,14 +15,20 @@ perfect and never be read.
 So when a skill does not fire, the description is almost always why — and
 everything here is built around that fact.
 
+Until 2026-09-25 this plugin also shipped a skill for writing skills, a skill
+wrapping the auditor, and a subagent that drafts descriptions. All three
+scored exactly what the model scores with no plugin loaded, across every eval
+case, so they were removed (see `ROADMAP-v2.md`, *Proposed for removal:
+skill-forge*). What remains is what an eval cannot measure and the model
+cannot do on its own: a linter that runs as a script, and a log of real use.
+
 ## Components
 
-| Component | Type | Fires when |
+| Component | Type | What it is |
 |---|---|---|
-| `write-a-skill` | Skill | You ask to write, create or scaffold a skill, or an existing one is not triggering |
-| `audit-skills` | Skill | You ask to check, review or audit skills or subagents, or one is not triggering. Also `/skill-forge:audit-skills` |
-| `log_routing` | Hooks | Opt-in, per project |
-| `skill-describer` | Subagent | A description needs writing or rewriting, or two skills overlap |
+| `scripts/audit_skills.py` | Script | The auditor. Runs from a shell or CI; this repository's own CI runs it |
+| `log_routing` | Hooks | Opt-in, per project: records prompts and what fired |
+| `scripts/routing_report.py` | Script | Reads that log back |
 
 ## The auditor
 
@@ -83,8 +89,11 @@ mkdir -p .claude && touch .claude/routing-log      # opt in, per project
 python3 plugins/skill-forge/scripts/routing_report.py
 ```
 
-Two hooks feed one log: the prompt, and whatever `Skill` or `Task` the model
-reached for. The report says what fired and how often, and — the part worth
+Two hooks feed one log: the prompt, and whatever skill or subagent the model
+reached for. The subagent tool is `Agent` in current Claude Code and was
+`Task` before; the hook matches both. Until 2026-09-25 it matched only `Task`,
+so no delegation was logged — a log that misses a kind of event without saying
+so is the failure it exists to catch. The report says what fired and how often, and — the part worth
 reading — **which prompts fired nothing**. A case measures a prompt somebody
 wrote for it; this measures the prompt somebody typed.
 
@@ -94,13 +103,6 @@ truncated to 200 characters. Nothing leaves the machine.
 
 It cannot tell you whether firing helped. That needs both arms of an eval, and
 no log can produce them.
-
-## skill-describer
-
-Returns three candidates that differ in **coverage**, not wording: narrow, broad
-and balanced. For each, the prompts it fires on, the realistic prompt it misses,
-and what it would wrongly catch. Then a recommendation, an overlap check against
-existing skills, and an "Obstacles encountered" section.
 
 ## Tests
 
@@ -118,18 +120,13 @@ gets ignored, which is the same as not having one.
 ## Evals
 
 ```bash
-claude plugin eval plugins/skill-forge --scaffold --allow-tools Bash
+claude plugin eval plugins/skill-forge
 ```
 
-- **audit-finds-faults** — a skills folder with a name/directory mismatch and a
-  triggerless description. Both must be found, with the consequence of each
-  explained, not just listed.
-- **description-rewrite** — a real skill body behind the description "Kafka
-  consumer helper." The rewrite must put the trigger in user language.
-- **procedure-into-skill** — six release steps pasted every time.
-- **skill-or-subagent** — an investigation that would read fifty files.
-- **not-fired** — a conceptual question about skills, which must not start an
-  audit.
+One case, **not-fired**: a conceptual question about skills, which nothing here
+may act on. A linter and a passive log have no answer of their own for an eval
+to compare against a baseline, so the case checks only that they stay out of
+the way.
 
 ## Requirements
 

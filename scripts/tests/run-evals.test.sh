@@ -28,7 +28,7 @@ ln -s "$SANDBOX/elsewhere" "$SANDBOX/linked/.docker/contexts"
 : > "$SANDBOX/plain/.docker/config.json"
 
 # Count the cases of one plugin, and how many of them need Bash.
-plugin=skill-forge
+plugin=team-rollout  # has cases with and without needs-bash
 evals="$HERE/../../plugins/$plugin/evals"
 total=$(ls "$evals"/*/case.yaml | wc -l)
 needs_bash=$(grep -l '^tags: .*needs-bash' "$evals"/*/case.yaml | wc -l)

@@ -6,6 +6,24 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-25
+
+### Removed
+- `write-a-skill`, the `audit-skills` skill and the `skill-describer`
+  subagent, with their eval cases. Across all six cases, run three times each
+  against a no-plugin baseline, every one scored 1.00 against 1.00: the model
+  writes, audits and rewrites skill descriptions as well without them, and
+  in four runs of `description-rewrite` it never delegated to the subagent.
+  The auditor script and the routing log stay; neither is something an eval
+  of a conversation can measure.
+
+### Fixed
+- The routing log saw no delegation to a subagent. Its `PreToolUse` matcher
+  named `Task`, and current Claude Code calls the tool `Agent`; the matcher
+  now names both. A test now checks the matcher itself: the existing ones fed
+  the script directly and could not see it.
+- `audit_skills.py` warned that `allowed-tools: Agent` names an unknown tool.
+
 ### Added
 - Routing telemetry, opt-in per project with `.claude/routing-log`. A
   `UserPromptSubmit` hook records the prompt and a `PreToolUse` hook on

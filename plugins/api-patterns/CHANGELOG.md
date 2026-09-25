@@ -16,6 +16,8 @@ All notable changes to `api-patterns`. Format follows
 - `tool-schema-review` says where the tools it reviews live — the `tools`
   array of a Messages call, or the functions a tool runner builds one from —
   and points at `mcp-review` for the other kind.
+- `tool-schema-review` no longer points at `mcp-review`: mcp-builder was
+  retired on 2026-09-25 and the subagent went with it.
 - `eval-harness` credits the score jump to the right technique. The move from
   about 3.9 to about 7.9 comes from explicit output guidelines — a length, a
   structure, the elements the answer must contain, or the steps to work

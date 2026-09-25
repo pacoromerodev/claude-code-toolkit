@@ -7,7 +7,7 @@
 # `claude plugin eval` loads one plugin per run, so it cannot see a collision
 # between two of them: two descriptions that both match a prompt each score
 # perfectly on their own. This runs the prompts against a session holding all
-# seven, reads which Skill or Task the model actually invoked, and compares it
+# seven, reads which Skill or Agent the model actually invoked, and compares it
 # with the component the prompt was written for.
 #
 # Each prompt costs a short session. Run it after changing a description, and
@@ -39,7 +39,7 @@ if [[ ! -f "$CASES" ]]; then
 fi
 
 # The transcript names an invoked skill in a tool_use block (Skill, with the
-# skill in its input) or a subagent in a Task block. This pulls whichever
+# skill in its input) or a subagent in an Agent (formerly Task) block. This pulls whichever
 # appeared first, which is the routing decision; anything after it follows from
 # that choice.
 invoked_component() {
@@ -73,7 +73,8 @@ with open(sys.argv[1], encoding="utf-8") as stream:
                 value = payload.get("skill") or payload.get("command") or ""
                 if value:
                     names.append(str(value))
-            elif block.get("name") == "Task":
+            # The subagent tool is Agent in current Claude Code, Task before.
+            elif block.get("name") in ("Agent", "Task"):
                 value = payload.get("subagent_type") or ""
                 if value:
                     names.append(str(value))
