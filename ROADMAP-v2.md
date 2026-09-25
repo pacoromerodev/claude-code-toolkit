@@ -866,6 +866,15 @@ anyway. The repair that sharpened the boundary toward `skill-describer` did
 not change the routing; the baseline answers as well without either. That the
 indicator fires when delegation does happen is not yet observed.
 
+**Evals in a scheduled cloud session.** Probed on 2026-09-25 with a one-off
+routine: the CLI is there (2.1.282), and a case without Bash ran and scored.
+A `needs-bash` case was refused, because the cloud environment has neither
+`bwrap` nor `socat` and the eval's sandbox fails closed; there is no
+`~/.docker` there, so the symlink condition does not arise. The environment
+runs no setup script today. Installing both packages in one is the obvious
+next step and is not yet tried, so a scheduled pass would currently measure
+the 35 cases without Bash and report the rest as not run.
+
 **What freshness cannot see.** A fingerprint covers the case, not the plugin.
 `review-format`'s case did not change when `/review-diff` did, so its old
 number would still have read as current. It was re-measured by hand; a change
