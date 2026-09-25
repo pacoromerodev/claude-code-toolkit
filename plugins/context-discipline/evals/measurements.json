@@ -11,28 +11,40 @@
       "fingerprint": "1e86910e9fd81510"
     },
     "context-cannot-be-measured": {
-      "score": 0.67,
-      "baseline": 0.0,
-      "delta": 0.67,
+      "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-23",
-      "note": "transcribed from the local runs of 22-23 September; the raw results were not kept, so there is no fingerprint and every case reads as needing a fresh run"
+      "measured": "2026-09-25",
+      "baseline": 1.0,
+      "delta": 0.0,
+      "baselineRuns": 3,
+      "fingerprint": "6c80499260b9d9a5"
+    },
+    "fix-before-scope": {
+      "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-25",
+      "baseline": 0.67,
+      "delta": 0.33,
+      "baselineRuns": 3,
+      "fingerprint": "0527d061dd08d232"
     },
     "not-fired": {
       "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-25",
       "baseline": 1.0,
       "delta": 0.0,
-      "runs": 3,
-      "measured": "2026-09-23",
-      "note": "transcribed from the local runs of 22-23 September; the raw results were not kept, so there is no fingerprint and every case reads as needing a fresh run"
+      "baselineRuns": 3,
+      "fingerprint": "487e4c55adaa8771"
     },
     "rules-nobody-follows": {
       "score": 1.0,
+      "runs": 3,
+      "measured": "2026-09-25",
       "baseline": 1.0,
       "delta": 0.0,
-      "runs": 3,
-      "measured": "2026-09-23",
-      "note": "transcribed from the local runs of 22-23 September; the raw results were not kept, so there is no fingerprint and every case reads as needing a fresh run"
+      "baselineRuns": 3,
+      "fingerprint": "1a23084ddee2cae0"
     },
     "scope-before-code": {
       "score": 1.0,

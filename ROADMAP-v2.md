@@ -689,6 +689,79 @@ be if there is one, and they run in CI as soon as the secret exists.
 The same question is open, less sharply, for the conceptual skills in every
 plugin: see the deltas in the table above.
 
+
+### Measured in full — 2026-09-25
+
+Every one of the 53 cases now has a current measurement: `runs: 3`, both arms,
+a fingerprint, and `check_eval_freshness.py` reporting 53 measured and nothing
+stale. The eighteen `needs-bash` cases ran once `socat` was installed (bwrap
+alone does not satisfy the eval's sandbox). Runs whose arms errored on the
+session limit were dropped, not scored, and re-run.
+
+| Plugin | Cases | Mean score | Mean Δ | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|---|
+| team-rollout | 5 | 0.80 | +0.27 | 2 | 0 |
+| delivery-quality | 8 | **0.75** | +0.17 | 4 | 1 |
+| context-discipline | 6 | 1.00 | +0.06 | 1 | 0 |
+| api-patterns | 10 | 0.97 | +0.03 | 1 | 0 |
+| java-spring | 10 | 0.97 | **+0.00** | 0 | 0 |
+| mcp-builder | 8 | 1.00 | **+0.00** | 0 | 0 |
+| skill-forge | 6 | 1.00 | **+0.00** | 0 | 0 |
+| all | 53 | 0.93 | +0.06 | 8 | 1 |
+
+42 of the 53 cases score 1.00 with the plugin and 1.00 without it.
+
+**What moved since the table above.**
+
+- The three negative cases are gone. `verify-project-command` (−0.67) was a
+  defect in the test gate — it blocked on every stop, trapping a turn whose
+  answer was a failing report — and was fixed in `d5b5f7d`.
+  `server-from-an-api` (0.33 → 1.00) and `description-rewrite` (0.00 → 1.00)
+  recovered after their repairs; both now tie the baseline rather than beat
+  it. Whether `description-rewrite` now delegates to `skill-describer` is not
+  measured: the case has no grader for it.
+- Some transcribed gains did not reproduce: `context-cannot-be-measured`
+  (+0.67 then) and `bedrock-model-not-found` (+0.33 then) both tie now. The
+  earlier numbers had no fingerprint and no raw results, so which run was the
+  outlier cannot be told.
+- The one negative left, `verify-not-fired` (0.33 against 0.67), is the
+  judge, not the plugin: both arms gave nearly word-for-word the same answer,
+  the gate is not enabled in that case, and the judge votes split 2–1 on both
+  sides.
+- `fix-before-scope` scores +0.33, but the plugin-fired indicator is false in
+  all three runs: `scope-task` still does not load, even though its
+  description now names this situation almost verbatim. The gain cannot be
+  credited to the skill; the repair to its trigger did not work.
+
+**The checkers, now that they could run.** The last paragraph above guessed
+that a checker "probably helps". Measured, it is mixed: `verify-fires` +0.67,
+`cache-silently-missing` (`check_api_calls.py`) +0.33, `guard-blocks-destructive`
++0.33 and `verify-phantom-package` +0.33 help; `settings-too-wide`
+(`check_settings.py`), `tool-never-called` (`check_mcp_server.py`) and
+`audit-finds-faults` (`audit_skills.py`) tie the baseline.
+
+**Against the bar** (`overallScore ≥ 0.8`, `meanDelta > 0`): team-rollout,
+context-discipline and api-patterns clear it. delivery-quality has the second
+largest delta but misses on score, because `guard-blocks-destructive` and
+`review-format` reach only 0.33 with the plugin loaded (0.00 without) — it
+helps, and is still far from passing those two. That is work on the plugin,
+not a case for removing it.
+
+**The three plugins at zero.**
+
+- **java-spring** — ten of ten cases at Δ 0.00, including both `needs-bash`
+  cases the recommendation above was waiting for. `migration-unsafe` shows no
+  delta, so by the rule written above, **option (1), removal, follows**.
+- **mcp-builder** — eight of eight at Δ 0.00, including the checker and both
+  transport cases this section said a delta would be in if there was one. It
+  is now in the position java-spring was in, and gets the same three options.
+- **skill-forge** — six of six at Δ 0.00, including its auditor. Same
+  position.
+
+The measurements settle what each plugin adds over the baseline; they do not
+settle whether to delete it, which is the maintainer's call. It is recorded
+here, not acted on.
+
 ---
 
 ## Phase 13 — Content corrections
