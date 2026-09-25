@@ -4,19 +4,21 @@
     "claude-md-rewrite": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-25",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "1e86910e9fd81510"
     },
     "context-cannot-be-measured": {
       "score": 1.0,
       "runs": 3,
       "measured": "2026-09-25",
-      "baseline": 1.0,
-      "delta": 0.0,
+      "baseline": 0.67,
+      "delta": 0.33,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "6c80499260b9d9a5"
     },
     "fix-before-scope": {
@@ -26,33 +28,37 @@
       "baseline": 0.67,
       "delta": 0.33,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "0527d061dd08d232"
     },
     "not-fired": {
       "score": 1.0,
-      "runs": 3,
-      "measured": "2026-09-25",
+      "runs": 1,
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
-      "baselineRuns": 3,
+      "baselineRuns": 1,
+      "model": "claude-opus-5-5",
       "fingerprint": "487e4c55adaa8771"
     },
     "rules-nobody-follows": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-25",
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "1a23084ddee2cae0"
     },
     "scope-before-code": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "d15464b85eeed176"
     }
   }

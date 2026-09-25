@@ -8,24 +8,27 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "caba9ba3c18d7c7f"
     },
     "bedrock-model-not-found": {
-      "score": 1.0,
+      "score": 0.67,
       "runs": 3,
       "measured": "2026-09-25",
       "baseline": 1.0,
-      "delta": 0.0,
+      "delta": -0.33,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "aad0a9acd6c2e967"
     },
     "cache-silently-missing": {
-      "score": 0.67,
+      "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-25",
       "baseline": 0.33,
-      "delta": 0.33,
+      "delta": 0.67,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "dc40d38e30747f08"
     },
     "cache-ttl-mismatch": {
@@ -35,6 +38,7 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "b9ae9d9ec270ed1d"
     },
     "chunks-lose-their-heading": {
@@ -44,6 +48,7 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "f6c7e05d16930a14"
     },
     "hybrid-or-rerank": {
@@ -53,15 +58,17 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "6cdf8b70ad3d027a"
     },
     "not-fired": {
       "score": 1.0,
-      "runs": 3,
+      "runs": 1,
       "measured": "2026-09-25",
       "baseline": 1.0,
       "delta": 0.0,
-      "baselineRuns": 3,
+      "baselineRuns": 1,
+      "model": "claude-opus-5-5",
       "fingerprint": "620746b3b8909a18"
     },
     "score-jumped-after-examples": {
@@ -71,6 +78,7 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "2faa86aa54d48666"
     },
     "tool-never-chosen": {
@@ -80,6 +88,7 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "72234877b3cfc298"
     },
     "workflow-not-agent": {
@@ -89,6 +98,7 @@
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "eac0f0e7f7b6dda9"
     }
   }

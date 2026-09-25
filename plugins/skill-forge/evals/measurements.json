@@ -3,12 +3,13 @@
   "cases": {
     "not-fired": {
       "score": 1.0,
-      "runs": 3,
-      "measured": "2026-09-25",
+      "runs": 1,
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
-      "baselineRuns": 3,
-      "fingerprint": "ca536138a6d10c1a"
+      "baselineRuns": 1,
+      "model": "claude-opus-5-5",
+      "fingerprint": "ea79e9b79ceb079c"
     }
   }
 }

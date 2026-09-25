@@ -888,6 +888,42 @@ runs no setup script today. Installing both packages in one is the obvious
 next step and is not yet tried, so a scheduled pass would currently measure
 the 35 cases without Bash and report the rest as not run.
 
+A second routine tried it. The session runs as root on Ubuntu 24.04, and
+`apt-get install bubblewrap socat` succeeds; `bwrap` then creates a sandbox.
+The eval no longer refuses — and that is the problem: inside it, every Bash
+command the model under test ran failed with a sandbox initialisation error,
+and the case still scored 1.00, because the model inspected the file by hand
+and the judge accepted that. A nested sandbox does not work there. The run
+looks like a measurement and is not one, which is worse than the clean
+refusal. **Do not schedule `needs-bash` cases in the cloud**; a scheduled pass
+should grant no shell and let the runner list those cases as not run.
+`record_measurement.py` cannot catch this today: the error sits in the
+trace, not in the result file, and the trace is deleted unless `--keep-temp`
+is given.
+
+**One model, every case — 2026-09-26.** After the removals, all 30 remaining
+cases were re-measured through `scripts/run-evals.sh --model claude-opus-5-5
+--stale`, `runs: 3`, both arms, and every ledger entry now names its model.
+No arm had a partial error; a session-limit stop was re-run, not recorded.
+
+| Plugin | Cases | Mean score | Mean Δ | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|---|
+| team-rollout | 5 | 0.80 | +0.33 | 2 | 0 |
+| delivery-quality | 8 | 0.88 | +0.25 | 3 | 1 |
+| context-discipline | 6 | 1.00 | +0.11 | 2 | 0 |
+| api-patterns | 10 | 0.97 | +0.03 | 1 | 1 |
+| skill-forge | 1 | 1.00 | +0.00 | 0 | 0 |
+| all | 30 | 0.92 | +0.16 | 8 | 2 |
+
+19 of the 30 still tie at 1.00 against 1.00. The largest gains are
+`review-format` and `rollout-order` (+1.00), then `cache-silently-missing`,
+`guard-blocks-destructive`, `verify-fires` and `connector-with-write` (+0.67).
+Two cases lose by one run in three: `bedrock-model-not-found` (0.67 against
+1.00) and `verify-untracked` (0.67 against 1.00). Neither has been looked at;
+at three runs a single run is within noise, and both tied or gained on
+earlier passes. delivery-quality falls from 0.96 to 0.88 on this pass for the
+same reason: `verify-fires` and `verify-untracked` each lost a run.
+
 **What freshness cannot see.** A fingerprint covers the case, not the plugin.
 `review-format`'s case did not change when `/review-diff` did, so its old
 number would still have read as current. It was re-measured by hand; a change
