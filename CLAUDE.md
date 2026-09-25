@@ -14,6 +14,7 @@ for c in consistency stdlib_only eval_cases eval_coverage hooks names workflows 
 done
 python3 plugins/skill-forge/scripts/audit_skills.py plugins/*/skills
 for t in plugins/*/tests/run.sh .github/scripts/tests/run.sh scripts/tests/*.sh; do bash "$t" || break; done
+find plugins .github scripts -name '*.sh' -print0 | xargs -0 -r shellcheck -S warning
 ```
 
 ## Rules
