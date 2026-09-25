@@ -73,7 +73,10 @@ sys.path.insert(0, str(root / ".github/scripts"))
 from eval_ledger import case_fingerprint, write_ledger
 demo = root / "plugins/demo"
 write_ledger(demo, {
-    "fresh-case": {"score": 1.0, "measured": "2026-09-20",
+    # A real measurement has both arms: a score with no baseline counts as
+    # unmeasured (see check_eval_freshness.py), and --stale would re-run it.
+    "fresh-case": {"score": 1.0, "baseline": 1.0, "delta": 0.0,
+                   "measured": "2026-09-20",
                    "fingerprint": case_fingerprint(demo / "evals/fresh-case")},
     "changed-case": {"score": 1.0, "measured": "2026-09-20",
                      "fingerprint": "0000000000000000"},

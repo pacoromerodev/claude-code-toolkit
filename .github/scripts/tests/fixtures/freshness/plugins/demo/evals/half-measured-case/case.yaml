@@ -1,0 +1,6 @@
+schema_version: "1.0"
+name: half-measured-case
+tags: [demo-skill, skill]
+execution:
+  prompt: |
+    Do the thing.

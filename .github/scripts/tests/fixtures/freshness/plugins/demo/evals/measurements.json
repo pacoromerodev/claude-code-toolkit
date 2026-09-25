@@ -9,6 +9,12 @@
       "measured": "2026-09-20",
       "fingerprint": "0000deadbeef0000"
     },
+    "half-measured-case": {
+      "score": 1.0,
+      "runs": 2,
+      "measured": "2026-09-24",
+      "fingerprint": "5feafc39062394ea"
+    },
     "measured-case": {
       "score": 1.0,
       "baseline": 0.0,

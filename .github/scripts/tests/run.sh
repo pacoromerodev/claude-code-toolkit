@@ -143,7 +143,12 @@ expect_exit "freshness report-only" "$?" 0
 expect_text "freshness" "$out" "ok     demo/measured-case"
 expect_text "freshness" "$out" "STALE  demo/edited-case"
 expect_text "freshness" "$out" "never  demo/new-case"
-expect_text "freshness" "$out" "1 measured, 1 changed since, 1 never run"
+# A score whose baseline arm all errored is not a delta, and must not read as
+# measured: --stale would then never run it again.
+expect_text "freshness" "$out" "NOBAS  demo/half-measured-case"
+expect_text "freshness" "$out" "1 measured, 1 changed since, 1 without a baseline, 1 never run"
+out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --list-stale "$FIXTURES/freshness" 2>&1)"
+expect_text "freshness --list-stale" "$out" "demo/half-measured-case"
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --enforce "$FIXTURES/freshness" 2>&1)"
 expect_exit "freshness --enforce" "$?" 1
 
