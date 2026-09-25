@@ -21,7 +21,6 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 | **[mcp-builder](plugins/mcp-builder)** | Build MCP servers a model can actually use: the right primitive for each capability, descriptions that draw the boundary against neighbouring tools, bounded results, enforced roots, and a transport choice that names what it takes away. |
 | **[api-patterns](plugins/api-patterns)** | Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
 | **[team-rollout](plugins/team-rollout)** | Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference settings, and a checker for permissions wider than intended. |
-| **[java-spring](plugins/java-spring)** | Backend conventions for Java and Spring Boot: service and transaction structure, Kafka consumers that survive redelivery, modern Java with its wrong answers, test shape, and a migration reviewer that asks what breaks during a rolling deploy. |
 
 ### delivery-quality
 
@@ -128,7 +127,7 @@ type to reach for.
 
 ## Where this came from
 
-All seven plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way.
+Six plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way. A seventh, `java-spring`, was retired on 2026-09-25: across ten eval cases it scored exactly what the model scores with no plugin loaded ([ROADMAP-v2.md](ROADMAP-v2.md), *Measured in full*).
 
 ## Origin
 

@@ -39,21 +39,6 @@
       ]
     },
     {
-      "name": "java-spring",
-      "source": "./plugins/java-spring",
-      "description": "Backend conventions for Java and Spring Boot that hold at any company: service and transaction structure, Kafka consumers that survive redelivery, modern Java with the cases where it is the wrong answer, test shape, and a migration reviewer that asks what breaks during a rolling deploy.",
-      "version": "0.1.0",
-      "category": "backend",
-      "keywords": [
-        "java",
-        "spring-boot",
-        "kafka",
-        "migrations",
-        "testing",
-        "backend"
-      ]
-    },
-    {
       "name": "context-discipline",
       "source": "./plugins/context-discipline",
       "description": "Keep the working state that compaction blurs: a snapshot of the tree taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored.",

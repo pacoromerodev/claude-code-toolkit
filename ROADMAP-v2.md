@@ -642,6 +642,8 @@ had passed the bug through, because the stub only ever emitted the list form.
 
 ### Proposed for removal: `java-spring`
 
+*Decided 2026-09-25: option (1), removed. See* Measured in full *below.*
+
 The rule this plan set for Phase 12 is that a plugin which cannot reach
 `meanDelta > 0` is proposed for removal here, rather than having its graders
 loosened. `java-spring` is in that position, and this is the proposal.
@@ -749,18 +751,67 @@ not a case for removing it.
 
 **The three plugins at zero.**
 
-- **java-spring** — ten of ten cases at Δ 0.00, including both `needs-bash`
-  cases the recommendation above was waiting for. `migration-unsafe` shows no
-  delta, so by the rule written above, **option (1), removal, follows**.
-- **mcp-builder** — eight of eight at Δ 0.00, including the checker and both
-  transport cases this section said a delta would be in if there was one. It
-  is now in the position java-spring was in, and gets the same three options.
-- **skill-forge** — six of six at Δ 0.00, including its auditor. Same
-  position.
+- **java-spring — retired on 2026-09-25.** Ten of ten cases at Δ 0.00,
+  including both `needs-bash` cases the recommendation above was waiting for.
+  `migration-unsafe` showed no delta, so by the rule written above option (1)
+  followed, and the maintainer chose it. The plugin and its marketplace entry
+  are gone; ROADMAP.md and AUDIT.md keep their record of it as history.
+- **mcp-builder** and **skill-forge** — proposals below. Nothing removed.
 
-The measurements settle what each plugin adds over the baseline; they do not
-settle whether to delete it, which is the maintainer's call. It is recorded
-here, not acted on.
+### Proposed for removal: `mcp-builder`
+
+**The measurement.** Eight cases, `runs: 3`, both arms, every one 1.00 against
+1.00. They include the three this plan said a delta would be in if there was
+one: `tool-never-called`, which exercises `check_mcp_server.py`, and the two
+transport cases, `stateless-tradeoff` and `roots-lost-under-stateless`.
+`server-from-an-api`, which lost to the baseline before, now ties it.
+
+**What is not measured.** Nothing the cases can reach. The `mcp-review`
+subagent has no case of its own that the baseline could not also pass.
+
+**The three options.**
+
+1. **Remove the plugin** — three skills, the `mcp-review` subagent and
+   `check_mcp_server.py`.
+2. **Keep it and say what it is for**, with a README that states the model
+   does as well without it on every case measured.
+3. **Reduce it to `mcp-review` and the checker**, dropping the three
+   conceptual skills and their always-on descriptions. The checker tied too,
+   so this keeps the part that at least produces an output a plain answer does
+   not, not a part shown to help.
+
+**Recommended: (1).** It is the rule java-spring was held to: the components
+most likely to add something were measured and added nothing. Not decided.
+
+### Proposed for removal: `skill-forge`
+
+**The measurement.** Six cases, every one 1.00 against 1.00, including
+`audit-finds-faults` (the auditor) and `subagent-rambles`.
+`description-rewrite`, 0.00 before, now ties; whether it delegates to
+`skill-describer` is not measured, because the case has no grader for it.
+
+**What the evals cannot see.** Two parts of this plugin do work that is not an
+answer to a prompt, so a with/without comparison does not measure them:
+
+- `audit_skills.py` runs in this repository's CI (`validate.yml:73`) and in
+  the pre-commit list in `CLAUDE.md`. Its value here is as a lint, whatever it
+  adds to a conversation.
+- `log_routing.py` and `routing_report.py` log which skills load in real
+  sessions. That is the only instrument that could say whether a skill such as
+  `scope-task`, which never loaded in `fix-before-scope`, loads in use.
+
+**The three options.**
+
+1. **Remove the plugin, keeping the auditor as a repository script**: move
+   `audit_skills.py` to `.github/scripts/`, repoint `validate.yml`, `CLAUDE.md`
+   and the tests at it, and drop the skills, the subagent and the routing log.
+2. **Keep it and say what it is for.**
+3. **Reduce it to the tools**: the auditor and the routing log, without
+   `write-a-skill`, `audit-skills` as a skill, or `skill-describer`.
+
+**Recommended: (3).** Unlike mcp-builder, part of this plugin is used, just
+not in the way the evals measure. Removing the routing log would remove the
+one way to answer the question the evals left open. Not decided.
 
 ---
 
