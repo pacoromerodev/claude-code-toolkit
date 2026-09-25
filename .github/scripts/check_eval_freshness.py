@@ -17,7 +17,8 @@ Four states per case, from the plugin's `evals/measurements.json`:
 A score without a baseline is not a measurement of what the plugin adds, which
 is the only number this ledger exists for. It is listed with the stale ones.
 
-Usage: check_eval_freshness.py [--enforce] [--list-stale] [repository root]
+Usage: check_eval_freshness.py [--enforce] [--list-stale] [--model <id>]
+                                [repository root]
 
 Report-only by default; --enforce exits 1 when anything is stale or never
 measured. Report-only is the honest default here: the runs are manual, so a
@@ -26,6 +27,10 @@ red build would only teach people to ignore red builds.
 --list-stale prints `plugin/case` for everything without a current
 measurement, one per line and nothing else. `run-evals.sh --stale` reads it,
 which turns re-measuring from a full pass into whatever actually changed.
+
+--model <id> also counts as stale anything measured on another model, or on
+one the ledger does not name. A delta is a claim about one model; switching
+models is a change to every case at once.
 """
 import sys
 from pathlib import Path
@@ -39,6 +44,11 @@ ROOT = Path(__file__).resolve().parents[2]
 def main(argv):
     enforce = "--enforce" in argv
     listing = "--list-stale" in argv
+    model = None
+    if "--model" in argv:
+        at = argv.index("--model")
+        model = argv[at + 1] if at + 1 < len(argv) else None
+        argv = argv[:at] + argv[at + 2:]
     rest = [a for a in argv[1:] if not a.startswith("--")]
     root = Path(rest[0]).resolve() if rest else ROOT
 
@@ -59,6 +69,11 @@ def main(argv):
                              f"measured {entry.get('measured', '?')}"))
                 stale.append(f"{plugin.name}/{name}")
                 continue
+            if model and entry.get("model") != model:
+                rows.append((plugin.name, name, "stale",
+                             f"measured on {entry.get('model') or 'an unrecorded model'}"))
+                stale.append(f"{plugin.name}/{name}")
+                continue
             if entry.get("delta") is None:
                 rows.append((plugin.name, name, "nobase",
                              f"{entry.get('score')} vs no baseline  on "
@@ -66,6 +81,8 @@ def main(argv):
                 nobase.append(f"{plugin.name}/{name}")
                 continue
             detail = f"{entry.get('score')} vs {entry.get('baseline')}"
+            if entry.get("model"):
+                detail += f"  [{entry['model']}]"
             rows.append((plugin.name, name, "measured",
                          f"{detail}  on {entry.get('measured', '?')}"))
 

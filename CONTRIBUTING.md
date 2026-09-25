@@ -94,13 +94,24 @@ CI runs all of these. Eval suites are not part of the pull-request gate —
 they cost money and need a credential — so run them by hand before a release:
 
 ```bash
-scripts/run-evals.sh [plugin ...]             # results outside the repo, never published
-scripts/run-evals.sh --stale                  # only what has no current measurement
+scripts/run-evals.sh --model <id> [plugin ...]   # results outside the repo, never published
+scripts/run-evals.sh --model <id> --stale        # only what has no current measurement
 ```
 
 `--stale` is what makes this a habit rather than an event: the ledger knows
 which cases were edited since they were last run, so re-measuring costs a few
 cases instead of a full pass.
+
+`--model` takes a full model id, never an alias such as `opus`: an alias
+moves to a new model when Claude Code updates, and the eval's result file
+does not record which model ran. The ledger stores the id next to every
+number, and `--stale` counts anything measured on another model as unmeasured,
+so switching models means re-measuring, not quoting yesterday's numbers.
+
+Cases tagged `needs-bash` also need `bwrap` and `socat` installed, and no
+symbolic link anywhere under `~/.docker` (or `$DOCKER_CONFIG`); the eval
+refuses to grant Bash otherwise, and the runner skips those cases and lists
+them as NOT RUN.
 
 Descriptions are a separate question, and `plugin eval` cannot answer it: it
 loads one plugin per run, so two components whose descriptions both match a

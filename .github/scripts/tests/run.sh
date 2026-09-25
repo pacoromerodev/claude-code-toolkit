@@ -151,6 +151,10 @@ out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --list-stale "$FIXTURES/freshnes
 expect_text "freshness --list-stale" "$out" "demo/half-measured-case"
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --enforce "$FIXTURES/freshness" 2>&1)"
 expect_exit "freshness --enforce" "$?" 1
+# Measured on a model the ledger does not name: stale for any named model.
+out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --model claude-test-model "$FIXTURES/freshness" 2>&1)"
+expect_text "freshness --model" "$out" "STALE  demo/measured-case"
+expect_text "freshness --model" "$out" "measured on an unrecorded model"
 
 echo
 echo "== record_measurement.py =="
@@ -181,6 +185,14 @@ still="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"][
 [[ "$still" == "0.67" ]] \
   && ok "record a failed run" "leaves the previous measurement alone" \
   || bad "record a failed run" "overwrote it with $still"
+# The result file does not say which model ran; the recorder writes what it is
+# told, so a number can later be compared only against its own model.
+"$PY" "$SCRIPTS/record_measurement.py" --model claude-test-model "$ledger_dir" \
+  "$SANDBOX/good-result.json" >/dev/null 2>&1
+model="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"].get("model"))' "$ledger_dir/evals/measurements.json")"
+[[ "$model" == "claude-test-model" ]] \
+  && ok "record --model" "writes the model beside the number" \
+  || bad "record --model" "recorded model $model"
 
 echo
 echo "== check_hooks.py =="
