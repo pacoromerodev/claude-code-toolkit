@@ -2,23 +2,22 @@
   "$comment": "What each case scored when it was last run, and a fingerprint of the case at that moment. check_eval_freshness.py reports anything edited since. Written by scripts/run-evals.sh; do not edit by hand.",
   "cases": {
     "guard-blocks-destructive": {
-      "score": 0.67,
+      "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-25",
+      "measured": "2026-09-26",
       "baseline": 0.0,
-      "delta": 0.67,
+      "delta": 1.0,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "2611775cc27fca63"
     },
     "review-against-criteria": {
       "score": 1.0,
-      "runs": 3,
+      "runs": 1,
       "measured": "2026-09-26",
-      "baseline": 1.0,
-      "delta": 0.0,
-      "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "93c137b35894e1f4"
     },
     "review-format": {

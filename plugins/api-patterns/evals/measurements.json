@@ -2,16 +2,61 @@
   "$comment": "What each case scored when it was last run, and a fingerprint of the case at that moment. check_eval_freshness.py reports anything edited since. Written by scripts/run-evals.sh; do not edit by hand.",
   "cases": {
     "agent-that-must-resume": {
-      "score": 1.0,
+      "score": 0.0,
       "runs": 3,
-      "measured": "2026-09-25",
-      "baseline": 1.0,
+      "measured": "2026-09-26",
+      "baseline": 0.0,
       "delta": 0.0,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "caba9ba3c18d7c7f"
     },
     "bedrock-model-not-found": {
+      "score": 0.67,
+      "runs": 3,
+      "measured": "2026-09-26",
+      "baseline": 0.67,
+      "delta": 0.0,
+      "baselineRuns": 3,
+      "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
+      "fingerprint": "590f5727a567e474"
+    },
+    "cache-silently-missing": {
+      "score": 0.67,
+      "runs": 3,
+      "measured": "2026-09-26",
+      "baseline": 1.0,
+      "delta": -0.33,
+      "baselineRuns": 3,
+      "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
+      "fingerprint": "dc40d38e30747f08"
+    },
+    "cache-ttl-mismatch": {
+      "score": 0.33,
+      "runs": 3,
+      "measured": "2026-09-26",
+      "baseline": 1.0,
+      "delta": -0.67,
+      "baselineRuns": 3,
+      "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
+      "fingerprint": "b9ae9d9ec270ed1d"
+    },
+    "chunks-lose-their-heading": {
+      "score": 0.0,
+      "runs": 3,
+      "measured": "2026-09-26",
+      "baseline": 0.0,
+      "delta": 0.0,
+      "baselineRuns": 3,
+      "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
+      "fingerprint": "f6c7e05d16930a14"
+    },
+    "hybrid-or-rerank": {
       "score": 1.0,
       "runs": 3,
       "measured": "2026-09-26",
@@ -19,86 +64,51 @@
       "delta": 0.0,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
-      "fingerprint": "590f5727a567e474"
-    },
-    "cache-silently-missing": {
-      "score": 1.0,
-      "runs": 3,
-      "measured": "2026-09-25",
-      "baseline": 0.33,
-      "delta": 0.67,
-      "baselineRuns": 3,
-      "model": "claude-opus-5-5",
-      "fingerprint": "dc40d38e30747f08"
-    },
-    "cache-ttl-mismatch": {
-      "score": 1.0,
-      "runs": 3,
-      "measured": "2026-09-25",
-      "baseline": 1.0,
-      "delta": 0.0,
-      "baselineRuns": 3,
-      "model": "claude-opus-5-5",
-      "fingerprint": "b9ae9d9ec270ed1d"
-    },
-    "chunks-lose-their-heading": {
-      "score": 1.0,
-      "runs": 3,
-      "measured": "2026-09-25",
-      "baseline": 1.0,
-      "delta": 0.0,
-      "baselineRuns": 3,
-      "model": "claude-opus-5-5",
-      "fingerprint": "f6c7e05d16930a14"
-    },
-    "hybrid-or-rerank": {
-      "score": 1.0,
-      "runs": 3,
-      "measured": "2026-09-25",
-      "baseline": 1.0,
-      "delta": 0.0,
-      "baselineRuns": 3,
-      "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "6cdf8b70ad3d027a"
     },
     "not-fired": {
       "score": 1.0,
       "runs": 1,
-      "measured": "2026-09-25",
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 1,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "620746b3b8909a18"
     },
     "score-jumped-after-examples": {
-      "score": 1.0,
+      "score": 0.67,
       "runs": 3,
-      "measured": "2026-09-25",
+      "measured": "2026-09-26",
       "baseline": 1.0,
-      "delta": 0.0,
+      "delta": -0.33,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "2faa86aa54d48666"
     },
     "tool-never-chosen": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-25",
-      "baseline": 1.0,
-      "delta": 0.0,
+      "measured": "2026-09-26",
+      "baseline": 0.67,
+      "delta": 0.33,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "72234877b3cfc298"
     },
     "workflow-not-agent": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-25",
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "eac0f0e7f7b6dda9"
     }
   }
