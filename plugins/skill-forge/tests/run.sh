@@ -190,6 +190,17 @@ routing_send() {
 prompt_payload="$(printf '{"hook_event_name":"UserPromptSubmit","session_id":"abc12345","cwd":"%s","prompt":"why does my skill never fire"}' "$routing_project")"
 skill_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Skill","tool_input":{"skill":"skill-forge:audit-skills"}}' "$routing_project")"
 agent_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Task","tool_input":{"subagent_type":"delivery-quality:code-reviewer"}}' "$routing_project")"
+# A skill that grants the subagent tool by its current name is not granting an
+# unknown tool.
+agent_skill="$(mktemp -d)/uses-agent"; mkdir -p "$agent_skill"
+printf -- '---\nname: uses-agent\ndescription: Hands a review to a subagent. Use when the user asks for a review.\nallowed-tools: Read, Agent\n---\n\nDelegate.\n' > "$agent_skill/SKILL.md"
+agent_out="$("$PY" "$HERE/../scripts/audit_skills.py" "$(dirname "$agent_skill")" 2>&1)"
+[[ "$agent_out" != *"unknown tool"* ]] \
+  && { printf 'ok    audit knows the Agent tool\n'; ((pass++)); } \
+  || { printf 'FAIL  audit calls Agent an unknown tool: %s\n' "$agent_out"; ((fail++)); }
+
+# Current Claude Code names the subagent tool Agent; Task is the older name.
+agent_now_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Agent","tool_input":{"subagent_type":"delivery-quality:code-reviewer"}}' "$routing_project")"
 other_payload="$(printf '{"hook_event_name":"PreToolUse","session_id":"abc12345","cwd":"%s","tool_name":"Bash","tool_input":{"command":"ls"}}' "$routing_project")"
 
 # Without the marker the hook writes nothing at all.
@@ -209,12 +220,26 @@ touch "$routing_project/.claude/routing-log"
 [[ "$(routing_send "$agent_payload")" == "3" ]] \
   && { printf 'ok    routing records a subagent that fired\n'; ((pass++)); } \
   || { printf 'FAIL  routing missed the Task call\n'; ((fail++)); }
+[[ "$(routing_send "$agent_now_payload")" == "4" ]] \
+  && { printf 'ok    routing records a subagent called through Agent\n'; ((pass++)); } \
+  || { printf 'FAIL  routing missed the Agent call\n'; ((fail++)); }
+# The script is fed directly above, so the matcher that decides whether it
+# runs at all needs its own check: it once named only Task, and no delegation
+# reached the log.
+"$PY" - "$HERE/../hooks/hooks.json" <<'PYTHON' \
+  && { printf 'ok    routing matcher covers Skill, Agent and Task, not Bash\n'; ((pass++)); } \
+  || { printf 'FAIL  routing matcher misses a tool it must see\n'; ((fail++)); }
+import json, re, sys
+matcher = json.load(open(sys.argv[1]))["hooks"]["PreToolUse"][0]["matcher"]
+assert all(re.fullmatch(matcher, t) for t in ("Skill", "Agent", "Task")), matcher
+assert not re.fullmatch(matcher, "Bash"), matcher
+PYTHON
 # A tool that says nothing about routing must not become a row.
-[[ "$(routing_send "$other_payload")" == "3" ]] \
+[[ "$(routing_send "$other_payload")" == "4" ]] \
   && { printf 'ok    routing ignores an unrelated tool\n'; ((pass++)); } \
   || { printf 'FAIL  routing logged a Bash call\n'; ((fail++)); }
 # Malformed input must not break the session.
-[[ "$(routing_send 'not json')" == "3" ]] \
+[[ "$(routing_send 'not json')" == "4" ]] \
   && { printf 'ok    routing fails open on malformed input\n'; ((pass++)); } \
   || { printf 'FAIL  routing reacted to malformed input\n'; ((fail++)); }
 

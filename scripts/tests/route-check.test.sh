@@ -28,11 +28,15 @@ done
 emit_skill() {
   printf '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Skill","input":{"skill":"%s"}}]}}\n' "$1"
 }
+emit_agent() {
+  printf '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Agent","input":{"subagent_type":"%s"}}]}}\n' "$1"
+}
 emit_task() {
   printf '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Task","input":{"subagent_type":"%s"}}]}}\n' "$1"
 }
 case "$prompt" in
-  *"skills folder"*) emit_skill "skill-forge:audit-skills" ;;
+  *"Can you confirm it actually works"*) emit_skill "delivery-quality:verify-changes" ;;
+  *"get_invoice"*) emit_agent "api-patterns:tool-schema-review" ;;
   *"second opinion"*) emit_task "delivery-quality:code-reviewer" ;;
   *"slash command"*) printf '{"type":"assistant","message":{"content":"A skill fires on its own; a command is typed."}}\n' ;;
   *"retrieval"*) emit_skill "api-patterns:prompt-cache-audit" ;;
@@ -45,8 +49,8 @@ run_case() {
   CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/out" bash "$RUNNER" "$1" 2>&1
 }
 
-out="$(run_case skill-not-firing)"
-[[ "$out" == *"ok    skill-not-firing"* ]] \
+out="$(run_case verify-the-change)"
+[[ "$out" == *"ok    verify-the-change"* ]] \
   && ok "a skill that fired" "read from the transcript" \
   || bad "a skill that fired" "$out"
 
@@ -54,6 +58,13 @@ out="$(run_case review-the-diff)"
 [[ "$out" == *"ok    review-the-diff"* ]] \
   && ok "a subagent that fired" "read from the Task block" \
   || bad "a subagent that fired" "$out"
+
+# Current Claude Code calls the subagent tool Agent. Reading only Task made
+# every delegation look like nothing fired.
+out="$(run_case api-tools-ignored)"
+[[ "$out" == *"ok    api-tools-ignored"* ]] \
+  && ok "a subagent through Agent" "read from the Agent block" \
+  || bad "a subagent through Agent" "$out"
 
 # The real CLI sends `content` as a plain string on a text-only turn, and as
 # a list of blocks only when a tool is used. Reading the string form as a list
@@ -80,7 +91,7 @@ code=$?
 [[ "$code" == 1 ]] && ok "a mis-route" "exits 1" || bad "a mis-route" "exit $code"
 
 out="$(CLAUDE_BIN="$stub" bash "$RUNNER" --list 2>&1)"
-[[ "$out" == *"skill-not-firing"* && "$out" != *"ok    "* ]] \
+[[ "$out" == *"verify-the-change"* && "$out" != *"ok    "* ]] \
   && ok "--list" "prints the cases without running them" \
   || bad "--list" "$out"
 

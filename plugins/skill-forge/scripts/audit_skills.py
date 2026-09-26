@@ -36,8 +36,9 @@ TRIGGER_HINTS = (
     "after ", "whenever",
 )
 
+# Agent is the subagent tool in current Claude Code; Task is its older name.
 KNOWN_TOOLS = {
-    "Bash", "Edit", "Glob", "Grep", "NotebookEdit", "Read", "Task",
+    "Agent", "Bash", "Edit", "Glob", "Grep", "NotebookEdit", "Read", "Task",
     "TodoWrite", "WebFetch", "WebSearch", "Write", "Skill", "SlashCommand",
 }
 

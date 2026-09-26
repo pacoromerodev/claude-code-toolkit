@@ -642,6 +642,8 @@ had passed the bug through, because the stub only ever emitted the list form.
 
 ### Proposed for removal: `java-spring`
 
+*Decided 2026-09-25: option (1), removed. See* Measured in full *below.*
+
 The rule this plan set for Phase 12 is that a plugin which cannot reach
 `meanDelta > 0` is proposed for removal here, rather than having its graders
 loosened. `java-spring` is in that position, and this is the proposal.
@@ -728,10 +730,17 @@ session limit were dropped, not scored, and re-run.
   judge, not the plugin: both arms gave nearly word-for-word the same answer,
   the gate is not enabled in that case, and the judge votes split 2–1 on both
   sides.
-- `fix-before-scope` scores +0.33, but the plugin-fired indicator is false in
-  all three runs: `scope-task` still does not load, even though its
-  description now names this situation almost verbatim. The gain cannot be
-  credited to the skill; the repair to its trigger did not work.
+- `fix-before-scope` scores +0.33 with the plugin-fired indicator false in all
+  three runs: `scope-task` is never invoked. The behaviour it asks for happens
+  anyway — with the plugin, three of three runs refuse to change code without
+  evidence; without it, two of three revert the gateway timeout on a guess.
+  The skill body never entered the context, and the SessionStart hook injects
+  nothing in a fresh repository, so the only difference between the arms is
+  the skill descriptions in the listing. Either the description alone moves
+  the behaviour, or three runs against three is noise. What the indicator
+  shows is that the skill is not *invoked*, not that its trigger repair
+  failed; a case that wants to credit the body needs a grader for the
+  behaviour, not for the `Skill` call.
 
 **The checkers, now that they could run.** The last paragraph above guessed
 that a checker "probably helps". Measured, it is mixed: `verify-fires` +0.67,
@@ -749,18 +758,188 @@ not a case for removing it.
 
 **The three plugins at zero.**
 
-- **java-spring** — ten of ten cases at Δ 0.00, including both `needs-bash`
-  cases the recommendation above was waiting for. `migration-unsafe` shows no
-  delta, so by the rule written above, **option (1), removal, follows**.
-- **mcp-builder** — eight of eight at Δ 0.00, including the checker and both
-  transport cases this section said a delta would be in if there was one. It
-  is now in the position java-spring was in, and gets the same three options.
-- **skill-forge** — six of six at Δ 0.00, including its auditor. Same
-  position.
+- **java-spring — retired on 2026-09-25.** Ten of ten cases at Δ 0.00,
+  including both `needs-bash` cases the recommendation above was waiting for.
+  `migration-unsafe` showed no delta, so by the rule written above option (1)
+  followed, and the maintainer chose it. The plugin and its marketplace entry
+  are gone; ROADMAP.md and AUDIT.md keep their record of it as history.
+- **mcp-builder** and **skill-forge** — proposals below, both decided the
+  same day: mcp-builder removed (option 1), skill-forge reduced to its tools
+  (option 3).
 
-The measurements settle what each plugin adds over the baseline; they do not
-settle whether to delete it, which is the maintainer's call. It is recorded
-here, not acted on.
+### Proposed for removal: `mcp-builder`
+
+*Decided 2026-09-25: option (1), removed.*
+
+**The measurement.** Eight cases, `runs: 3`, both arms, every one 1.00 against
+1.00. They include the three this plan said a delta would be in if there was
+one: `tool-never-called`, which exercises `check_mcp_server.py`, and the two
+transport cases, `stateless-tradeoff` and `roots-lost-under-stateless`.
+`server-from-an-api`, which lost to the baseline before, now ties it.
+
+**What is not measured.** Nothing the cases can reach. The `mcp-review`
+subagent has no case of its own that the baseline could not also pass.
+
+**The three options.**
+
+1. **Remove the plugin** — three skills, the `mcp-review` subagent and
+   `check_mcp_server.py`.
+2. **Keep it and say what it is for**, with a README that states the model
+   does as well without it on every case measured.
+3. **Reduce it to `mcp-review` and the checker**, dropping the three
+   conceptual skills and their always-on descriptions. The checker tied too,
+   so this keeps the part that at least produces an output a plain answer does
+   not, not a part shown to help.
+
+**Recommended: (1).** It is the rule java-spring was held to: the components
+most likely to add something were measured and added nothing. Not decided.
+
+### Proposed for removal: `skill-forge`
+
+*Decided 2026-09-25: option (3). `audit_skills.py`, the routing log and its
+report stay; `write-a-skill`, the `audit-skills` skill, `skill-describer` and
+their five cases are gone, and `not-fired` remains as the plugin's negative
+case. Doing it turned up a fault the evals could not: the routing log's
+`PreToolUse` matcher named `Task`, current Claude Code calls the subagent tool
+`Agent`, and so no delegation had ever been logged. `scripts/route_check.sh`
+made the same assumption and read every delegation as nothing fired. Both now
+accept either name, with tests that fail on the old code.*
+
+**The measurement.** Six cases, every one 1.00 against 1.00, including
+`audit-finds-faults` (the auditor) and `subagent-rambles`.
+`description-rewrite`, 0.00 before, now ties; whether it delegates to
+`skill-describer` is not measured, because the case has no grader for it.
+
+**What the evals cannot see.** Two parts of this plugin do work that is not an
+answer to a prompt, so a with/without comparison does not measure them:
+
+- `audit_skills.py` runs in this repository's CI (`validate.yml:73`) and in
+  the pre-commit list in `CLAUDE.md`. Its value here is as a lint, whatever it
+  adds to a conversation.
+- `log_routing.py` and `routing_report.py` log which skills load in real
+  sessions. That is the only instrument that could say whether a skill such as
+  `scope-task`, which never loaded in `fix-before-scope`, loads in use.
+
+**The three options.**
+
+1. **Remove the plugin, keeping the auditor as a repository script**: move
+   `audit_skills.py` to `.github/scripts/`, repoint `validate.yml`, `CLAUDE.md`
+   and the tests at it, and drop the skills, the subagent and the routing log.
+2. **Keep it and say what it is for.**
+3. **Reduce it to the tools**: the auditor and the routing log, without
+   `write-a-skill`, `audit-skills` as a skill, or `skill-describer`.
+
+**Recommended: (3).** Unlike mcp-builder, part of this plugin is used, just
+not in the way the evals measure. Removing the routing log would remove the
+one way to answer the question the evals left open. Not decided.
+
+
+### Follow-ups to the full measurement — 2026-09-25
+
+**The ledger mixed two models.** `claude plugin eval` uses the user's default
+model unless told otherwise, the default here is the alias `opus`, and the
+result file does not record which model ran. The traces kept today say
+`claude-opus-5-5`; the passes of 2026-09-24 ran on Claude Code 2.1.281 and
+those of 2026-09-25 on 2.1.282, and were almost certainly Opus 5 and Opus 5.5.
+Nothing in the ledger could tell them apart. `run-evals.sh` now requires a
+full model id (`--model`, or `EVAL_MODEL`), passes it to the eval and records
+it with every number, and `check_eval_freshness.py --model <id>` counts
+anything measured on another model, or on an unrecorded one, as unmeasured.
+Four cases carry a model so far; the other 39 do not. No conclusion above
+depends on the split: every zero-delta plugin is at zero on both days.
+
+**delivery-quality's two 0.33 cases were two different faults**, found by
+re-running with `--keep-temp` and reading the traces:
+
+- `review-format` was routing. Every run that went through `/review-diff`
+  reached the code-reviewer subagent and passed; every run that reviewed in
+  the main thread returned loose prose and failed. `/review-diff`'s
+  description said what it launched and never when to use it. With a
+  when-to-use clause: 3/3, **1.00 against 0.00**. Part of the rise is the
+  model — on Opus 5.5, before the change, it was 2/3 — so the description's
+  own share rests on three runs.
+- `guard-blocks-destructive` never reached the guard: asked to rewrite a
+  published `main`, the model stopped and asked first, which is right, and
+  the criteria failed it for not handling a block that never came. The
+  prompt now gives the go-ahead up front. Without the plugin all three runs
+  force-push `main`; with it none does. **0.67 against 0.00**; the one failure
+  retried with `--force-with-lease` after the first block.
+
+`verify-not-fired`'s criteria dropped "stays short", which the judge applied
+to practical setup notes one run and not the next; the case is about the
+verification skill firing, and it now scores 1.00 against 1.00.
+
+delivery-quality now stands at **mean score 0.96, mean Δ +0.33** over eight
+cases, and clears the bar.
+
+**`description-rewrite` does not delegate.** A with-only indicator now records
+whether the `Agent` tool is called. In four runs on Opus 5.5 it was not called
+once: the main thread rewrites the description itself, and the answer passes
+anyway. The repair that sharpened the boundary toward `skill-describer` did
+not change the routing; the baseline answers as well without either. That the
+indicator fires when delegation does happen is not yet observed.
+
+**Evals in a scheduled cloud session.** Probed on 2026-09-25 with a one-off
+routine: the CLI is there (2.1.282), and a case without Bash ran and scored.
+A `needs-bash` case was refused, because the cloud environment has neither
+`bwrap` nor `socat` and the eval's sandbox fails closed; there is no
+`~/.docker` there, so the symlink condition does not arise. The environment
+runs no setup script today. Installing both packages in one is the obvious
+next step and is not yet tried, so a scheduled pass would currently measure
+the 35 cases without Bash and report the rest as not run.
+
+A second routine tried it. The session runs as root on Ubuntu 24.04, and
+`apt-get install bubblewrap socat` succeeds; `bwrap` then creates a sandbox.
+The eval no longer refuses — and that is the problem: inside it, every Bash
+command the model under test ran failed with a sandbox initialisation error,
+and the case still scored 1.00, because the model inspected the file by hand
+and the judge accepted that. A nested sandbox does not work there. The run
+looks like a measurement and is not one, which is worse than the clean
+refusal. **Do not schedule `needs-bash` cases in the cloud**; a scheduled pass
+should grant no shell and let the runner list those cases as not run.
+`record_measurement.py` cannot catch this today: the error sits in the
+trace, not in the result file, and the trace is deleted unless `--keep-temp`
+is given.
+
+**One model, every case — 2026-09-26.** After the removals, all 30 remaining
+cases were re-measured through `scripts/run-evals.sh --model claude-opus-5-5
+--stale`, `runs: 3`, both arms, and every ledger entry now names its model.
+No arm had a partial error; a session-limit stop was re-run, not recorded.
+
+| Plugin | Cases | Mean score | Mean Δ | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|---|
+| team-rollout | 5 | 0.80 | +0.33 | 2 | 0 |
+| delivery-quality | 8 | 0.88 | +0.25 | 3 | 1 |
+| context-discipline | 6 | 1.00 | +0.11 | 2 | 0 |
+| api-patterns | 10 | 0.97 | +0.03 | 1 | 1 |
+| skill-forge | 1 | 1.00 | +0.00 | 0 | 0 |
+| all | 30 | 0.92 | +0.16 | 8 | 2 |
+
+19 of the 30 still tie at 1.00 against 1.00. The largest gains are
+`review-format` and `rollout-order` (+1.00), then `cache-silently-missing`,
+`guard-blocks-destructive`, `verify-fires` and `connector-with-write` (+0.67).
+Two cases lost by one run in three, and reading them showed neither loss was
+the plugin's:
+
+- `bedrock-model-not-found` (0.67 against 1.00): its criteria contradicted
+  each other. One line asked only that IAM and model access not be the
+  *first* move; another failed any response that mentioned them. The failed
+  answer led with the inference profile and listed IAM fifth, correctly —
+  the role's policy must allow the profile's ARN. The criteria now fail only
+  a response that leads with IAM or access; re-measured, **1.00 against
+  1.00**.
+- `verify-untracked` (0.67 against 1.00): the failed answer meets every
+  "score well" line and none of the "score badly" ones, and the judge failed
+  it three votes out of three. The result file keeps the votes, not the
+  judge's reasoning, so there is nothing in it to correct. It is the default
+  judge (Haiku) misreading a long answer, and `--judge-model` is the lever if
+  it recurs. delivery-quality falls from 0.96 to 0.88 on this pass for the
+same reason: `verify-fires` and `verify-untracked` each lost a run.
+
+**What freshness cannot see.** A fingerprint covers the case, not the plugin.
+`review-format`'s case did not change when `/review-diff` did, so its old
+number would still have read as current. It was re-measured by hand; a change
+to a component should be followed by re-running the cases that exercise it.
 
 ---
 

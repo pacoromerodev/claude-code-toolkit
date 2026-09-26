@@ -2,75 +2,83 @@
   "$comment": "What each case scored when it was last run, and a fingerprint of the case at that moment. check_eval_freshness.py reports anything edited since. Written by scripts/run-evals.sh; do not edit by hand.",
   "cases": {
     "guard-blocks-destructive": {
-      "score": 0.33,
+      "score": 0.67,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-25",
       "baseline": 0.0,
-      "delta": 0.33,
+      "delta": 0.67,
       "baselineRuns": 3,
-      "fingerprint": "d365bfb80deaa8a9"
+      "model": "claude-opus-5-5",
+      "fingerprint": "2611775cc27fca63"
     },
     "review-against-criteria": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "93c137b35894e1f4"
     },
     "review-format": {
-      "score": 0.33,
+      "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-25",
       "baseline": 0.0,
-      "delta": 0.33,
+      "delta": 1.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "a6ff30127130a0a6"
     },
     "verify-fires": {
-      "score": 1.0,
+      "score": 0.67,
       "runs": 3,
-      "measured": "2026-09-24",
-      "baseline": 0.33,
+      "measured": "2026-09-26",
+      "baseline": 0.0,
       "delta": 0.67,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "5c1ad10e29418604"
     },
     "verify-not-fired": {
-      "score": 0.33,
+      "score": 1.0,
       "runs": 3,
       "measured": "2026-09-25",
-      "baseline": 0.67,
-      "delta": -0.33,
+      "baseline": 1.0,
+      "delta": 0.0,
       "baselineRuns": 3,
-      "fingerprint": "375084a213f47fd4"
+      "model": "claude-opus-5-5",
+      "fingerprint": "754b12fb276fae65"
     },
     "verify-phantom-package": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
-      "baseline": 0.67,
-      "delta": 0.33,
+      "measured": "2026-09-26",
+      "baseline": 1.0,
+      "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "7f1d3010f48fc854"
     },
     "verify-project-command": {
       "score": 1.0,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-26",
       "baseline": 1.0,
       "delta": 0.0,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "ca6dfd483d259f57"
     },
     "verify-untracked": {
-      "score": 1.0,
+      "score": 0.67,
       "runs": 3,
-      "measured": "2026-09-24",
+      "measured": "2026-09-26",
       "baseline": 1.0,
-      "delta": 0.0,
+      "delta": -0.33,
       "baselineRuns": 3,
+      "model": "claude-opus-5-5",
       "fingerprint": "086c5c6857dddc16"
     }
   }

@@ -16,12 +16,10 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 | Plugin | What it gives you |
 |---|---|
 | **[delivery-quality](plugins/delivery-quality)** | Verification before you trust a change: a skill that runs the tests and reads the diff, a read-only review subagent, guards against writing secrets and running destructive commands, and an opt-in test gate. |
-| **[skill-forge](plugins/skill-forge)** | Write skills that actually fire: a scaffolding skill, a mechanical auditor for the faults that stop a skill loading, and a subagent that writes and compares candidate descriptions. |
+| **[skill-forge](plugins/skill-forge)** | Find out why skills do not fire: a mechanical auditor for the faults that stop a skill or subagent loading or matching, and an opt-in log of which components fire in real use. |
 | **[context-discipline](plugins/context-discipline)** | Keep the working state that compaction blurs: a tree snapshot taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored. |
-| **[mcp-builder](plugins/mcp-builder)** | Build MCP servers a model can actually use: the right primitive for each capability, descriptions that draw the boundary against neighbouring tools, bounded results, enforced roots, and a transport choice that names what it takes away. |
 | **[api-patterns](plugins/api-patterns)** | Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
 | **[team-rollout](plugins/team-rollout)** | Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference settings, and a checker for permissions wider than intended. |
-| **[java-spring](plugins/java-spring)** | Backend conventions for Java and Spring Boot: service and transaction structure, Kafka consumers that survive redelivery, modern Java with its wrong answers, test shape, and a migration reviewer that asks what breaks during a rolling deploy. |
 
 ### delivery-quality
 
@@ -128,7 +126,7 @@ type to reach for.
 
 ## Where this came from
 
-All seven plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way.
+Five plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded ([ROADMAP-v2.md](ROADMAP-v2.md), *Measured in full* and the proposals after it).
 
 ## Origin
 

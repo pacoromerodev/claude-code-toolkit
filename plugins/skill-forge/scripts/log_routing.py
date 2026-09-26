@@ -6,7 +6,10 @@ it. It also answers a smaller question on the way — did the skill fire at all
 — and that one is observable for free, from ordinary use.
 
 Two hooks feed one log: `UserPromptSubmit` records the prompt, `PreToolUse`
-on `Skill` and `Task` records what the model reached for. A prompt with
+on `Skill` and on the subagent tool records what the model reached for. The
+subagent tool is `Agent` in current Claude Code and was `Task` before; the
+matcher names both, because a matcher that names only the old one sees no
+delegation at all, and nothing says so. A prompt with
 nothing after it is the interesting row: a situation the toolkit claims and
 did not answer.
 

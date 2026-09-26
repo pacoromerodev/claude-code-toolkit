@@ -88,8 +88,9 @@ def main(argv):
 
     print("\nA prompt firing nothing is not a fault on its own — most prompts")
     print("should fire nothing. Read these for a situation a component claims")
-    print("and did not answer; that is a description to rewrite, and")
-    print("skill-describer is what rewrites it.")
+    print("and did not answer; that is a description to rewrite. Check the")
+    print("rewrite with audit_skills.py, which flags a description that never")
+    print("says when to use the skill.")
     return 0
 
 

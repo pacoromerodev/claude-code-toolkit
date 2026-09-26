@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run the plugins' eval suites locally, and say plainly what did not run.
 #
-#   scripts/run-evals.sh [--runs N] [--stale] [--dry-run] [plugin ...]
+#   scripts/run-evals.sh --model <id> [--runs N] [--stale] [--dry-run] [plugin ...]
 #
 # Evaluates the working copy (plugins/<name>), not the installed plugin. Every
 # result goes to a directory outside the repository, and nothing is published.
@@ -13,7 +13,14 @@
 # Edit, skips every case tagged `needs-bash`, and lists those cases as NOT RUN
 # at the end, so a partial run is never mistaken for a full one.
 #
+# --model is required (or EVAL_MODEL): pass a full model id, not an alias.
+# `claude plugin eval` otherwise uses the user's default, which is usually an
+# alias like `opus` that points at a new model after an update, and its
+# result file does not say which model ran. The id is passed to the eval and
+# written into the ledger with each number.
+#
 # Environment:
+#   EVAL_MODEL   the model id, when --model is not given
 #   CLAUDE_BIN   the claude executable (default: claude); tests use a stub
 #   EVAL_ROOT    the repository to evaluate (default: this one)
 #   OUT_DIR      where results go (default: a new temporary directory)
@@ -35,6 +42,7 @@ ROOT="${EVAL_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 OUT_DIR="${OUT_DIR:-$(mktemp -d)}"
 RUNS=""
+MODEL="${EVAL_MODEL:-}"
 DRY_RUN=0
 STALE_ONLY=0
 PLUGINS=()
@@ -42,12 +50,19 @@ PLUGINS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --runs) RUNS="$2"; shift 2 ;;
+    --model) MODEL="$2"; shift 2 ;;
     --stale) STALE_ONLY=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '2,20p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) awk 'NR>1 && /^#/{sub(/^# ?/,""); print; next} NR>1{exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) PLUGINS+=("$1"); shift ;;
   esac
 done
+
+if [[ -z "$MODEL" ]]; then
+  echo "run-evals.sh: name the model with --model <id> (or EVAL_MODEL)." >&2
+  echo "A measurement without its model cannot be compared with the next one." >&2
+  exit 2
+fi
 
 if [[ ${#PLUGINS[@]} -eq 0 ]]; then
   for dir in "$ROOT"/plugins/*/; do PLUGINS+=("$(basename "$dir")"); done
@@ -74,7 +89,7 @@ tags_of() { sed -n 's/^tags: *\[\(.*\)\] *$/\1/p' "$1" | tr -d ' '; }
 stale_list=""
 if [[ "$STALE_ONLY" -eq 1 ]]; then
   stale_list="$("${PYTHON:-python3}" "$ROOT/.github/scripts/check_eval_freshness.py" \
-    --list-stale "$ROOT" 2>/dev/null)"
+    --list-stale --model "$MODEL" "$ROOT" 2>/dev/null)"
   echo "Only cases with no current measurement: $(printf '%s' "$stale_list" | grep -c . ) of $(find "$ROOT"/plugins/*/evals -name case.yaml | wc -l | tr -d ' ')"
 fi
 
@@ -105,7 +120,7 @@ for plugin in "${PLUGINS[@]}"; do
       continue
     fi
     args=(plugin eval "$plugin_dir" --case "$name" --scaffold --trust-plugin
-          --no-publish --allow-tools "${tools[@]}"
+          --no-publish --model "$MODEL" --allow-tools "${tools[@]}"
           --output-dir "$OUT_DIR/$plugin/$name"
           --json "$OUT_DIR/$plugin/$name.json"
           --report "$OUT_DIR/$plugin/$name.html")
@@ -127,7 +142,7 @@ for plugin in "${PLUGINS[@]}"; do
     shopt -u nullglob
     if [[ ${#results[@]} -gt 0 ]]; then
       "${PYTHON:-python3}" "$ROOT/.github/scripts/record_measurement.py" \
-        "$plugin_dir" "${results[@]}" || true
+        --model "$MODEL" "$plugin_dir" "${results[@]}" || true
     fi
   fi
 done

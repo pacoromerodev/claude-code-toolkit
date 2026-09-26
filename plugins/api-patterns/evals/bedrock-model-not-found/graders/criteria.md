@@ -19,7 +19,10 @@ Score well when the response:
   first move, given both are already stated to be in place
 
 Score badly when the response:
-- Recommends checking IAM permissions or requesting model access
+- Leads with IAM permissions or a model access request, or offers them as the
+  explanation. Mentioning them after the inference profile — for instance that
+  the role's policy must also allow the profile's ARN — is accurate and is not
+  a reason to mark down.
 - Suggests retyping the model id, or a different model, with no reason
 - Suggests switching region without saying that an inference profile does it
   without moving anything

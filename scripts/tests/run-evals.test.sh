@@ -19,6 +19,8 @@ bad() { printf 'FAIL  %s\n' "$1"; fail=$((fail + 1)); return 0; }
 stub="$SANDBOX/claude"
 printf '#!/usr/bin/env bash\necho "$*" >> "%s/calls"\n' "$SANDBOX" > "$stub"
 chmod +x "$stub"
+# Every run names its model; the cases below that test a missing one unset it.
+export EVAL_MODEL=claude-test-model
 
 # Two homes: one whose Docker store holds a symlink, one whose store is plain.
 mkdir -p "$SANDBOX/linked/.docker" "$SANDBOX/plain/.docker" "$SANDBOX/elsewhere"
@@ -26,7 +28,7 @@ ln -s "$SANDBOX/elsewhere" "$SANDBOX/linked/.docker/contexts"
 : > "$SANDBOX/plain/.docker/config.json"
 
 # Count the cases of one plugin, and how many of them need Bash.
-plugin=skill-forge
+plugin=team-rollout  # has cases with and without needs-bash
 evals="$HERE/../../plugins/$plugin/evals"
 total=$(ls "$evals"/*/case.yaml | wc -l)
 needs_bash=$(grep -l '^tags: .*needs-bash' "$evals"/*/case.yaml | wc -l)
@@ -76,7 +78,7 @@ write_ledger(demo, {
     # A real measurement has both arms: a score with no baseline counts as
     # unmeasured (see check_eval_freshness.py), and --stale would re-run it.
     "fresh-case": {"score": 1.0, "baseline": 1.0, "delta": 0.0,
-                   "measured": "2026-09-20",
+                   "model": "claude-test-model", "measured": "2026-09-20",
                    "fingerprint": case_fingerprint(demo / "evals/fresh-case")},
     "changed-case": {"score": 1.0, "measured": "2026-09-20",
                      "fingerprint": "0000000000000000"},
@@ -94,6 +96,25 @@ all_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/all-out" \
   bash "$RUNNER" --dry-run demo 2>&1)"
 [[ "$all_out" == *"--case fresh-case"* && "$all_out" == *"--case changed-case"* ]] \
   && ok "without --stale every case runs" || bad "without --stale did not run both"
+
+echo
+echo "== the model is named, passed and recorded =="
+rm -f "$SANDBOX/calls"
+out="$(EVAL_MODEL="" HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/nomodel" \
+  bash "$RUNNER" "$plugin" 2>&1)"; code=$?
+[[ "$code" -eq 2 && ! -s "$SANDBOX/calls" && "$out" == *"--model"* ]] \
+  && ok "refuses to run without a model" || bad "ran with no model named (exit $code)"
+HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/withmodel" \
+  bash "$RUNNER" --model claude-other-model "$plugin" >/dev/null 2>&1
+grep -q -- "--model claude-other-model" "$SANDBOX/calls" \
+  && ok "--model reaches the eval" || bad "--model was not passed to the eval"
+# The fixture's measured case was measured on claude-test-model: for any other
+# model it has no current measurement.
+model_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/model-out" \
+  bash "$RUNNER" --model claude-other-model --stale --dry-run demo 2>&1)"
+[[ "$model_out" == *"--case fresh-case"* ]] \
+  && ok "--stale re-runs a case measured on another model" \
+  || bad "--stale kept a case measured on another model"
 
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"

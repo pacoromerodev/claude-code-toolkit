@@ -1,7 +1,7 @@
 {
   "name": "skill-forge",
-  "description": "Write skills that actually fire, and find out why the ones that don't. A scaffolding skill, a mechanical auditor for the faults that stop a skill loading, and a subagent that writes and compares candidate descriptions.",
-  "version": "0.1.0",
+  "description": "Find out why skills do not fire: a mechanical auditor for the faults that stop a skill or subagent loading or matching, and an opt-in log of which components fire in real use and which prompts fired nothing.",
+  "version": "0.2.0",
   "author": {
     "name": "Francisco Romero Porras",
     "url": "https://github.com/pacoromerodev"
