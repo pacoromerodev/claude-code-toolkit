@@ -16,6 +16,10 @@ All notable changes to `api-patterns`. Format follows
 - `tool-schema-review` says where the tools it reviews live — the `tools`
   array of a Messages call, or the functions a tool runner builds one from —
   and points at `mcp-review` for the other kind.
+- `bedrock-model-not-found`'s criteria no longer contradict each other: they
+  failed any answer that mentioned IAM or model access while asking only that
+  neither come first. An answer that leads with the inference profile and
+  notes the IAM condition later now passes.
 - `tool-schema-review` no longer points at `mcp-review`: mcp-builder was
   retired on 2026-09-25 and the subagent went with it.
 - `eval-harness` credits the score jump to the right technique. The move from

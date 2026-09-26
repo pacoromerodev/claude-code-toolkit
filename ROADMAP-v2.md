@@ -918,10 +918,22 @@ No arm had a partial error; a session-limit stop was re-run, not recorded.
 19 of the 30 still tie at 1.00 against 1.00. The largest gains are
 `review-format` and `rollout-order` (+1.00), then `cache-silently-missing`,
 `guard-blocks-destructive`, `verify-fires` and `connector-with-write` (+0.67).
-Two cases lose by one run in three: `bedrock-model-not-found` (0.67 against
-1.00) and `verify-untracked` (0.67 against 1.00). Neither has been looked at;
-at three runs a single run is within noise, and both tied or gained on
-earlier passes. delivery-quality falls from 0.96 to 0.88 on this pass for the
+Two cases lost by one run in three, and reading them showed neither loss was
+the plugin's:
+
+- `bedrock-model-not-found` (0.67 against 1.00): its criteria contradicted
+  each other. One line asked only that IAM and model access not be the
+  *first* move; another failed any response that mentioned them. The failed
+  answer led with the inference profile and listed IAM fifth, correctly —
+  the role's policy must allow the profile's ARN. The criteria now fail only
+  a response that leads with IAM or access; re-measured, **1.00 against
+  1.00**.
+- `verify-untracked` (0.67 against 1.00): the failed answer meets every
+  "score well" line and none of the "score badly" ones, and the judge failed
+  it three votes out of three. The result file keeps the votes, not the
+  judge's reasoning, so there is nothing in it to correct. It is the default
+  judge (Haiku) misreading a long answer, and `--judge-model` is the lever if
+  it recurs. delivery-quality falls from 0.96 to 0.88 on this pass for the
 same reason: `verify-fires` and `verify-untracked` each lost a run.
 
 **What freshness cannot see.** A fingerprint covers the case, not the plugin.
