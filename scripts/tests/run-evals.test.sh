@@ -21,6 +21,7 @@ printf '#!/usr/bin/env bash\necho "$*" >> "%s/calls"\n' "$SANDBOX" > "$stub"
 chmod +x "$stub"
 # Every run names its model; the cases below that test a missing one unset it.
 export EVAL_MODEL=claude-test-model
+export EVAL_JUDGE_MODEL=claude-test-judge
 
 # Two homes: one whose Docker store holds a symlink, one whose store is plain.
 mkdir -p "$SANDBOX/linked/.docker" "$SANDBOX/plain/.docker" "$SANDBOX/elsewhere"
@@ -78,7 +79,8 @@ write_ledger(demo, {
     # A real measurement has both arms: a score with no baseline counts as
     # unmeasured (see check_eval_freshness.py), and --stale would re-run it.
     "fresh-case": {"score": 1.0, "baseline": 1.0, "delta": 0.0,
-                   "model": "claude-test-model", "measured": "2026-09-20",
+                   "model": "claude-test-model", "judge": "claude-test-judge",
+                   "measured": "2026-09-20",
                    "fingerprint": case_fingerprint(demo / "evals/fresh-case")},
     "changed-case": {"score": 1.0, "measured": "2026-09-20",
                      "fingerprint": "0000000000000000"},
@@ -115,6 +117,24 @@ model_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/model-out
 [[ "$model_out" == *"--case fresh-case"* ]] \
   && ok "--stale re-runs a case measured on another model" \
   || bad "--stale kept a case measured on another model"
+
+# The judge is part of the measurement too.
+rm -f "$SANDBOX/calls"
+HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/judged" \
+  bash "$RUNNER" "$plugin" >/dev/null 2>&1
+grep -q -- "--judge-model claude-test-judge" "$SANDBOX/calls" \
+  && ok "the judge reaches the eval" || bad "--judge-model was not passed"
+rm -f "$SANDBOX/calls"
+EVAL_JUDGE_MODEL="" HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" \
+  OUT_DIR="$SANDBOX/default-judge" bash "$RUNNER" "$plugin" >/dev/null 2>&1
+grep -q -- "--judge-model claude-sonnet-5" "$SANDBOX/calls" \
+  && ok "the judge defaults to Sonnet, not the eval's Haiku" \
+  || bad "no default judge was passed"
+judge_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/judge-out" \
+  bash "$RUNNER" --judge-model claude-other-judge --stale --dry-run demo 2>&1)"
+[[ "$judge_out" == *"--case fresh-case"* ]] \
+  && ok "--stale re-runs a case graded by another judge" \
+  || bad "--stale kept a case graded by another judge"
 
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"

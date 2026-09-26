@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run the plugins' eval suites locally, and say plainly what did not run.
 #
-#   scripts/run-evals.sh --model <id> [--runs N] [--stale] [--dry-run] [plugin ...]
+#   scripts/run-evals.sh --model <id> [--judge-model <id>] [--runs N] [--stale]
+#                        [--dry-run] [plugin ...]
 #
 # Evaluates the working copy (plugins/<name>), not the installed plugin. Every
 # result goes to a directory outside the repository, and nothing is published.
@@ -19,8 +20,15 @@
 # result file does not say which model ran. The id is passed to the eval and
 # written into the ledger with each number.
 #
+# --judge-model names the model that grades the answers, claude-sonnet-5
+# unless given. The eval's own default is Haiku, which on 2026-09-26 failed,
+# three votes in three, an answer that met every line of its criteria. The
+# judge is recorded with the model, and --stale re-runs anything judged by
+# another.
+#
 # Environment:
 #   EVAL_MODEL   the model id, when --model is not given
+#   EVAL_JUDGE_MODEL  the judge's id, when --judge-model is not given
 #   CLAUDE_BIN   the claude executable (default: claude); tests use a stub
 #   EVAL_ROOT    the repository to evaluate (default: this one)
 #   OUT_DIR      where results go (default: a new temporary directory)
@@ -43,6 +51,7 @@ CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 OUT_DIR="${OUT_DIR:-$(mktemp -d)}"
 RUNS=""
 MODEL="${EVAL_MODEL:-}"
+JUDGE="${EVAL_JUDGE_MODEL:-claude-sonnet-5}"
 DRY_RUN=0
 STALE_ONLY=0
 PLUGINS=()
@@ -51,6 +60,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --runs) RUNS="$2"; shift 2 ;;
     --model) MODEL="$2"; shift 2 ;;
+    --judge-model) JUDGE="$2"; shift 2 ;;
     --stale) STALE_ONLY=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) awk 'NR>1 && /^#/{sub(/^# ?/,""); print; next} NR>1{exit}' "${BASH_SOURCE[0]}"; exit 0 ;;
@@ -89,7 +99,7 @@ tags_of() { sed -n 's/^tags: *\[\(.*\)\] *$/\1/p' "$1" | tr -d ' '; }
 stale_list=""
 if [[ "$STALE_ONLY" -eq 1 ]]; then
   stale_list="$("${PYTHON:-python3}" "$ROOT/.github/scripts/check_eval_freshness.py" \
-    --list-stale --model "$MODEL" "$ROOT" 2>/dev/null)"
+    --list-stale --model "$MODEL" --judge "$JUDGE" "$ROOT" 2>/dev/null)"
   echo "Only cases with no current measurement: $(printf '%s' "$stale_list" | grep -c . ) of $(find "$ROOT"/plugins/*/evals -name case.yaml | wc -l | tr -d ' ')"
 fi
 
@@ -120,7 +130,8 @@ for plugin in "${PLUGINS[@]}"; do
       continue
     fi
     args=(plugin eval "$plugin_dir" --case "$name" --scaffold --trust-plugin
-          --no-publish --model "$MODEL" --allow-tools "${tools[@]}"
+          --no-publish --model "$MODEL" --judge-model "$JUDGE"
+          --allow-tools "${tools[@]}"
           --output-dir "$OUT_DIR/$plugin/$name"
           --json "$OUT_DIR/$plugin/$name.json"
           --report "$OUT_DIR/$plugin/$name.html")
@@ -142,7 +153,7 @@ for plugin in "${PLUGINS[@]}"; do
     shopt -u nullglob
     if [[ ${#results[@]} -gt 0 ]]; then
       "${PYTHON:-python3}" "$ROOT/.github/scripts/record_measurement.py" \
-        --model "$MODEL" "$plugin_dir" "${results[@]}" || true
+        --model "$MODEL" --judge "$JUDGE" "$plugin_dir" "${results[@]}" || true
     fi
   fi
 done
