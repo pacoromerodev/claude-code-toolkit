@@ -24,26 +24,26 @@
       "fingerprint": "6c80499260b9d9a5"
     },
     "fix-before-scope": {
-      "score": 1.0,
-      "runs": 3,
+      "score": 0.33,
+      "runs": 6,
       "measured": "2026-09-26",
-      "baseline": 0.33,
-      "delta": 0.67,
-      "baselineRuns": 3,
+      "baseline": 0.0,
+      "delta": 0.33,
+      "baselineRuns": 6,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
       "fingerprint": "0527d061dd08d232"
     },
     "not-fired": {
       "score": 1.0,
-      "runs": 1,
+      "runs": 3,
       "measured": "2026-09-26",
-      "baseline": 1.0,
-      "delta": 0.0,
-      "baselineRuns": 1,
+      "baseline": 0.67,
+      "delta": 0.33,
+      "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "487e4c55adaa8771"
+      "fingerprint": "9afdb26f3e1f222f"
     },
     "rules-nobody-follows": {
       "score": 1.0,

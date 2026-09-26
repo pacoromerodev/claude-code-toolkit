@@ -5,10 +5,11 @@
       "score": 1.0,
       "runs": 3,
       "measured": "2026-09-26",
-      "baseline": 0.33,
-      "delta": 0.67,
+      "baseline": 0.0,
+      "delta": 1.0,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "c6cb361cad7d2358"
     },
     "local-settings-committed": {
@@ -19,36 +20,40 @@
       "delta": 0.0,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "6479d3f428032338"
     },
     "not-fired": {
-      "score": 0.0,
-      "runs": 1,
+      "score": 0.67,
+      "runs": 3,
       "measured": "2026-09-26",
-      "baseline": 0.0,
+      "baseline": 0.67,
       "delta": 0.0,
-      "baselineRuns": 1,
+      "baselineRuns": 3,
       "model": "claude-opus-5-5",
-      "fingerprint": "5184c1e8a73bb1c8"
+      "judge": "claude-sonnet-5",
+      "fingerprint": "670b675c20ca34be"
     },
     "rollout-order": {
-      "score": 1.0,
+      "score": 0.67,
       "runs": 3,
       "measured": "2026-09-26",
       "baseline": 0.0,
-      "delta": 1.0,
+      "delta": 0.67,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "0e583923d07d104d"
     },
     "settings-too-wide": {
-      "score": 1.0,
+      "score": 0.67,
       "runs": 3,
       "measured": "2026-09-26",
-      "baseline": 1.0,
-      "delta": 0.0,
+      "baseline": 0.0,
+      "delta": 0.67,
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
+      "judge": "claude-sonnet-5",
       "fingerprint": "5f8922ceba98b1df"
     }
   }
