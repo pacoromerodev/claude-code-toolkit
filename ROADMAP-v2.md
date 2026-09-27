@@ -936,6 +936,40 @@ the plugin's:
   it recurs. delivery-quality falls from 0.96 to 0.88 on this pass for the
 same reason: `verify-fires` and `verify-untracked` each lost a run.
 
+**Graded by Sonnet — 2026-09-26.** The eval's default judge, Haiku, failed
+three votes in three an answer that met every line of its criteria, so
+`run-evals.sh` now grades with `claude-sonnet-5` and records the judge. All
+30 cases were re-measured on `claude-opus-5-5` with it. The five negative
+cases had `runs: 1`, which the runner honours; one split vote then read as
+Δ −1.00 on `skill-forge/not-fired`. They now have `runs: 3`, like the rest
+(and it was 1.00 against 1.00).
+
+| Plugin | Cases | Mean score | Mean Δ | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|---|
+| team-rollout | 5 | 0.80 | +0.47 | 3 | 0 |
+| delivery-quality | 8 | 0.96 | +0.38 | 4 | 0 |
+| context-discipline | 6 | 0.89 | +0.28 | 5 | 0 |
+| skill-forge | 1 | 1.00 | +0.00 | 0 | 0 |
+| api-patterns | 10 | 0.63 | **−0.10** | 1 | 3 |
+| all | 30 | 0.81 | +0.20 | 13 | 3 |
+
+A stricter judge separates the arms more: 9 cases tie at 1.00 against 1.00
+instead of 19, and three plugins gain. api-patterns goes the other way.
+`cache-ttl-mismatch` (0.33 against 1.00), `cache-silently-missing` and
+`score-jumped-after-examples` (0.67 against 1.00) lose. In
+`cache-ttl-mismatch` the failed plugin answers cover every "score well" line;
+both carry two specific claims — a 0.05× read price on Opus 5.5, and keeping
+the cache warm with a `max_tokens: 0` request — that come from the model,
+not the skill, and that passing baseline answers also make one at a time.
+The eval keeps the judge's votes, not its reasons, so why they failed is not
+recoverable from the result files. **Open**; api-patterns is the plugin to
+look at next, starting from `--keep-temp` traces of those three cases.
+
+`fix-before-scope` at six runs a side, Sonnet judging: **0.33 against 0.00**
+(2 of 6 against 0 of 6), with `scope-task` invoked in none. The direction has
+now held on three passes (+0.33, +0.67, +0.33); the size has not. Something
+in the plugin's context moves the answer without the skill loading.
+
 **What freshness cannot see.** A fingerprint covers the case, not the plugin.
 `review-format`'s case did not change when `/review-diff` did, so its old
 number would still have read as current. It was re-measured by hand; a change

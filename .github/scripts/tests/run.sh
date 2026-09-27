@@ -155,6 +155,8 @@ expect_exit "freshness --enforce" "$?" 1
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --model claude-test-model "$FIXTURES/freshness" 2>&1)"
 expect_text "freshness --model" "$out" "STALE  demo/measured-case"
 expect_text "freshness --model" "$out" "measured on an unrecorded model"
+out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --judge claude-test-judge "$FIXTURES/freshness" 2>&1)"
+expect_text "freshness --judge" "$out" "judged by an unrecorded judge"
 
 echo
 echo "== record_measurement.py =="
@@ -193,6 +195,12 @@ model="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"][
 [[ "$model" == "claude-test-model" ]] \
   && ok "record --model" "writes the model beside the number" \
   || bad "record --model" "recorded model $model"
+"$PY" "$SCRIPTS/record_measurement.py" --model claude-test-model --judge claude-test-judge \
+  "$ledger_dir" "$SANDBOX/good-result.json" >/dev/null 2>&1
+judge="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"].get("judge"))' "$ledger_dir/evals/measurements.json")"
+[[ "$judge" == "claude-test-judge" ]] \
+  && ok "record --judge" "writes the judge beside the number" \
+  || bad "record --judge" "recorded judge $judge"
 
 echo
 echo "== check_hooks.py =="

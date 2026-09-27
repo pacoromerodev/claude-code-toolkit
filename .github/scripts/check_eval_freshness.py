@@ -18,7 +18,7 @@ A score without a baseline is not a measurement of what the plugin adds, which
 is the only number this ledger exists for. It is listed with the stale ones.
 
 Usage: check_eval_freshness.py [--enforce] [--list-stale] [--model <id>]
-                                [repository root]
+                                [--judge <id>] [repository root]
 
 Report-only by default; --enforce exits 1 when anything is stale or never
 measured. Report-only is the honest default here: the runs are manual, so a
@@ -31,6 +31,8 @@ which turns re-measuring from a full pass into whatever actually changed.
 --model <id> also counts as stale anything measured on another model, or on
 one the ledger does not name. A delta is a claim about one model; switching
 models is a change to every case at once.
+
+--judge <id> does the same for the model that graded the runs.
 """
 import sys
 from pathlib import Path
@@ -41,14 +43,20 @@ from eval_ledger import case_fingerprint, read_ledger  # noqa: E402
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def take_option(argv, flag):
+    """(value, argv without the flag and its value); value None when absent."""
+    if flag not in argv:
+        return None, argv
+    at = argv.index(flag)
+    value = argv[at + 1] if at + 1 < len(argv) else None
+    return value, argv[:at] + argv[at + 2:]
+
+
 def main(argv):
     enforce = "--enforce" in argv
     listing = "--list-stale" in argv
-    model = None
-    if "--model" in argv:
-        at = argv.index("--model")
-        model = argv[at + 1] if at + 1 < len(argv) else None
-        argv = argv[:at] + argv[at + 2:]
+    model, argv = take_option(argv, "--model")
+    judge, argv = take_option(argv, "--judge")
     rest = [a for a in argv[1:] if not a.startswith("--")]
     root = Path(rest[0]).resolve() if rest else ROOT
 
@@ -72,6 +80,11 @@ def main(argv):
             if model and entry.get("model") != model:
                 rows.append((plugin.name, name, "stale",
                              f"measured on {entry.get('model') or 'an unrecorded model'}"))
+                stale.append(f"{plugin.name}/{name}")
+                continue
+            if judge and entry.get("judge") != judge:
+                rows.append((plugin.name, name, "stale",
+                             f"judged by {entry.get('judge') or 'an unrecorded judge'}"))
                 stale.append(f"{plugin.name}/{name}")
                 continue
             if entry.get("delta") is None:

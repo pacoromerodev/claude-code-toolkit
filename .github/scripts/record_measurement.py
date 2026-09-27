@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Write an eval run's scores into the plugin's ledger.
 
-    record_measurement.py [--model <model id>] <plugin dir> <result.json> [...]
+    record_measurement.py [--model <id>] [--judge <id>] <plugin dir> <result.json> [...]
 
 Takes the JSON `claude plugin eval --json` writes and records, per case, what
 it scored with the plugin, what the no-plugin arm scored, the delta, how many
@@ -17,6 +17,9 @@ does not say, and an alias such as `opus` resolves to a different model after
 an update: two passes a day apart were once recorded side by side on what
 were almost certainly two models, with nothing in the ledger to tell them
 apart.
+
+The judge that graded the runs is recorded the same way, with --judge: a
+score is the judge's reading as much as the model's answer.
 
 `scripts/run-evals.sh` calls this. Exit 0 when the ledger is written.
 """
@@ -47,12 +50,18 @@ def arm_mean(runs):
     return sum(r.get("score") or 0 for r in good) / len(good), len(good)
 
 
+def take_option(argv, flag):
+    """(value, argv without the flag and its value); value None when absent."""
+    if flag not in argv:
+        return None, argv
+    at = argv.index(flag)
+    value = argv[at + 1] if at + 1 < len(argv) else None
+    return value, argv[:at] + argv[at + 2:]
+
+
 def main(argv):
-    model = None
-    if "--model" in argv:
-        at = argv.index("--model")
-        model = argv[at + 1] if at + 1 < len(argv) else None
-        argv = argv[:at] + argv[at + 2:]
+    model, argv = take_option(argv, "--model")
+    judge, argv = take_option(argv, "--judge")
     if len(argv) < 3:
         print(__doc__.strip().splitlines()[2].strip())
         return 1
@@ -91,6 +100,8 @@ def main(argv):
                 entry["baselineRuns"] = base_runs
             if model:
                 entry["model"] = model
+            if judge:
+                entry["judge"] = judge
             if case_dir.is_dir():
                 entry["fingerprint"] = case_fingerprint(case_dir)
             cases[name] = entry
