@@ -132,6 +132,11 @@ out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
   "$FIXTURES/course-wording/bad" 2>&1)"
 expect_exit "wording bad" "$?" 1
 expect_text "wording bad" "$out" "ledger entry for the auditor"
+# docs/ is published too, so it is held to the same rule as plugins/.
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/bad-docs" 2>&1)"
+expect_exit "wording in docs" "$?" 1
+expect_text "wording in docs" "$out" "docs/guide.md"
 # --notes repeats, and a lesson one directory down is read: the English
 # originals live in per-course folders, and missing them is missing the source.
 fp2="$SANDBOX/fingerprints-both.txt"

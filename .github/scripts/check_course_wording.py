@@ -3,7 +3,8 @@
 
 The concepts are free to reuse. The wording is not, and a paraphrase written
 from memory drifts towards the original without anyone noticing. This compares
-every short run of words in `plugins/**` against the same runs taken from the
+every short run of words in what this repository publishes — `plugins/**`,
+`docs/**`, the README and CONTRIBUTING — against the same runs taken from the
 notes, and reports the ones that match.
 
 The notes are not in this repository and are not public, so what is committed
@@ -156,7 +157,11 @@ def main(argv):
 
     hits = []
     scanned = 0
-    for path in sorted(root.glob("plugins/**/*.md")):
+    published = sorted(root.glob("plugins/**/*.md")) + sorted(
+        root.glob("docs/**/*.md")) + [
+        path for path in (root / "README.md", root / "CONTRIBUTING.md")
+        if path.is_file()]
+    for path in published:
         scanned += 1
         for digest, line, run in shingles(path.read_text(encoding="utf-8")):
             if digest in fingerprints:
