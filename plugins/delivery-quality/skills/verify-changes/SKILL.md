@@ -99,8 +99,7 @@ report what you found:
   as whole tools, and no permission bypass. Unattended is exactly where those
   matter.
 
-`.github/scripts/check_workflows.py` in this repository checks all of them,
-and is worth stealing.
+Check these by reading the workflow file; this plugin ships no script for it.
 
 ## 3. Check the tests were not weakened
 

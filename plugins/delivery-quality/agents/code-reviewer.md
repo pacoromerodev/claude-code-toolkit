@@ -23,7 +23,15 @@ a change made of new files looks like no change at all — read each one in full
 and review it as additions. If the answer would be "nothing to review", say
 which of the three commands you ran before concluding that.
 
-For a branch review, use `git diff $(git merge-base HEAD main)...HEAD`.
+For a branch review, diff against the base the task names. When it names none,
+use the remote's default branch rather than assuming `main`:
+
+```bash
+base="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo main)"
+git diff "$base"...HEAD
+```
+
+Say which base you used in the review's heading.
 
 Read the surrounding file for every hunk. A diff alone hides whether a change is safe — a removed null check looks fine until you see the caller that relies on it.
 

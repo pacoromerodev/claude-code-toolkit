@@ -6,6 +6,10 @@ All notable changes to `context-discipline`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- Reworded three runs of five words that also appear in the English lessons
+  (`claude-md-doctor`, the README, and this changelog).
+
 ### Added
 - Two cases: `rules-nobody-follows` and `fix-before-scope`. Every skill in this plugin now has the
   two positive cases and one negative that CONTRIBUTING has always

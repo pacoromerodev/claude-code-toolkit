@@ -6,6 +6,12 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `plan-rollout`'s decision-owners table and five other passages tracked the
+  enterprise course's wording closely; they are reworded in this plugin's own
+  terms, with the same content. `settings-review`, the README and the
+  `rollout-order` criteria lose one stock phrase each.
+
 ### Added
 - One case: `local-settings-committed`. Every skill in this plugin now has the
   two positive cases and one negative that CONTRIBUTING has always
