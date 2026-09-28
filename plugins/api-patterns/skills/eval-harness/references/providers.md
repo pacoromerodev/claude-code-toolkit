@@ -27,8 +27,8 @@ Four things to carry across:
 - **Generation settings live in `inferenceConfig`**, not beside `messages`.
   The system prompt is its own top-level `system`, a list of parts.
 - **Streaming** is `converse_stream`, whose `stream` yields `messageStart`,
-  then `contentBlockDelta` events carrying the text, then `contentBlockStop`,
-  `messageStop` and `metadata`.
+  then `contentBlockDelta` events carrying the text; a block closes with
+  `contentBlockStop`, the message with `messageStop`, and `metadata` comes last.
 - **A prefilled assistant turn** works the same way: Claude continues from it
   without repeating it, so the two halves have to be joined afterwards.
 

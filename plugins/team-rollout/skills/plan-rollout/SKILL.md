@@ -31,18 +31,18 @@ characteristic, not the job title:
 
 | Decision | Decided with | What they need from you |
 |---|---|---|
-| Structure and Identity | Whoever runs the identity provider | The proposed group structure and the directory groups it maps to |
+| Structure and Identity | Whoever runs the identity provider | How groups will be cut, and which directory group feeds each one |
 | Access | The team leads, plus whoever answers for data risk | Which groups get what, in which phase, and the workflow behind every write permission |
-| Governance | Whoever runs enablement, plus security | The posture options and what each one implies |
+| Governance | Whoever runs enablement, plus security | The possible postures, and the consequence of each |
 | Spend | Whoever commits the budget | Proposed limits and the usage that justifies them |
 | Visibility | Whoever answers for data risk | The options, a recommendation, and what changing it later costs |
 
 Two of them routinely escalate past the person running the rollout: **spend**,
 to whoever owns the budget, and **visibility**, to whoever owns the risk.
 
-## Take these knowing they are hard to undo
+## Take these knowing they are costly to reverse
 
-Four choices are expensive to reverse. Decide them deliberately, with the
+Four choices cost a second migration to undo. Decide them deliberately, with the
 person who owns the consequence in the room:
 
 | Decision | Why it is hard to undo |
@@ -112,8 +112,8 @@ is depth, not existence:
   with security than write.
 - **Write means changing data as that person.** It gets phased, it gets
   announced, and it gets **signed off by whoever owns the risk** — not by the
-  team who wants it. Write and delete tools are individually set to allowed,
-  needing approval, or blocked.
+  team who wants it. Each tool that writes or deletes has its own setting:
+  allowed, needing approval, or blocked.
 - Granting is cheap; **withdrawing breaks a workflow someone now depends on**,
   so announce a removal the way you announced the grant.
 
@@ -171,15 +171,15 @@ single limit:
   more than most limit changes.
 - **Instructions at the point of use** — short answers unless more is asked
   for, read only the files needed — as guidance rather than enforcement.
-- **Reuse**: a skill loads only when it fires; a shared project keeps the
+- **Reuse**: a skill costs context only once it fires; a shared project keeps the
   context once instead of per person.
 - **Scheduled and background work**, which consumes while nobody is watching.
   Bound it and review what is still scheduled.
 
 Repeated overrides are a signal, not an exception: if several people in a
 group need one, the group is wrong. And decide the escalation path at the same
-time as the limits — what gets approved in the day, and what goes to the
-budget owner.
+time as the limits — what gets approved in the day, and what escalates to
+whoever holds the budget.
 
 ## 5. Visibility
 
@@ -216,7 +216,7 @@ Three questions, in order:
    with the identity, alerting and limits worked out there.
 
 Worked through on a request to enable a scheduled-task surface: it runs
-unattended, so it gets its own identity rather than borrowing a person's, a
+unattended, so it runs under a dedicated identity, never a borrowed person's, a
 limit of its own with alerts before that limit rather than at it, no access to
 any connector granted with write depth, and a two-week window in one
 volunteer group before anyone else sees it. The group under external audit

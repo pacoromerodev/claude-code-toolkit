@@ -95,8 +95,8 @@ from one that scores 10 on most and 2 on a few.
 Always against a baseline. "Version B scores 7.9" means nothing; "7.9 against
 A's 3.9 on the same thirty cases" is a result.
 
-Change one thing at a time. Two changes and one number tells you nothing about
-either.
+Vary a single variable per run. Two changes and one number tells you nothing
+about either.
 
 ## Where prompts actually improve
 

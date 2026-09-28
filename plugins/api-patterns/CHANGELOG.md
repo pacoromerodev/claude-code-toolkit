@@ -63,8 +63,8 @@ All notable changes to `api-patterns`. Format follows
 ## [0.1.0] — 2026-09-20
 
 ### Added
-- `eval-harness` skill: dataset → model → grader → score, with the rule that
-  decides whether a model grader discriminates at all — reasoning before the
+- `eval-harness` skill: dataset → model → grader → score. It carries the rule
+  deciding whether a model grader discriminates at all — reasoning before the
   number, strengths then weaknesses then score. Code graders are 10-or-0.
   Grader prompts in `references/graders.md`, loaded on demand.
 - `prompt-cache-audit` skill + `scripts/check_caching.py`: finds breakpoints

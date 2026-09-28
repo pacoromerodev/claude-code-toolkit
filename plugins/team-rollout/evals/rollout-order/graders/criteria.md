@@ -17,7 +17,8 @@ Score well when the response:
   with different limits, does the higher or the lower apply
 - Mentions that at the limit usage **pauses** — nothing queues — so people will
   simply stop
-- Says to check the default model and effort setting before raising any limit,
+- Says to check which model and effort level a group runs by default before
+  raising any limit,
   since a group on an expensive model looks like a capacity problem
 
 Score badly when the response:

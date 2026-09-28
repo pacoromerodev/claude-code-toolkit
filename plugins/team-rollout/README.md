@@ -50,7 +50,7 @@ python3 plugins/team-rollout/scripts/check_settings.py managed.json --managed
 | `"Bash"` in allow | Grants every command. Added to stop a prompt one afternoon, never narrowed after, because nothing prompts again to remind you |
 | `bypassPermissions` as default mode | Disables the permission system for every session using the file |
 | A literal credential | Settings files get committed and shared — treat it as leaked and rotate |
-| No `strictKnownMarketplaces` | A plugin runs code with the user's privileges and its hooks stack with everyone else's |
+| No `strictKnownMarketplaces` | Installing a plugin executes its code as the user, and its hooks stack with everyone else's |
 | `strictKnownMarketplaces: true` | It is an array of source objects. A boolean reads as locked down, is rejected as the wrong type, and restricts nothing |
 | `knownMarketplaces` | Not a setting. Nothing reads that key |
 | A git marketplace with no `ref` | Whatever the default branch holds today is what the team installs tomorrow, hooks included |

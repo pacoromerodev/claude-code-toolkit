@@ -42,7 +42,7 @@ All notable changes to `context-discipline`. Format follows
 - `not-fired` eval grader states what a correct answer looks like, not only
   what scores badly.
 - `restore_state` only restores the snapshot of the session that was compacted,
-  and only through SessionStart with the `compact` matcher. It used to fall
+  and only through a SessionStart hook matched on `compact`. It used to fall
   back to any recent snapshot, and to label whatever it found as "restored
   after compaction" even at a fresh session start.
   The PostCompact registration is gone: that event has no way to add context.
