@@ -1,7 +1,7 @@
 {
   "name": "delivery-quality",
   "description": "Verification before you trust a change: a verify skill that runs the tests and reads the diff, a read-only review subagent, guards against writing secrets and running destructive commands, and a test gate on session stop.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "Francisco Romero Porras",
     "url": "https://github.com/pacoromerodev"
