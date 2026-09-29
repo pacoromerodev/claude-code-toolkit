@@ -24,7 +24,6 @@ All notable changes to `api-patterns`. Format follows
 - Reworded four runs of five words that also appear in the English lessons,
   found once the wording check read them (`eval-harness`, its providers
   reference, and this changelog).
-
 - `tool-schema-review` says where the tools it reviews live — the `tools`
   array of a Messages call, or the functions a tool runner builds one from —
   and points at `mcp-review` for the other kind.

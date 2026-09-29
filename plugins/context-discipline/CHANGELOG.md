@@ -12,7 +12,6 @@ All notable changes to `context-discipline`. Format follows
 - Two cases: `rules-nobody-follows` and `fix-before-scope`. Every skill in this plugin now has the
   two positive cases and one negative that CONTRIBUTING has always
   asked for.
-
 - `check_claude_md.py` reports a rule a hook could enforce — a prohibition
   about pushing, committing, deleting, deploying and the like — as a note with
   what to do about it: CLAUDE.md asks, a `PreToolUse` hook that exits 2
@@ -23,9 +22,12 @@ All notable changes to `context-discipline`. Format follows
   adding a line only when the same correction repeats.
 
 ### Changed
+- `scope-task` no longer lists `TodoWrite` in `allowed-tools`. Neither it nor
+  the task tools that replace it in some modes ever ask for permission, so
+  pre-approving it did nothing, and naming one tied the skill to it. The body
+  still says to track the work in a todo list, whichever tool provides it.
 - Reworded three runs of five words that also appear in the English lessons
   (`claude-md-doctor`, the README, and this changelog).
-
 - `/context` is now `/context-budget`. Claude Code ships `/context`, and two
   commands answering to one name is a coin toss; the built-in is also the one
   with the numbers. The command says outright that the model cannot measure
@@ -41,7 +43,6 @@ All notable changes to `context-discipline`. Format follows
 - The `no-alternative` rule accepts an alternative given in the next sentence
   ("Never push to main. Open a pull request."), which it used to miss because
   it skipped the first four words after the prohibition.
-
 - `not-fired` eval grader states what a correct answer looks like, not only
   what scores badly.
 - `restore_state` only restores the snapshot of the session that was compacted,

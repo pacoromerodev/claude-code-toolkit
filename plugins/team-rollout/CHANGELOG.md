@@ -12,7 +12,6 @@ All notable changes to `team-rollout`. Format follows
 - One case: `local-settings-committed`. Every skill in this plugin now has the
   two positive cases and one negative that CONTRIBUTING has always
   asked for.
-
 - `plan-rollout` covers four things it was missing: the deployment objective
   that breaks ties before any setting is touched, who decides each of the five
   decisions and what they need from you, connectors — three gates, inherited
@@ -29,7 +28,6 @@ All notable changes to `team-rollout`. Format follows
   enterprise course's wording closely; they are reworded in this plugin's own
   terms, with the same content. `settings-review`, the README and the
   `rollout-order` criteria lose one stock phrase each.
-
 - The worked example at the end of `plan-rollout` is rewritten in this
   repository's own terms; it had followed the shape of the course's own
   example too closely.

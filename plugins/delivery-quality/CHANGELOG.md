@@ -76,7 +76,6 @@ All notable changes to `delivery-quality`. Format follows
   the workflow checks are now read by hand, as the list already describes.
 - `code-reviewer` assumed the base branch was `main`. It now uses the base the
   task names, else the remote's default branch, and says which it used.
-
 - The test gate no longer traps a turn whose right answer is a failing report.
   It blocked on every stop while the suite was red, so a request to *verify* a
   change — where reporting the failure is the whole job — turned into Claude
