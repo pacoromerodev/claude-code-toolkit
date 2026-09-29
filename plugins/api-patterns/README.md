@@ -2,6 +2,13 @@
 
 Patterns for building on the Claude API that carry their own verification.
 
+> **Experimental.** Measured against the same prompts with no plugin loaded,
+> this plugin scores lower on average (Δ −0.10 over ten cases; see *Measured*
+> below). The two scripts, `check_api_calls.py` and `fuse.py`, do work the
+> model cannot do on its own; the prose skills have not yet shown that they
+> help. Whether they stay is open until their failing cases are re-run and
+> their traces read.
+
 ```
 /plugin install api-patterns@pacoromerodev
 ```
@@ -108,8 +115,28 @@ claude plugin eval plugins/api-patterns --scaffold --allow-tools Bash
 - **cache-ttl-mismatch** — bursty traffic against a five-minute lifetime.
 - **hybrid-or-rerank** — reranking proposed for a document never retrieved.
 - **tool-never-chosen** — two one-word tool descriptions.
+- **chunks-lose-their-heading** — chunks that only make sense under their
+  heading; the answer must be contextual retrieval, with the document in the
+  prompt that writes the context.
+- **score-jumped-after-examples** — a score that moved after two changes at
+  once; the answer must separate them before crediting either.
 - **not-fired** — "how many tokens is a page of text", which must not start an
   audit.
+
+### Measured
+
+Last full pass on 2026-09-26: `claude-opus-5-5`, graded by `claude-sonnet-5`,
+three runs a side, each case against the same prompt with no plugin loaded.
+
+| Cases | Mean score | Mean Δ against no plugin | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|
+| 10 | 0.63 | −0.10 | 1 | 3 |
+
+The per-case numbers are in [`evals/measurements.json`](evals/measurements.json).
+A number is only current while neither its case nor the component it
+exercises has changed; `python3 .github/scripts/check_eval_freshness.py`
+lists the ones that have. Re-measure with `scripts/run-evals.sh --model <id>
+--stale`.
 
 ## Requirements
 

@@ -7,6 +7,9 @@ All notable changes to `api-patterns`. Format follows
 ## [Unreleased]
 
 ### Changed
+- Marked **experimental** in the README, the manifest and the marketplace
+  entry. Across its ten cases it scores below the no-plugin baseline (Δ −0.10,
+  Sonnet judging); the README says so, and says what would settle it.
 - `tool-schema-review` no longer has `Bash`. It reviews what the model sees —
   name, description, schema — and never runs anything, so the tool was a
   grant with no use.

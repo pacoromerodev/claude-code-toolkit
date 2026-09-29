@@ -18,7 +18,7 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 | **[delivery-quality](plugins/delivery-quality)** | Verification before you trust a change: a skill that runs the tests and reads the diff, a read-only review subagent, guards against writing secrets and running destructive commands, and an opt-in test gate. |
 | **[skill-forge](plugins/skill-forge)** | Find out why skills do not fire: a mechanical auditor for the faults that stop a skill or subagent loading or matching, and an opt-in log of which components fire in real use. |
 | **[context-discipline](plugins/context-discipline)** | Keep the working state that compaction blurs: a tree snapshot taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored. |
-| **[api-patterns](plugins/api-patterns)** | Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
+| **[api-patterns](plugins/api-patterns)** | *Experimental.* Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
 | **[team-rollout](plugins/team-rollout)** | Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference settings, and a checker for permissions wider than intended. |
 
 ### delivery-quality
