@@ -6,8 +6,8 @@
 #
 # `claude plugin eval` loads one plugin per run, so it cannot see a collision
 # between two of them: two descriptions that both match a prompt each score
-# perfectly on their own. This runs the prompts against a session holding all
-# seven, reads which Skill or Agent the model actually invoked, and compares it
+# perfectly on their own. This runs the prompts against a session holding
+# every plugin in the marketplace, reads which Skill or Agent the model actually invoked, and compares it
 # with the component the prompt was written for.
 #
 # Each prompt costs a short session. Run it after changing a description, and

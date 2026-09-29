@@ -1,0 +1,1 @@
+{"tool_name":"MultiEdit","tool_input":{"file_path":"seed.sql","edits":[{"old_string":"--","new_string":"INSERT INTO client VALUES (7, 'X1234567L');"}]}}

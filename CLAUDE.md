@@ -9,13 +9,14 @@ Run these from the repository root; each must exit 0:
 
 ```bash
 claude plugin validate . && for d in plugins/*/; do claude plugin validate "$d"; done
-( for c in consistency stdlib_only eval_cases hooks names workflows; do
+( for c in consistency changelogs install stdlib_only eval_cases hooks names workflows; do
     python3 ".github/scripts/check_${c}.py" || exit 1
   done )
 python3 .github/scripts/check_eval_coverage.py --enforce
 python3 .github/scripts/check_course_wording.py --enforce
 python3 plugins/skill-forge/scripts/audit_skills.py plugins/*/skills
 python3 plugins/context-discipline/scripts/check_claude_md.py CLAUDE.md
+python3 scripts/render_demos.py --check
 ( for t in plugins/*/tests/run.sh .github/scripts/tests/run.sh scripts/tests/*.sh; do
     bash "$t" || exit 1
   done )

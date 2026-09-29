@@ -21,10 +21,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-EVENTS = {
-    "PreToolUse", "PostToolUse", "Notification", "UserPromptSubmit", "Stop",
-    "SubagentStop", "PreCompact", "PostCompact", "SessionStart", "SessionEnd",
-}
+# The events come from the settings schema this repository already vendors
+# (validate_settings_schema.py says how to refresh it), not from a list kept by
+# hand: the hand-kept one stopped at ten events while Claude Code grew thirty,
+# and would have called PermissionRequest or SubagentStart a typo.
+SCHEMA = Path(__file__).resolve().parent / "schema" / "claude-code-settings.schema.json"
+
+
+def hook_events(schema=SCHEMA):
+    data = json.loads(schema.read_text(encoding="utf-8"))
+    return frozenset(data["properties"]["hooks"]["properties"])
+
+
+EVENTS = hook_events()
 
 # Events that hold the session while the hook runs, so a hang is visible to
 # whoever is waiting.

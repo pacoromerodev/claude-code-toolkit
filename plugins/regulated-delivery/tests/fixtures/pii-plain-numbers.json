@@ -1,0 +1,1 @@
+{"tool_name":"Write","tool_input":{"file_path":"orders.py","content":"ORDER = \"ORD-2026-000123\"\nTRACE = \"550e8400-e29b-41d4-a716-446655440000\"\nEPOCH_MS = 1727600000000\nPHONE = \"+34 600 123 456\"\n"}}

@@ -1,5 +1,8 @@
 ---
+name: handoff
 description: Write a handoff note that survives compaction, a new session, or another person
+argument-hint: "[what the next session should focus on]"
+disable-model-invocation: true
 ---
 
 Write `.claude/handoff.md` for whoever picks this up next — a later session, or

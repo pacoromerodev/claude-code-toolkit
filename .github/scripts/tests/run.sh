@@ -49,12 +49,58 @@ expect_exit "consistency good" "$?" 0
 out="$("$PY" "$SCRIPTS/check_consistency.py" "$FIXTURES/consistency/bad" 2>&1)"
 expect_exit "consistency bad" "$?" 1
 expect_text "consistency bad" "$out" "plugins/halfway: no .claude-plugin/plugin.json"
+expect_text "consistency bad" "$out" "plugins/demo: no LICENSE"
+expect_text "consistency bad" "$out" "README.es.md: never links plugins/demo"
 # plugins/notes holds nothing plugin-shaped, so it is scratch, not a mistake.
 if [[ "$out" != *"plugins/notes"* ]]; then
   ok "consistency bad" "leaves a non-plugin directory alone"
 else
   bad "consistency bad" "reports plugins/notes, which is not a plugin"
 fi
+
+echo
+echo "== check_changelogs.py =="
+out="$("$PY" "$SCRIPTS/check_changelogs.py" "$FIXTURES/changelogs/good" 2>&1)"
+expect_exit "changelogs good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_changelogs.py" "$FIXTURES/changelogs/bad" 2>&1)"
+expect_exit "changelogs bad" "$?" 1
+expect_text "changelogs bad" "$out" "pasted/CHANGELOG.md:3: ### Added comes before any version heading"
+expect_text "changelogs bad" "$out" "pasted/CHANGELOG.md:11: a second ### Added under [0.2.0]"
+expect_text "changelogs bad" "$out" "the newest release is [0.2.0] but plugin.json says '0.3.0'"
+expect_text "changelogs bad" "$out" "[0.2.0] follows [0.1.0]"
+expect_text "changelogs bad" "$out" "[next] is neither Unreleased nor x.y.z"
+
+echo
+echo "== check_install.py =="
+# A stub stands in for the CLI: the install itself is Claude Code's to get
+# right, what is tested here is that the check reads its answers correctly.
+# It copies a plugin as an install would, except for *.skip files; it always
+# reports version 0.1.0 and one skill, no agent and a PreToolUse hook.
+stub="$SANDBOX/claude"
+cat > "$stub" <<'STUB'
+#!/usr/bin/env bash
+cache="$CLAUDE_CONFIG_DIR/cache"
+case "$2 $3" in
+  "marketplace add") printf '%s\n' "$4" > "$CLAUDE_CONFIG_DIR/root" ;;
+  "install "*)
+    name="${3%@*}"; mkdir -p "$cache/$name"
+    tar -C "$(cat "$CLAUDE_CONFIG_DIR/root")/plugins/$name" --exclude='*.skip' -cf - . \
+      | tar -C "$cache/$name" -xf - ;;
+  "list --json")
+    printf '[{"id":"demo@fixture","version":"0.1.0","installPath":"%s"}]\n' "$cache/demo" ;;
+  "details "*)
+    printf 'Component inventory\n  Skills (1)  widget-check\n  Agents (0)\n'
+    printf '  Hooks (1)  PreToolUse  (harness-only — no model context cost)\n' ;;
+esac
+STUB
+chmod +x "$stub"
+out="$(CLAUDE_BIN="$stub" "$PY" "$SCRIPTS/check_install.py" "$FIXTURES/install/good" 2>&1)"
+expect_exit "install good" "$?" 0
+out="$(CLAUDE_BIN="$stub" "$PY" "$SCRIPTS/check_install.py" "$FIXTURES/install/bad" 2>&1)"
+expect_exit "install bad" "$?" 1
+expect_text "install bad" "$out" "demo: installed as '0.1.0', plugin.json says '0.2.0'"
+expect_text "install bad" "$out" "demo: the installed copy lacks notes.skip"
+expect_text "install bad" "$out" "demo: agent 'lost' is on disk but Claude Code did not load it"
 
 echo
 echo "== check_names.py =="

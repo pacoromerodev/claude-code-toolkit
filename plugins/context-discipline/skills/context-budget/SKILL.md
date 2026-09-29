@@ -1,5 +1,8 @@
 ---
+name: context-budget
 description: Read the numbers from /context and say what to do next
+argument-hint: "[what you are about to do next]"
+disable-model-invocation: true
 ---
 
 Decide what this session should do about its context.

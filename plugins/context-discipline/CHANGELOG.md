@@ -6,6 +6,21 @@ All notable changes to `context-discipline`. Format follows
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-29
+
+### Changed
+- `/handoff` and `/context-budget` are skills with
+  `disable-model-invocation: true` instead of files under `commands/`, the
+  format Claude Code now documents for both. They are still typed, under the
+  same names; what changes is that the model can no longer start them on its
+  own, which is what this README always said they were for. Each has an
+  `argument-hint` for the `/` menu.
+
+### Fixed
+- `check_claude_md.py` reworded its advice on emphasis: five words of it read
+  the same as the course notes, which the wording check found once the
+  message was quoted in `docs/demos/`.
+
 ## [0.2.0] — 2026-09-29
 
 ### Added

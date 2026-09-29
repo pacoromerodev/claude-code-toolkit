@@ -1,0 +1,1 @@
+{"tool_name":"NotebookEdit","tool_input":{"notebook_path":"analysis.ipynb","new_source":"df = df[df.dni == \"87654321X\"]"}}

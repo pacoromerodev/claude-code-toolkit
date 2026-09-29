@@ -10,13 +10,15 @@ person's privileges. The parts that matter for security are the hooks:
 | delivery-quality | `guard_secrets.py` | every `Write`, `Edit`, `NotebookEdit`, `Bash` and `PowerShell` call |
 | delivery-quality | `guard_destructive.py` | every `Bash` call |
 | delivery-quality | `test_gate.py` | session stop, only in a project that opted in |
+| regulated-delivery | `guard_pii.py` | every `Write`, `Edit`, `MultiEdit` and `NotebookEdit` call |
 | context-discipline | `save_state.py`, `restore_state.py` | compaction, and the session that resumes after it |
 | skill-forge | `log_routing.py` | every prompt and every `Skill`, `Task` and `Agent` call; writes nothing unless enabled |
 
 Worth reporting:
 
 - **A way past a guard.** A command that destroys work, or a write that puts
-  a real credential on disk, which the matching guard lets through. Give the
+  a real credential or a real account, card or national ID on disk, which
+  the matching guard lets through. Give the
   exact tool input.
 - **A hook that does something it does not say.** Network access, a write
   outside the project or the state directory, text injected into the context

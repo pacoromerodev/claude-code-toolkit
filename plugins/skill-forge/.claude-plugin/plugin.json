@@ -1,7 +1,7 @@
 {
   "name": "skill-forge",
   "description": "Find out why skills do not fire: a mechanical auditor for the faults that stop a skill or subagent loading or matching, and an opt-in log of which components fire in real use and which prompts fired nothing.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "Francisco Romero Porras",
     "url": "https://github.com/pacoromerodev"

@@ -24,7 +24,7 @@ working tree before compaction and hand it back afterwards.
 | `restore_state` | SessionStart hook, `compact` matcher | Right after a compaction, in the session that was compacted |
 | `scope-task` | Skill | A wide, vague or open-ended request |
 | `claude-md-doctor` | Skill | Rules in CLAUDE.md are being ignored, or one needs writing |
-| `/handoff`, `/context-budget` | Commands | Typed |
+| `/handoff`, `/context-budget` | Skills the model cannot invoke | Typed |
 
 ## The state cycle
 

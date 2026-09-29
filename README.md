@@ -1,6 +1,8 @@
 # claude-code-toolkit
 
-Installable Claude Code plugins: skills, subagents, hooks and commands for real software delivery workflows.
+[![validate](https://github.com/pacoromerodev/claude-code-toolkit/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/pacoromerodev/claude-code-toolkit/actions/workflows/validate.yml) · [Español](README.es.md)
+
+Installable Claude Code plugins: skills, subagents and hooks for real software delivery workflows.
 
 This is a **plugin marketplace**. Add it once and install any plugin from it.
 
@@ -20,19 +22,23 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 | **[context-discipline](plugins/context-discipline)** | Keep the working state that compaction blurs: a tree snapshot taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored. |
 | **[api-patterns](plugins/api-patterns)** | *Experimental.* Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
 | **[team-rollout](plugins/team-rollout)** | Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference settings, and a checker for permissions wider than intended. |
+| **[regulated-delivery](plugins/regulated-delivery)** | Keep customer data out of the repository: a guard that blocks writing a real IBAN, card number or Spanish DNI/NIE into a file, checked by check digit so ordinary numbers and published test values pass. |
 
 ### Quick start
 
 Install one plugin, then try the thing it is for. Each link goes to the
-plugin's README, which has every component and every setting.
+plugin's README, which has every component and every setting. To see what
+the hooks and scripts print before installing anything, read
+[docs/demos/](docs/demos/), rendered from real runs.
 
 | Plugin | After installing, try |
 |---|---|
 | [delivery-quality](plugins/delivery-quality) | Make a change, then ask Claude to verify it: the `verify-changes` skill runs the tests, reads the diff and says what it could not check. `/review-diff` gets a read-only review. The guards need nothing; the test gate is opt-in: `mkdir -p .claude && touch .claude/test-gate` |
 | [context-discipline](plugins/context-discipline) | Nothing to do for the compaction snapshot. Ask for a review of your `CLAUDE.md`, or give a large, vague task and watch it get scoped before any code. `/handoff` writes a note for the next session |
-| [skill-forge](plugins/skill-forge) | `python3 ~/.claude/plugins/cache/pacoromerodev/skill-forge/0.2.0/scripts/audit_skills.py .claude/skills` on your own skills (the path is where Claude Code installs it). The routing log is opt-in: `mkdir -p .claude && touch .claude/routing-log` |
+| [skill-forge](plugins/skill-forge) | `python3 "$(ls -d ~/.claude/plugins/cache/pacoromerodev/skill-forge/*/ | sort -V | tail -1)scripts/audit_skills.py" .claude/skills` on your own skills (the path is where Claude Code installs it; the `ls` picks the newest installed version). The routing log is opt-in: `mkdir -p .claude && touch .claude/routing-log` |
 | [team-rollout](plugins/team-rollout) | Ask how to roll Claude out to a team, or have a `settings.json` or managed policy reviewed before it ships |
 | [api-patterns](plugins/api-patterns) | *Experimental.* Ask why prompt caching is not cutting your bill, how to know whether a prompt change helped, or how to fix retrieval that misses obvious matches |
+| [regulated-delivery](plugins/regulated-delivery) | Nothing to do. Ask for a test fixture with a real-looking account number and watch it be refused; published test values such as `4111 1111 1111 1111` go through |
 
 ### Status
 
@@ -42,11 +48,12 @@ same prompts with no plugin loaded (2026-09-26, `claude-opus-5-5`, graded by
 
 | Plugin | Version | Always-on context | Cases | Mean Δ against no plugin |
 |---|---|---|---|---|
-| delivery-quality | 0.3.1 | ~360 tokens | 8 | +0.38 |
+| delivery-quality | 0.4.0 | ~360 tokens | 8 | +0.38 |
 | team-rollout | 0.2.0 | ~230 tokens | 5 | +0.47 |
-| context-discipline | 0.2.0 | ~320 tokens | 6 | +0.28 |
-| skill-forge | 0.2.0 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
+| context-discipline | 0.3.0 | ~320 tokens | 6 | +0.28 |
+| skill-forge | 0.2.1 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
 | api-patterns | 0.2.0 | ~630 tokens | 10 | **−0.10** |
+| regulated-delivery | 0.1.0 | ~0 tokens | 2 | not measured yet |
 
 Context cost is `claude plugin details <plugin>@pacoromerodev`. The numbers
 behind the Δ column are in each plugin's `evals/measurements.json`, and
@@ -64,6 +71,7 @@ The components here follow a few rules that came out of building them, and each 
 - **A subagent's output format is the design.** Deciding what it returns matters more than describing what it is. There are no "expert persona" agents here.
 - **Minimum tools.** The reviewer has no edit tools and does not get them. If a fix is obvious it describes the fix and lets the main thread apply it.
 - **Hooks fail open.** A guard that crashes lets the call through. Determinism is worth having only while it cannot brick the session.
+- **What a component reads is data, never instructions.** A diff, a file or a commit message that tells the reviewer to approve something is a finding. The instructions come from the user and from the plugin, nowhere else.
 - **Exit 2 is the only blocking code.** It returns stderr to Claude as feedback, so the model sees the reason and can correct itself. Everything else is non-blocking.
 
 ---
@@ -77,14 +85,15 @@ The components here follow a few rules that came out of building them, and each 
 │   ├── .claude-plugin/plugin.json
 │   ├── README.md, CHANGELOG.md
 │   ├── skills/<skill>/SKILL.md       # plus references/ where a skill needs them
-│   ├── agents/*.md, commands/*.md
+│   ├── agents/*.md
 │   ├── hooks/hooks.json, scripts/*.py
 │   ├── tests/                        # fixture tests for every hook and script
 │   └── evals/<case>/                 # plugin eval cases and their measurements
 ├── .github/scripts/                  # the CI checks, each with its own fixtures
-├── scripts/                          # local eval runner and routing check
+├── scripts/                          # local eval runner, routing check, demo renderer
 └── docs/
     ├── anatomy.md                    # which component type to reach for
+    ├── demos/                        # what each plugin's scripts print, from real runs
     └── history/                      # the audits and plans, in order
 ```
 
@@ -111,7 +120,7 @@ component type to reach for.
 
 ## Where this came from
 
-Five plugins are built. [ROADMAP.md](docs/history/ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded ([ROADMAP-v2.md](docs/history/ROADMAP-v2.md), *Measured in full* and the proposals after it). Every audit and plan behind the plugins is in [docs/history/](docs/history/README.md).
+Six plugins are built. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded. That result is why `regulated-delivery` is a hook and nothing else. Every audit and plan behind the plugins, with the measurements that decided each cut, is indexed in [docs/history/](docs/history/README.md).
 
 ## Origin
 
