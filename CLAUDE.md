@@ -9,7 +9,7 @@ Run these from the repository root; each must exit 0:
 
 ```bash
 claude plugin validate . && for d in plugins/*/; do claude plugin validate "$d"; done
-( for c in consistency changelogs stdlib_only eval_cases hooks names workflows; do
+( for c in consistency changelogs install stdlib_only eval_cases hooks names workflows; do
     python3 ".github/scripts/check_${c}.py" || exit 1
   done )
 python3 .github/scripts/check_eval_coverage.py --enforce

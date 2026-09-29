@@ -52,6 +52,11 @@ jobs:
           done
           exit $status
 
+      # No model and no login: the install a user does, in a throwaway config
+      # directory, then what Claude Code says it loaded against what is on disk.
+      - name: Every plugin installs, and loads what it ships
+        run: python3 .github/scripts/check_install.py
+
       - name: Every plugin has a marketplace entry, with matching versions
         run: python3 .github/scripts/check_consistency.py
 
