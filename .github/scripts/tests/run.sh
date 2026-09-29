@@ -167,7 +167,12 @@ expect_text "freshness" "$out" "never  demo/new-case"
 # A score whose baseline arm all errored is not a delta, and must not read as
 # measured: --stale would then never run it again.
 expect_text "freshness" "$out" "NOBAS  demo/half-measured-case"
-expect_text "freshness" "$out" "1 measured, 1 changed since, 1 without a baseline, 1 never run"
+# The case is unchanged but the skill it exercises is not: the number is about
+# a component that no longer exists, exactly like an edited case.
+expect_text "freshness" "$out" "STALE  demo/component-edited-case  a component it exercises changed"
+# An entry from before components were recorded cannot vouch for them.
+expect_text "freshness" "$out" "STALE  demo/legacy-case            no component fingerprint recorded"
+expect_text "freshness" "$out" "1 measured, 3 changed since, 1 without a baseline, 1 never run"
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --list-stale "$FIXTURES/freshness" 2>&1)"
 expect_text "freshness --list-stale" "$out" "demo/half-measured-case"
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --enforce "$FIXTURES/freshness" 2>&1)"
@@ -222,6 +227,16 @@ judge="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"][
 [[ "$judge" == "claude-test-judge" ]] \
   && ok "record --judge" "writes the judge beside the number" \
   || bad "record --judge" "recorded judge $judge"
+# The recorder fingerprints the component a case names, so a later edit to it
+# makes the number stale even when the case itself is untouched.
+mkdir -p "$ledger_dir/skills/some-skill"
+printf -- '---\nname: some-skill\ndescription: x\n---\n' > "$ledger_dir/skills/some-skill/SKILL.md"
+printf 'schema_version: "1.0"\nname: some-case\ntags: [some-skill, skill]\n' > "$ledger_dir/evals/some-case/case.yaml"
+"$PY" "$SCRIPTS/record_measurement.py" "$ledger_dir" "$SANDBOX/good-result.json" >/dev/null 2>&1
+components="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"].get("components"))' "$ledger_dir/evals/measurements.json")"
+[[ "$components" =~ ^[0-9a-f]{16}$ ]] \
+  && ok "record components" "writes the component fingerprint" \
+  || bad "record components" "recorded components $components"
 
 echo
 echo "== check_hooks.py =="

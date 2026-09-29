@@ -10,7 +10,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "1e86910e9fd81510"
+      "fingerprint": "1e86910e9fd81510",
+      "components": "c5ed54d91502dbc7"
     },
     "context-cannot-be-measured": {
       "score": 1.0,
@@ -21,7 +22,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "6c80499260b9d9a5"
+      "fingerprint": "6c80499260b9d9a5",
+      "components": "51a5484109f9fc79"
     },
     "fix-before-scope": {
       "score": 0.33,
@@ -32,7 +34,8 @@
       "baselineRuns": 6,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "0527d061dd08d232"
+      "fingerprint": "0527d061dd08d232",
+      "components": "716e44b61975b0a7"
     },
     "not-fired": {
       "score": 1.0,
@@ -43,7 +46,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "9afdb26f3e1f222f"
+      "fingerprint": "9afdb26f3e1f222f",
+      "components": "c43753bfaa55b9be"
     },
     "rules-nobody-follows": {
       "score": 1.0,
@@ -54,7 +58,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "1a23084ddee2cae0"
+      "fingerprint": "1a23084ddee2cae0",
+      "components": "c5ed54d91502dbc7"
     },
     "scope-before-code": {
       "score": 1.0,
@@ -65,7 +70,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "d15464b85eeed176"
+      "fingerprint": "d15464b85eeed176",
+      "components": "716e44b61975b0a7"
     }
   }
 }

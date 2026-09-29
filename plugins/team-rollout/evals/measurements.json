@@ -10,7 +10,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "c6cb361cad7d2358"
+      "fingerprint": "c6cb361cad7d2358",
+      "components": "794bf15e927538b3"
     },
     "local-settings-committed": {
       "score": 1.0,
@@ -21,7 +22,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "6479d3f428032338"
+      "fingerprint": "6479d3f428032338",
+      "components": "ed108fb01d90b248"
     },
     "not-fired": {
       "score": 0.67,
@@ -32,7 +34,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "670b675c20ca34be"
+      "fingerprint": "670b675c20ca34be",
+      "components": "77d50ca9cb4e7f66"
     },
     "rollout-order": {
       "score": 0.67,
@@ -43,7 +46,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "0e583923d07d104d"
+      "fingerprint": "0e583923d07d104d",
+      "components": "794bf15e927538b3"
     },
     "settings-too-wide": {
       "score": 0.67,
@@ -54,7 +58,8 @@
       "baselineRuns": 3,
       "model": "claude-opus-5-5",
       "judge": "claude-sonnet-5",
-      "fingerprint": "5f8922ceba98b1df"
+      "fingerprint": "5f8922ceba98b1df",
+      "components": "ed108fb01d90b248"
     }
   }
 }

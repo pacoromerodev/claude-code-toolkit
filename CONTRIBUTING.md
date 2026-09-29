@@ -145,9 +145,12 @@ When something is wrong with the credential or the sandbox, every case scores
 Read one case's `error` field before concluding anything about a plugin.
 
 Each run writes what it measured into `plugins/<plugin>/evals/measurements.json`,
-with a fingerprint of the case at that moment. `check_eval_freshness.py`
-recompares it and reports a case that has been edited since, or never run — so
-the numbers in this repository always say how old they are. A run whose arms
+with a fingerprint of the case at that moment and one of the components its
+`tags:` name — the skill's directory, the agent or command file, or the hook
+script. `check_eval_freshness.py` recompares both and reports a case whose
+case or component has been edited since, or that was never run — so the
+numbers in this repository always say how old they are. Name the component
+in `tags:`, or an edit to it will not show. A run whose arms
 all errored is not recorded: those score 0.00 in the result file, which is
 indistinguishable from a plugin that failed.
 

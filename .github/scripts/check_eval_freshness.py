@@ -9,7 +9,8 @@ the part that failed before.
 Four states per case, from the plugin's `evals/measurements.json`:
 
   measured   the recorded fingerprint matches the case on disk
-  stale      the case has been edited since it was measured
+  stale      the case, or a component it exercises, has been edited since
+             it was measured
   nobase     current fingerprint, but no baseline: every no-plugin run
              errored, so the score has nothing to be compared against
   never      no entry at all
@@ -38,7 +39,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from eval_ledger import case_fingerprint, read_ledger  # noqa: E402
+from eval_ledger import (  # noqa: E402
+    case_fingerprint, component_fingerprint, read_ledger)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -75,6 +77,15 @@ def main(argv):
             if entry.get("fingerprint") != case_fingerprint(case_dir):
                 rows.append((plugin.name, name, "stale",
                              f"measured {entry.get('measured', '?')}"))
+                stale.append(f"{plugin.name}/{name}")
+                continue
+            components = component_fingerprint(plugin, case_dir)
+            if components and entry.get("components") != components:
+                why = ("a component it exercises changed since "
+                       f"{entry.get('measured', '?')}"
+                       if entry.get("components")
+                       else "no component fingerprint recorded")
+                rows.append((plugin.name, name, "stale", why))
                 stale.append(f"{plugin.name}/{name}")
                 continue
             if model and entry.get("model") != model:

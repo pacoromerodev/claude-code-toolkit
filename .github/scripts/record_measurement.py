@@ -5,7 +5,8 @@
 
 Takes the JSON `claude plugin eval --json` writes and records, per case, what
 it scored with the plugin, what the no-plugin arm scored, the delta, how many
-runs stood behind it, and a fingerprint of the case as it was.
+runs stood behind it, and fingerprints of the case and of the components it
+exercises, as they were.
 
 A run whose arms errored — a usage limit, a missing sandbox, a credential that
 the API rejected — is not a measurement and is not recorded. Those failures
@@ -29,7 +30,8 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from eval_ledger import case_fingerprint, read_ledger, write_ledger  # noqa: E402
+from eval_ledger import (  # noqa: E402
+    case_fingerprint, component_fingerprint, read_ledger, write_ledger)
 
 
 def run_failed(run):
@@ -104,6 +106,9 @@ def main(argv):
                 entry["judge"] = judge
             if case_dir.is_dir():
                 entry["fingerprint"] = case_fingerprint(case_dir)
+                components = component_fingerprint(plugin_dir, case_dir)
+                if components:
+                    entry["components"] = components
             cases[name] = entry
             recorded.append(name)
 
