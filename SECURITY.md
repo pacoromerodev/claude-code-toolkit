@@ -36,9 +36,9 @@ sandboxing for that.
 
 ## Known and fixed
 
-[AUDIT.md](AUDIT.md) documents guard bypasses (C2) and a context-injection
+[AUDIT.md](docs/history/AUDIT.md) documents guard bypasses (C2) and a context-injection
 path (H1) found in the second audit. All of them were fixed in Phase 9 of
-[ROADMAP-v2.md](ROADMAP-v2.md), whose status table records re-running the
+[ROADMAP-v2.md](docs/history/ROADMAP-v2.md), whose status table records re-running the
 audit's probe against them. Blocking branches carry fixtures in the plugin's
 `tests/fixtures/`, one input that must be blocked and one that must pass, and
 CI runs them on Python 3.8 and 3.12.
