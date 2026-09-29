@@ -26,6 +26,10 @@ The rules checked here:
     its budget starts at 1,024 tokens and must leave room under max_tokens;
     `effort` lives in `output_config`.
   - `system=None` is an error rather than an omission.
+  - Newer models reject shapes older ones took: a fixed `budget_tokens`
+    from the 5 family on, and on Claude Sonnet 5.5, Opus 5.5 and Fable 5.1
+    disabled thinking and a forced `tool_choice`. Sonnet 5.5 turns
+    thinking off with `between_tools`, at effort high or below.
   - A tool loop returns a result for a tool that failed, with is_error.
 
 Parses with `ast`. Exit 1 on an error, 0 otherwise.
@@ -285,6 +289,95 @@ def check_thinking(node, file, source, findings):
             "in the thinking object."))
 
 
+# Shapes a model rejects although an earlier model in its line took them.
+# Keyed by the id as the request names it; a Bedrock `anthropic.` prefix is
+# dropped first. An unknown or computed model is not judged.
+BUDGET_REMOVED = {"claude-fable-5-1", "claude-fable-5", "claude-opus-5-5",
+                  "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7",
+                  "claude-sonnet-5-5", "claude-sonnet-5"}
+NO_DISABLED_THINKING = {
+    "claude-sonnet-5-5": "To turn thinking off on Sonnet 5.5, send "
+                         "thinking={\"type\": \"between_tools\"} at effort "
+                         "high or below, or keep it on at a low effort.",
+    "claude-opus-5-5": "Thinking cannot be turned off on Opus 5.5. Omit "
+                       "`thinking` and lower `effort` instead.",
+    "claude-fable-5-1": "Thinking is always on. Omit `thinking`.",
+    "claude-fable-5": "Thinking is always on. Omit `thinking`.",
+}
+NO_FORCED_TOOL = {"claude-sonnet-5-5", "claude-opus-5-5", "claude-fable-5-1"}
+BETWEEN_TOOLS_MODELS = {"claude-sonnet-5-5"}
+BETWEEN_TOOLS_EFFORT = {"low", "medium", "high"}
+
+
+def literal_str(node):
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
+
+
+def model_of(node):
+    model = literal_str(keyword(node, "model"))
+    if model and model.startswith("anthropic."):
+        model = model[len("anthropic."):]
+    return model
+
+
+def check_model_shapes(node, file, findings):
+    model = model_of(node)
+    if model is None:
+        return
+    thinking = keyword(node, "thinking")
+    kind = literal_str(dict_entry(thinking, "type"))
+
+    if model in BUDGET_REMOVED and (
+            kind == "enabled" or dict_entry(thinking, "budget_tokens") is not None):
+        findings.append(Finding(
+            "error", file, node.lineno, "thinking-budget-removed",
+            f"a fixed thinking budget on {model}",
+            "This model rejects `budget_tokens` with a 400. Use "
+            "thinking={\"type\": \"adaptive\"} and set the depth with "
+            "output_config={\"effort\": ...}."))
+
+    if kind == "disabled" and model in NO_DISABLED_THINKING:
+        findings.append(Finding(
+            "error", file, node.lineno, "thinking-disabled-rejected",
+            f"thinking={{\"type\": \"disabled\"}} on {model}",
+            "The request is rejected with a 400. "
+            + NO_DISABLED_THINKING[model]))
+
+    if kind == "between_tools":
+        effort = literal_str(dict_entry(keyword(node, "output_config"), "effort"))
+        if model not in BETWEEN_TOOLS_MODELS:
+            findings.append(Finding(
+                "error", file, node.lineno, "between-tools-unsupported",
+                f"thinking type `between_tools` on {model}",
+                "Only Claude Sonnet 5.5 accepts it. On this model, lower "
+                "`effort` instead."))
+        elif effort is not None and effort not in BETWEEN_TOOLS_EFFORT:
+            findings.append(Finding(
+                "error", file, node.lineno, "between-tools-effort",
+                f"`between_tools` with effort {effort!r}",
+                "It is accepted only at effort high or below. Lower the "
+                "effort, or turn thinking back on."))
+        if thinking is not None and len(getattr(thinking, "keys", [])) > 1:
+            findings.append(Finding(
+                "error", file, node.lineno, "between-tools-extra-field",
+                "`between_tools` with another field in `thinking`",
+                "It takes no other field: `display` or `budget_tokens` next "
+                "to it is a 400."))
+
+    choice = literal_str(dict_entry(keyword(node, "tool_choice"), "type"))
+    if choice in {"any", "tool"} and model in NO_FORCED_TOOL:
+        findings.append(Finding(
+            "error", file, node.lineno, "forced-tool-choice-rejected",
+            f"tool_choice of type {choice!r} on {model}",
+            "Forced tool use is rejected with a 400. Use "
+            "tool_choice={\"type\": \"auto\"} and name the tool in the "
+            "prompt, with `strict: true` on it; or ask for structured output "
+            "with output_config={\"format\": ...} if the call only existed "
+            "to get JSON back."))
+
+
 def check_effort(node, file, findings):
     effort = keyword(node, "effort")
     if effort is None:
@@ -361,6 +454,7 @@ def check_module(path, findings):
             check_call(node, file, source, findings)
             check_thinking(node, file, source, findings)
             check_effort(node, file, findings)
+            check_model_shapes(node, file, findings)
             check_system(node, file, findings)
 
     if calls:

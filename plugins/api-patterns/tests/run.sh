@@ -85,6 +85,12 @@ for probe in "thinking with temperature:thinking-with-temperature" \
              "effort as its own argument:effort-top-level" \
              "effort inside thinking:effort-in-thinking" \
              "system=None:system-none" \
+             "a thinking budget on Sonnet 5.5:thinking-budget-removed" \
+             "disabled thinking on Sonnet 5.5:thinking-disabled-rejected" \
+             "between_tools above high effort:between-tools-effort" \
+             "between_tools with another field:between-tools-extra-field" \
+             "between_tools off Sonnet 5.5:between-tools-unsupported" \
+             "a forced tool on Sonnet 5.5:forced-tool-choice-rejected" \
              "a tool loop with no is_error:tool-errors-unreported"; do
   label="${probe%%:*}"; needle="${probe#*:}"
   [[ "$requests_output" == *"$needle"* ]] && ok finds "$label" || bad finds "$label"

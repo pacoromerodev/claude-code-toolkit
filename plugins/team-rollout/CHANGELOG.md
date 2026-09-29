@@ -6,6 +6,12 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-09-29
+
+### Changed
+- The managed-settings template pins `claude-sonnet-5-5`, the current Sonnet,
+  at the same price as `claude-sonnet-5`.
+
 ## [0.2.0] — 2026-09-29
 
 ### Added
