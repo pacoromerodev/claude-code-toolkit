@@ -94,7 +94,9 @@ report what you found:
   is pasted in as text before the shell sees it, so an issue title or a
   comment body becomes part of the command. Pass values through `env:`.
 - **Versions are pinned** — the action, and any CLI installed by the job.
-  `@main` is whatever it holds today.
+  An action is pinned only by a full commit SHA, with the release as a
+  comment: `@main` is whatever it holds today, and a tag such as `@v4` is a
+  name its owner can move to other code. A CLI is pinned by an exact version.
 - **If the job runs Claude:** a turn cap, tools granted narrowly rather than
   as whole tools, and no permission bypass. Unattended is exactly where those
   matter.

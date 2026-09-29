@@ -6,6 +6,11 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `verify-changes` asks for an action pinned by commit SHA, not by tag. It
+  already flagged `@main`; a tag such as `@v4` can be moved to other code just
+  as well, which is the rule this repository's own CI enforces.
+
 ## [0.3.0] — 2026-09-29
 
 ### Added
