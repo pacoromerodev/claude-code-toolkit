@@ -174,7 +174,7 @@ pattern without a fixture — in both directions — is not done.
 claude plugin eval plugins/delivery-quality --scaffold --allow-tools Bash
 ```
 
-Four cases:
+Eight cases:
 
 - **verify-fires** — a scaffolded repo whose suite is green while the change is
   broken: a clamp caps the discount at 50%, and the test that would have caught
@@ -187,6 +187,14 @@ Four cases:
   the "Obstacles encountered" section.
 - **guard-blocks-destructive** — a force-push to main is blocked; the model must
   relay the reason and take an alternative rather than retry the command.
+- **review-against-criteria** — a change that meets three of four stated
+  criteria with green tests; the review must name the fourth.
+- **verify-phantom-package** — a dependency nobody publishes, under a passing
+  suite; the verification must catch it.
+- **verify-project-command** — a project that declares its own test command;
+  that one must be run, and its failure reported.
+- **verify-untracked** — a change made only of new files, one a test that
+  asserts nothing; the verification must read what `git diff` omits.
 
 **Known environment limitation:** on a machine where `~/.docker` contains a
 symlink — which Docker Desktop's WSL integration creates for `contexts` and
@@ -194,6 +202,21 @@ symlink — which Docker Desktop's WSL integration creates for `contexts` and
 before it starts. This is a machine constraint, not a case defect: run those
 cases on a machine whose Docker credential store holds no symlink, with
 `bubblewrap` and `socat` installed. Cases that need no Bash run anywhere.
+
+### Measured
+
+Last full pass on 2026-09-26: `claude-opus-5-5`, graded by `claude-sonnet-5`,
+three runs a side, each case against the same prompt with no plugin loaded.
+
+| Cases | Mean score | Mean Δ against no plugin | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|
+| 8 | 0.96 | +0.38 | 4 | 0 |
+
+The per-case numbers are in [`evals/measurements.json`](evals/measurements.json).
+A number is only current while neither its case nor the component it
+exercises has changed; `python3 .github/scripts/check_eval_freshness.py`
+lists the ones that have. Re-measure with `scripts/run-evals.sh --model <id>
+--stale`.
 
 ## Requirements
 

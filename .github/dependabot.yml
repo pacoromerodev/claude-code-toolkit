@@ -1,5 +1,6 @@
-# The actions in validate.yml are pinned to a major tag. This proposes the
-# bump when a new major ships, so a pin does not quietly turn into a stale one.
+# The actions in validate.yml are pinned to a commit SHA, with the release tag
+# as a comment. This proposes the new SHA when a release ships, so a pin does
+# not quietly turn into a stale one.
 version: 2
 updates:
   - package-ecosystem: github-actions

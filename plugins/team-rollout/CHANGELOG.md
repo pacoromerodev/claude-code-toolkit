@@ -6,26 +6,12 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
-### Changed
-- `plan-rollout`'s decision-owners table and five other passages tracked the
-  enterprise course's wording closely; they are reworded in this plugin's own
-  terms, with the same content. `settings-review`, the README and the
-  `rollout-order` criteria lose one stock phrase each.
+## [0.2.0] — 2026-09-29
 
 ### Added
 - One case: `local-settings-committed`. Every skill in this plugin now has the
   two positive cases and one negative that CONTRIBUTING has always
   asked for.
-
-### Removed
-- The command files that only restated their skill with defaults attached. A
-  command's description is always-on context and the skill's is what the model
-  matches on, so a wrapper paid twice for one component. What the wrappers
-  added is now in the skill bodies, where it applies whether the skill was
-  typed or fired on its own. `/rollout-plan` and `/settings-check`; the skills
-  answer to `/team-rollout:plan-rollout` and `/team-rollout:settings-review`.
-
-### Added
 - `plan-rollout` covers four things it was missing: the deployment objective
   that breaks ties before any setting is touched, who decides each of the five
   decisions and what they need from you, connectors — three gates, inherited
@@ -38,6 +24,10 @@ All notable changes to `team-rollout`. Format follows
   registered with no `ref`.
 
 ### Changed
+- `plan-rollout`'s decision-owners table and five other passages tracked the
+  enterprise course's wording closely; they are reworded in this plugin's own
+  terms, with the same content. `settings-review`, the README and the
+  `rollout-order` criteria lose one stock phrase each.
 - The worked example at the end of `plan-rollout` is rewritten in this
   repository's own terms; it had followed the shape of the course's own
   example too closely.
@@ -57,6 +47,14 @@ All notable changes to `team-rollout`. Format follows
   so the key is leaked and must be rotated — then grants wider than intended.
   It now also carries what each marketplace key actually does, and which of
   them is managed-only.
+
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/rollout-plan` and `/settings-check`; the skills
+  answer to `/team-rollout:plan-rollout` and `/team-rollout:settings-review`.
 
 ### Fixed
 - Both shipped templates were rejected by Claude Code's own schema, so a

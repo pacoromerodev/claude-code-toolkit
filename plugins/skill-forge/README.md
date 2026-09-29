@@ -128,6 +128,21 @@ may act on. A linter and a passive log have no answer of their own for an eval
 to compare against a baseline, so the case checks only that they stay out of
 the way.
 
+### Measured
+
+Last full pass on 2026-09-26: `claude-opus-5-5`, graded by `claude-sonnet-5`,
+three runs a side, each case against the same prompt with no plugin loaded.
+
+| Cases | Mean score | Mean Δ against no plugin | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|
+| 1 | 1.00 | +0.00 | 0 | 0 |
+
+The per-case numbers are in [`evals/measurements.json`](evals/measurements.json).
+A number is only current while neither its case nor the component it
+exercises has changed; `python3 .github/scripts/check_eval_freshness.py`
+lists the ones that have. Re-measure with `scripts/run-evals.sh --model <id>
+--stale`.
+
 ## Requirements
 
 Python 3.8+ on `PATH`. Standard library only.

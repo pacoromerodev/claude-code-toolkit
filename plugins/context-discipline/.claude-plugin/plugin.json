@@ -1,7 +1,7 @@
 {
   "name": "context-discipline",
   "description": "Keep the working state that compaction blurs: a snapshot of the tree taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Francisco Romero Porras",
     "url": "https://github.com/pacoromerodev"

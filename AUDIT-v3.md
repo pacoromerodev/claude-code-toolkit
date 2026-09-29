@@ -33,7 +33,7 @@ prompts. The academy repository also holds every lesson in English under
 could not read it: `--update` took one directory and did not recurse.
 
 Built from both sources, the data file holds 73,333 fingerprints, and 20 runs
-in `plugins/` matched. Most were stock phrases ("one thing at a time"), but
+in `plugins/` matched. Most were stock phrases about changing a single variable per run, but
 `plan-rollout`'s decision-owners table tracked the enterprise course's own
 table row by row. All 20 are reworded. `--notes` now repeats and recurses,
 and the scan also covers `docs/`, the README and CONTRIBUTING, which are
@@ -211,12 +211,32 @@ that must fail and one that must pass.
 | P4 | **History scan** (checklist items 1–2): the patterns in `guard_secrets.py`, reused, over `git log -p --all`; GitHub secret scanning; `/home/` and `/Users/` paths; e-mails other than the public one; internal paths in `plugins/*/scripts` and `plugins/team-rollout/settings` | No hit, or each hit listed here with its resolution. Rewriting history, if ever needed, is the owner's decision |
 | P5 | **Actions pinned to a SHA** (R4), and `check_workflows.py` rejects any non-SHA ref | Bad and good workflow fixtures; `validate.yml` passes |
 | P6 | **`SECURITY.md`**: how to report a guard bypass. AUDIT.md documents bypasses Phase 9 fixed; link the fix | File present, linked from the README |
-| P7 | **Wording check covers the root `.md` files** (AUDIT, ROADMAP, ROADMAP-v2, this file), with an allowlist for course titles such as "Claude with the Anthropic API". Reword the few real hits ("one change at a time", "name and description are required") | `check_course_wording.py --enforce` exits 0 over the wider scope |
+| P7 | **Wording check covers the root `.md` files** (AUDIT, ROADMAP, ROADMAP-v2, this file), with an allowlist for course titles such as "Claude with the Anthropic API". Reword the few real hits, two stock phrases among them | `check_course_wording.py --enforce` exits 0 over the wider scope |
 | P8 | **Manual read** (checklist item 3; the check cannot see a paraphrase of Spanish prose): `rag-retriever/SKILL.md` and `plan-rollout/SKILL.md` against their courses | Result recorded in this file |
 | P9 | **Releases** (R2): delivery-quality 0.2.0 → 0.3.0 (commands removed), context-discipline, api-patterns and team-rollout 0.1.0 → 0.2.0, skill-forge if it has unreleased changes; marketplace `metadata.version` 0.1.0 → 0.2.0; a tag `<plugin>-v<version>` per release | One commit per plugin touching `plugin.json`, `marketplace.json` and `CHANGELOG.md` together |
 | P10 | **README for strangers** (checklist item 5, R8): one short section per plugin or links only; install steps tested from a clean clone; a status section linking the measurements | Followed end to end from a fresh clone |
 | P11 | **`TodoWrite` in `scope-task`** (R8): check the current tools reference, drop it if it is gone or needs no pre-approval | `audit_skills.py` clean |
 | P12 | **Publish** — the owner's step: final checklist here, repository visibility set to public, then from another account `/plugin marketplace add pacoromerodev/claude-code-toolkit` and `/plugin install delivery-quality@pacoromerodev` | The install works for someone who is not the owner |
+
+### Done — 2026-09-29
+
+Each step one commit on `claude/peaceful-curie-cwduai`, each through the
+`CLAUDE.md` block.
+
+| # | Result |
+|---|---|
+| P1 | Done. Ledger entries carry a `components` fingerprint, backfilled from the tree of the commit that recorded each one. No component changed between those commits and the merge before this audit, so what now reads as changed is exactly what this audit touched: 19 cases, then 2 more once P11 changed `scope-task` |
+| P2 | Done. `cli` is recorded; CI installs 2.1.282, on which all six manifests validate |
+| P3 | Done. Every plugin README has a *Measured* section; `api-patterns` is labelled experimental in four places |
+| P4 | **No secret, no internal path.** The 20 patterns of `guard_secrets.py` over all 93 commits found 13 distinct values, every one a deliberately fake key in a test fixture, an eval scaffold or a documentation example. `/home/user` is the fixtures' generic path, `/Users/alice` an example. GitHub's scanner takes pasted snippets only, and 1 MB of added lines is not practical through it; not run. **One decision for the owner:** 140 commits carry a personal e-mail address as author. It becomes public with the history. Keeping it is a choice; replacing it means rewriting every commit, which only the owner can decide |
+| P5 | Done. checkout and setup-node at v4.4.0, setup-python at v5.6.0, by SHA; any other ref fails the check. Newer majors exist (v7); Dependabot will propose them |
+| P6 | Done. `SECURITY.md`, linked from the README. **For the owner:** enable *private vulnerability reporting* in the repository's security settings, or its reporting instruction leads nowhere |
+| P7 | Done. Nine runs in five root files reworded; the 22 course titles are allowed as citations |
+| P8 | Done, and clean. `rag-retriever`'s contextual-retrieval section reuses the idea with its own prompt, structure and example. `plan-rollout`'s postures, spend rules and new-capability questions follow the enterprise course's structure in this plugin's words, and its worked example (a scheduled-task surface) is not the course's (a Slack integration) |
+| P9 | Done. delivery-quality 0.3.0; context-discipline, api-patterns, team-rollout 0.2.0; marketplace 0.2.0. Tags `<plugin>-v<version>` wait for the merge, so they point at commits on `main` |
+| P10 | Done. README has a quick start and a status table (version, always-on context, measured Δ). Installed from a clean clone into an empty home: all five plugins install and report their new versions |
+| P11 | Done. Claude Code 2.1.284 ships both `TodoWrite` and the task tools; neither asks for permission, so the entry did nothing. Removed |
+| P12 | Waiting, by the owner's decision: the repository stays private until the remaining improvements are in |
 
 `anthropic-academy-es` **stays private**: it holds the lessons verbatim, and
 it must remain readable locally to regenerate the fingerprints.

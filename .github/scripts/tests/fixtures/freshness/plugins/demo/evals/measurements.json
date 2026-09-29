@@ -1,6 +1,15 @@
 {
   "$comment": "What each case scored when it was last run, and a fingerprint of the case at that moment. check_eval_freshness.py reports anything edited since. Written by scripts/run-evals.sh; do not edit by hand.",
   "cases": {
+    "component-edited-case": {
+      "score": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "runs": 3,
+      "measured": "2026-09-20",
+      "fingerprint": "5ec60718b7b0cc5f",
+      "components": "0000c0ffee000000"
+    },
     "edited-case": {
       "score": 1.0,
       "baseline": 1.0,
@@ -13,7 +22,16 @@
       "score": 1.0,
       "runs": 2,
       "measured": "2026-09-24",
-      "fingerprint": "5feafc39062394ea"
+      "fingerprint": "5feafc39062394ea",
+      "components": "91a05de872262271"
+    },
+    "legacy-case": {
+      "score": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "runs": 3,
+      "measured": "2026-09-20",
+      "fingerprint": "b5f84551838fd79b"
     },
     "measured-case": {
       "score": 1.0,
@@ -21,7 +39,8 @@
       "delta": 1.0,
       "runs": 3,
       "measured": "2026-09-20",
-      "fingerprint": "e30d81f464d81854"
+      "fingerprint": "e30d81f464d81854",
+      "components": "91a05de872262271"
     }
   }
 }

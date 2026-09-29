@@ -101,6 +101,7 @@ expect_text "workflows bad" "$out" "no permissions: block"
 expect_text "workflows bad" "$out" "checkout without persist-credentials: false"
 expect_text "workflows bad" "$out" "inside a run: block"
 expect_text "workflows bad" "$out" "@acme/tool is installed unpinned"
+expect_text "workflows bad" "$out" "actions/checkout is pinned to @v4, a tag its owner can move"
 
 # A workflow that runs Claude unattended: every M4 finding must appear.
 out="$("$PY" "$SCRIPTS/check_workflows.py" "$FIXTURES/workflows/unattended" 2>&1)"
@@ -137,6 +138,15 @@ out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
   "$FIXTURES/course-wording/bad-docs" 2>&1)"
 expect_exit "wording in docs" "$?" 1
 expect_text "wording in docs" "$out" "docs/guide.md"
+# Every Markdown file at the root is published too.
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/bad-root" 2>&1)"
+expect_exit "wording in a root file" "$?" 1
+expect_text "wording in a root file" "$out" "NOTES.md"
+# A course's title is a citation, not borrowed prose.
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/good-title" 2>&1)"
+expect_exit "wording: a course title is not a match" "$?" 0
 # --notes repeats, and a lesson one directory down is read: the English
 # originals live in per-course folders, and missing them is missing the source.
 fp2="$SANDBOX/fingerprints-both.txt"
@@ -167,7 +177,12 @@ expect_text "freshness" "$out" "never  demo/new-case"
 # A score whose baseline arm all errored is not a delta, and must not read as
 # measured: --stale would then never run it again.
 expect_text "freshness" "$out" "NOBAS  demo/half-measured-case"
-expect_text "freshness" "$out" "1 measured, 1 changed since, 1 without a baseline, 1 never run"
+# The case is unchanged but the skill it exercises is not: the number is about
+# a component that no longer exists, exactly like an edited case.
+expect_text "freshness" "$out" "STALE  demo/component-edited-case  a component it exercises changed"
+# An entry from before components were recorded cannot vouch for them.
+expect_text "freshness" "$out" "STALE  demo/legacy-case            no component fingerprint recorded"
+expect_text "freshness" "$out" "1 measured, 3 changed since, 1 without a baseline, 1 never run"
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --list-stale "$FIXTURES/freshness" 2>&1)"
 expect_text "freshness --list-stale" "$out" "demo/half-measured-case"
 out="$("$PY" "$SCRIPTS/check_eval_freshness.py" --enforce "$FIXTURES/freshness" 2>&1)"
@@ -222,6 +237,22 @@ judge="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"][
 [[ "$judge" == "claude-test-judge" ]] \
   && ok "record --judge" "writes the judge beside the number" \
   || bad "record --judge" "recorded judge $judge"
+"$PY" "$SCRIPTS/record_measurement.py" --cli 9.9.9 "$ledger_dir" \
+  "$SANDBOX/good-result.json" >/dev/null 2>&1
+cli="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"].get("cli"))' "$ledger_dir/evals/measurements.json")"
+[[ "$cli" == "9.9.9" ]] \
+  && ok "record --cli" "writes the CLI version beside the number" \
+  || bad "record --cli" "recorded cli $cli"
+# The recorder fingerprints the component a case names, so a later edit to it
+# makes the number stale even when the case itself is untouched.
+mkdir -p "$ledger_dir/skills/some-skill"
+printf -- '---\nname: some-skill\ndescription: x\n---\n' > "$ledger_dir/skills/some-skill/SKILL.md"
+printf 'schema_version: "1.0"\nname: some-case\ntags: [some-skill, skill]\n' > "$ledger_dir/evals/some-case/case.yaml"
+"$PY" "$SCRIPTS/record_measurement.py" "$ledger_dir" "$SANDBOX/good-result.json" >/dev/null 2>&1
+components="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"].get("components"))' "$ledger_dir/evals/measurements.json")"
+[[ "$components" =~ ^[0-9a-f]{16}$ ]] \
+  && ok "record components" "writes the component fingerprint" \
+  || bad "record components" "recorded components $components"
 
 echo
 echo "== check_hooks.py =="

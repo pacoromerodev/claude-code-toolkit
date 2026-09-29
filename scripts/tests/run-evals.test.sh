@@ -17,7 +17,9 @@ bad() { printf 'FAIL  %s\n' "$1"; fail=$((fail + 1)); return 0; }
 
 # A stub claude that records each invocation, one line per call.
 stub="$SANDBOX/claude"
-printf '#!/usr/bin/env bash\necho "$*" >> "%s/calls"\n' "$SANDBOX" > "$stub"
+# --version answers without being logged, so the counts below stay one line
+# per case.
+printf '#!/usr/bin/env bash\n[ "$1" = --version ] && { echo "9.9.9 (Claude Code)"; exit 0; }\necho "$*" >> "%s/calls"\n' "$SANDBOX" > "$stub"
 chmod +x "$stub"
 # Every run names its model; the cases below that test a missing one unset it.
 export EVAL_MODEL=claude-test-model
@@ -135,6 +137,17 @@ judge_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/judge-out
 [[ "$judge_out" == *"--case fresh-case"* ]] \
   && ok "--stale re-runs a case graded by another judge" \
   || bad "--stale kept a case graded by another judge"
+
+# The CLI version that ran the eval is recorded with the number.
+pystub="$SANDBOX/python-stub"
+printf '#!/usr/bin/env bash\necho "$*" >> "%s/python-calls"\n' "$SANDBOX" > "$pystub"
+chmod +x "$pystub"
+mkdir -p "$SANDBOX/cli-out/$plugin"
+echo '{"cases":[]}' > "$SANDBOX/cli-out/$plugin/some-case.json"
+HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" PYTHON="$pystub" \
+  OUT_DIR="$SANDBOX/cli-out" bash "$RUNNER" "$plugin" >/dev/null 2>&1
+grep -q -- "record_measurement.py .*--cli 9.9.9" "$SANDBOX/python-calls" \
+  && ok "the CLI version reaches the ledger" || bad "--cli was not passed to the recorder"
 
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"

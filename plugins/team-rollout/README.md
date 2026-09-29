@@ -109,6 +109,21 @@ claude plugin eval plugins/team-rollout --scaffold --allow-tools Bash
 - **local-settings-committed** — a personal allow-list in the project file.
 - **not-fired** — "how do I switch permission modes", which deserves one line.
 
+### Measured
+
+Last full pass on 2026-09-26: `claude-opus-5-5`, graded by `claude-sonnet-5`,
+three runs a side, each case against the same prompt with no plugin loaded.
+
+| Cases | Mean score | Mean Δ against no plugin | Δ > 0 | Δ < 0 |
+|---|---|---|---|---|
+| 5 | 0.80 | +0.47 | 3 | 0 |
+
+The per-case numbers are in [`evals/measurements.json`](evals/measurements.json).
+A number is only current while neither its case nor the component it
+exercises has changed; `python3 .github/scripts/check_eval_freshness.py`
+lists the ones that have. Re-measure with `scripts/run-evals.sh --model <id>
+--stale`.
+
 ## Requirements
 
 Python 3.8+ on `PATH`. Standard library only.

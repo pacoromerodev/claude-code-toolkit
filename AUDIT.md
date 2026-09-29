@@ -41,7 +41,7 @@ The five that matter most:
    `rm -Rf ~/x` pass. Writing `.*` to `.claude/secret-guard-allow` then lets a
    blocked key through, and the block message tells the model to write that file.
 3. **H1 — `restore_state.py` injects stale or foreign text as "measured facts"
-   at the start of every session.** It did so in the session that produced this
+   whenever a session begins.** It did so in the session that produced this
    audit, reporting the wrong branch. A file committed to any repository's
    `.claude/state/` is injected the same way.
 4. **H4 — The reference managed policy restricts no marketplace.** The template
@@ -496,7 +496,7 @@ before inclusion.
 | One-hour cache TTL | `ROADMAP.md:188`; the note says so too (`claude-with-the-anthropic-api.md:590`, `:793`, `:815`) | Default is 5 minutes. 1 hour is opt-in (`ttl: "1h"`) at twice the write price. The skill itself avoids a number |
 | `cache-on-tail` warns against a breakpoint on the newest message | `check_caching.py:173-181` | Automatic caching puts the breakpoint on the last cacheable block. The note does not back the warning (`:598`) |
 | A skill whose `name` ≠ directory "does not resolve" | `audit-skills/SKILL.md:30`, `write-a-skill/SKILL.md:35`, the `audit-finds-faults` grader | Docs: in project and personal skills the command comes from the directory and `name` is a display label. The note (`introduction-to-agent-skills.md:48`, `:70`) states the open-standard rule, which is a portability concern, not a load failure |
-| "Only `name` and `description` are required" | `write-a-skill/SKILL.md:49` | Claude Code docs: `name` optional (defaults to the directory), `description` recommended. The listing truncates description plus `when_to_use` at 1,536 characters |
+| That `name` and `description` are both mandatory | `write-a-skill/SKILL.md:49` | Claude Code docs: `name` optional (defaults to the directory), `description` recommended. The listing truncates description plus `when_to_use` at 1,536 characters |
 | Subagents do not inherit skills; built-ins cannot use skills | `write-a-skill/SKILL.md:120-121`; note `introduction-to-agent-skills.md:113-117` | Docs: `skills:` preloads, but subagents can still invoke unlisted skills through the Skill tool. Built-in agents do not preload |
 | An invalid settings file is ignored "silently… with no message anywhere" | `settings-review/SKILL.md:55` | Docs: an interactive session shows a Settings Error dialog |
 

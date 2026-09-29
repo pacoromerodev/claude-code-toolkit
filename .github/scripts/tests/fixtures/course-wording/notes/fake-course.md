@@ -7,3 +7,5 @@ inglés. No contiene texto de ningún apunte real.
 Summarise the ledger entry for the auditor and list every counterparty that
 appears more than twice in the reconciliation window.
 ```
+
+Curso de referencia: Claude with the Anthropic API.

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Write an eval run's scores into the plugin's ledger.
 
-    record_measurement.py [--model <id>] [--judge <id>] <plugin dir> <result.json> [...]
+    record_measurement.py [--model <id>] [--judge <id>] [--cli <version>]
+                          <plugin dir> <result.json> [...]
 
 Takes the JSON `claude plugin eval --json` writes and records, per case, what
 it scored with the plugin, what the no-plugin arm scored, the delta, how many
-runs stood behind it, and a fingerprint of the case as it was.
+runs stood behind it, and fingerprints of the case and of the components it
+exercises, as they were.
 
 A run whose arms errored — a usage limit, a missing sandbox, a credential that
 the API rejected — is not a measurement and is not recorded. Those failures
@@ -19,7 +21,8 @@ were almost certainly two models, with nothing in the ledger to tell them
 apart.
 
 The judge that graded the runs is recorded the same way, with --judge: a
-score is the judge's reading as much as the model's answer.
+score is the judge's reading as much as the model's answer. So is the Claude
+Code version that ran the eval, with --cli.
 
 `scripts/run-evals.sh` calls this. Exit 0 when the ledger is written.
 """
@@ -29,7 +32,8 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from eval_ledger import case_fingerprint, read_ledger, write_ledger  # noqa: E402
+from eval_ledger import (  # noqa: E402
+    case_fingerprint, component_fingerprint, read_ledger, write_ledger)
 
 
 def run_failed(run):
@@ -62,8 +66,9 @@ def take_option(argv, flag):
 def main(argv):
     model, argv = take_option(argv, "--model")
     judge, argv = take_option(argv, "--judge")
+    cli, argv = take_option(argv, "--cli")
     if len(argv) < 3:
-        print(__doc__.strip().splitlines()[2].strip())
+        print(" ".join(line.strip() for line in __doc__.strip().splitlines()[2:4]))
         return 1
 
     plugin_dir = Path(argv[1]).resolve()
@@ -102,8 +107,13 @@ def main(argv):
                 entry["model"] = model
             if judge:
                 entry["judge"] = judge
+            if cli:
+                entry["cli"] = cli
             if case_dir.is_dir():
                 entry["fingerprint"] = case_fingerprint(case_dir)
+                components = component_fingerprint(plugin_dir, case_dir)
+                if components:
+                    entry["components"] = components
             cases[name] = entry
             recorded.append(name)
 

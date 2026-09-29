@@ -6,13 +6,7 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
-### Changed
-- `tool-schema-review` no longer has `Bash`. It reviews what the model sees —
-  name, description, schema — and never runs anything, so the tool was a
-  grant with no use.
-- Reworded four runs of five words that also appear in the English lessons,
-  found once the wording check read them (`eval-harness`, its providers
-  reference, and this changelog).
+## [0.2.0] — 2026-09-29
 
 ### Added
 - Three cases: `cache-ttl-mismatch`, `hybrid-or-rerank` and `tool-never-chosen`,
@@ -21,6 +15,15 @@ All notable changes to `api-patterns`. Format follows
   asked for.
 
 ### Changed
+- Marked **experimental** in the README, the manifest and the marketplace
+  entry. Across its ten cases it scores below the no-plugin baseline (Δ −0.10,
+  Sonnet judging); the README says so, and says what would settle it.
+- `tool-schema-review` no longer has `Bash`. It reviews what the model sees —
+  name, description, schema — and never runs anything, so the tool was a
+  grant with no use.
+- Reworded four runs of five words that also appear in the English lessons,
+  found once the wording check read them (`eval-harness`, its providers
+  reference, and this changelog).
 - `tool-schema-review` says where the tools it reviews live — the `tools`
   array of a Messages call, or the functions a tool runner builds one from —
   and points at `mcp-review` for the other kind.
