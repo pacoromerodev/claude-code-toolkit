@@ -11,10 +11,16 @@ on:
 permissions:
   contents: read
 
-# A new push to the same branch makes the older run's answer irrelevant.
+# On a pull request, a new push makes the older run's answer irrelevant, so
+# runs share a group per branch and the older one is cancelled. Everywhere
+# else each commit gets a group of its own and is never cancelled: three
+# merges that landed together started out of order, and the oldest one's run
+# cancelled the newest, leaving the head of main with no result at all. A
+# shared group without cancel-in-progress is not enough — a newer pending run
+# still replaces an older pending one.
 concurrency:
-  group: validate-${{ github.ref }}
-  cancel-in-progress: true
+  group: validate-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   manifests:
