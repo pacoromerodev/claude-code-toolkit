@@ -20,7 +20,7 @@
 # result file does not say which model ran. The id is passed to the eval and
 # written into the ledger with each number.
 #
-# --judge-model names the model that grades the answers, claude-sonnet-5
+# --judge-model names the model that grades the answers, claude-sonnet-5-5
 # unless given. The eval's own default is Haiku, which on 2026-09-26 failed,
 # three votes in three, an answer that met every line of its criteria. The
 # judge is recorded with the model, and --stale re-runs anything judged by
@@ -51,7 +51,7 @@ CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 OUT_DIR="${OUT_DIR:-$(mktemp -d)}"
 RUNS=""
 MODEL="${EVAL_MODEL:-}"
-JUDGE="${EVAL_JUDGE_MODEL:-claude-sonnet-5}"
+JUDGE="${EVAL_JUDGE_MODEL:-claude-sonnet-5-5}"
 DRY_RUN=0
 STALE_ONLY=0
 PLUGINS=()

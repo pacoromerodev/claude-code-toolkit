@@ -6,6 +6,22 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-29
+
+### Added
+- `check_api_calls.py` knows the request shapes Claude Sonnet 5.5 rejects
+  with a 400 that Sonnet 5 accepted: `thinking={"type": "disabled"}` (Sonnet
+  5.5 turns thinking off with `between_tools`), a forced `tool_choice` of type
+  `any` or `tool`, and `between_tools` above effort `high`, with another field
+  beside it, or on any other model. The disabled-thinking and forced-tool rules
+  also cover Opus 5.5 and Fable 5.1.
+- A fixed `budget_tokens` is reported on the models that removed it: Fable 5
+  and 5.1, Opus 5.5, 5, 4.8 and 4.7, Sonnet 5.5 and 5.
+
+### Changed
+- The request fixtures that use `budget_tokens` now call Haiku 4.5, which
+  still takes it; Sonnet 5 had been rejecting them.
+
 ## [0.2.0] — 2026-09-29
 
 ### Added

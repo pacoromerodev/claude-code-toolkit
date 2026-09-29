@@ -129,7 +129,7 @@ grep -q -- "--judge-model claude-test-judge" "$SANDBOX/calls" \
 rm -f "$SANDBOX/calls"
 EVAL_JUDGE_MODEL="" HOME="$SANDBOX/plain" DOCKER_CONFIG="" CLAUDE_BIN="$stub" \
   OUT_DIR="$SANDBOX/default-judge" bash "$RUNNER" "$plugin" >/dev/null 2>&1
-grep -q -- "--judge-model claude-sonnet-5" "$SANDBOX/calls" \
+grep -q -- "--judge-model claude-sonnet-5-5" "$SANDBOX/calls" \
   && ok "the judge defaults to Sonnet, not the eval's Haiku" \
   || bad "no default judge was passed"
 judge_out="$(EVAL_ROOT="$fixture" CLAUDE_BIN="$stub" OUT_DIR="$SANDBOX/judge-out" \

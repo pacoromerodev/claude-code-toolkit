@@ -25,7 +25,9 @@ With no path given, audit every file in the repository that calls the Messages
 API. The script also reports request shapes that fail when they run — thinking
 with `temperature` or a prefill, a thinking budget under 1,024 tokens or with
 no room under `max_tokens`, `effort` outside `output_config`, `system=None`,
-and a tool loop that never returns `is_error`.
+a tool loop that never returns `is_error`, and the shapes a newer model
+rejects — a fixed budget from the 5 family on, disabled thinking or a forced
+`tool_choice` on Sonnet 5.5, Opus 5.5 and Fable 5.1.
 
 ## The rules
 

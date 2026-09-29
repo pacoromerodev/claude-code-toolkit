@@ -43,7 +43,7 @@
   },
 
   "$comment_model": "Pin the organisation default. Without one, every user's own default applies, which is the usual source of unplanned spend — a group running an expensive model on routine work looks like a capacity problem and is a configuration one.",
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-5-5",
 
   "$comment_env": "Environment variables every session inherits. Telemetry is a visibility decision: turn it off here, or leave it on and send OpenTelemetry to your own collector.",
   "env": {

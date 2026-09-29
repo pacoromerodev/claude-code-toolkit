@@ -20,7 +20,7 @@
       "ref": "v1.2.0"
     }
   ],
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-5-5",
   "env": {
     "DISABLE_TELEMETRY": "1"
   },

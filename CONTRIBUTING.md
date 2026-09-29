@@ -111,10 +111,11 @@ does not record which model ran. The ledger stores the id next to every
 number, and `--stale` counts anything measured on another model as unmeasured,
 so switching models means re-measuring, not quoting yesterday's numbers.
 
-The answers are graded by `claude-sonnet-5` unless `--judge-model` says
+The answers are graded by `claude-sonnet-5-5` unless `--judge-model` says
 otherwise; the eval's own default, Haiku, failed three votes in three an
 answer that met every line of its criteria. The judge is recorded and
-checked the same way as the model.
+checked the same way as the model, so the numbers graded by
+`claude-sonnet-5` before the default moved count as stale.
 
 Cases tagged `needs-bash` also need `bwrap` and `socat` installed, and no
 symbolic link anywhere under `~/.docker` (or `$DOCKER_CONFIG`); the eval
