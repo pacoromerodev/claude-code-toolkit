@@ -6,23 +6,7 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
-### Fixed
-- `verify-changes` pointed at `.github/scripts/check_workflows.py` "in this
-  repository". Installed in someone else's project, that file does not exist;
-  the workflow checks are now read by hand, as the list already describes.
-- `code-reviewer` assumed the base branch was `main`. It now uses the base the
-  task names, else the remote's default branch, and says which it used.
-
-### Removed
-- The command files that only restated their skill with defaults attached. A
-  command's description is always-on context and the skill's is what the model
-  matches on, so a wrapper paid twice for one component. What the wrappers
-  added is now in the skill bodies, where it applies whether the skill was
-  typed or fired on its own. `/verify`; the skill answers to
-  `/delivery-quality:verify-changes`. The command that launches the subagent
-  stays, as `/review-diff`.
-- Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
-  and the fixture sent a payload the Edit tool does not produce.
+## [0.3.0] — 2026-09-29
 
 ### Added
 - `verify-changes` checks that a dependency the change introduces actually
@@ -75,7 +59,24 @@ All notable changes to `delivery-quality`. Format follows
   so the run after a failure is what checks the fix. Output is clipped to 300
   characters per line and 4,000 in total.
 
+### Removed
+- The command files that only restated their skill with defaults attached. A
+  command's description is always-on context and the skill's is what the model
+  matches on, so a wrapper paid twice for one component. What the wrappers
+  added is now in the skill bodies, where it applies whether the skill was
+  typed or fired on its own. `/verify`; the skill answers to
+  `/delivery-quality:verify-changes`. The command that launches the subagent
+  stays, as `/review-diff`.
+- Dead MultiEdit branch and its fixture: no such tool exists in Claude Code 2.1,
+  and the fixture sent a payload the Edit tool does not produce.
+
 ### Fixed
+- `verify-changes` pointed at `.github/scripts/check_workflows.py` "in this
+  repository". Installed in someone else's project, that file does not exist;
+  the workflow checks are now read by hand, as the list already describes.
+- `code-reviewer` assumed the base branch was `main`. It now uses the base the
+  task names, else the remote's default branch, and says which it used.
+
 - The test gate no longer traps a turn whose right answer is a failing report.
   It blocked on every stop while the suite was red, so a request to *verify* a
   change — where reporting the failure is the whole job — turned into Claude
