@@ -1,7 +1,7 @@
 {
   "name": "team-rollout",
   "description": "Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference managed and project settings, and a checker for permissions wider than intended, unpinned marketplaces and hooks that never fire.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "Francisco Romero Porras",
     "url": "https://github.com/pacoromerodev"

@@ -72,10 +72,11 @@ timeouts, and tool errors returned as errors rather than swallowed.
 
 ## Choosing the model
 
-Evaluate from the cheapest upward, on the same dataset. Start with the small
-fast model; move up only where it measurably fails. Route by task rather than
-picking one model for everything — extraction and final drafting are different
-jobs.
+Evaluate on the same dataset before choosing. Start with the strongest model
+turned down to a lower effort: it often matches a smaller model run harder, and
+one model keeps one cache. Move to a smaller model where it measurably holds
+the same quality. Route by task rather than picking one model for everything —
+extraction and final drafting are different jobs.
 
 ## The honest test
 

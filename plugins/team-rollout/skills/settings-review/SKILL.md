@@ -14,7 +14,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/check_settings.py managed.json --managed
 `--managed` holds the file to the stricter bar a policy file needs. With
 nothing named, check every settings file in the repository, and
 `~/.claude/settings.json` if it exists — a rule that appears to be ignored is
-usually a correct rule in the wrong one of the four locations below.
+usually a correct rule in the wrong one of the five locations below.
 
 ## Where a rule belongs
 
@@ -107,4 +107,4 @@ Lead with any literal credential: the file is shared, so the key is already
 leaked — say to rotate it, not only to move it. Then anything granting more
 than intended, then anything that will not work at all — a relative hook path,
 unparseable JSON. Say which file each rule belongs in: a surprising number of
-problems are a correct rule in the wrong one of the four locations.
+problems are a correct rule in the wrong one of the five locations.
