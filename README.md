@@ -21,45 +21,37 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 | **[api-patterns](plugins/api-patterns)** | *Experimental.* Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
 | **[team-rollout](plugins/team-rollout)** | Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference settings, and a checker for permissions wider than intended. |
 
-### delivery-quality
+### Quick start
 
-Five components, each solving a different failure of unsupervised work.
+Install one plugin, then try the thing it is for. Each link goes to the
+plugin's README, which has every component and every setting.
 
-| Component | Type | What it does |
-|---|---|---|
-| `verify-changes` | Skill | Runs the project's tests, reads the full diff, and checks that no test was weakened, skipped or deleted to make the suite pass. Reports with evidence and a required "Not verified" section. |
-| `code-reviewer` | Subagent | Reviews the uncommitted change read-only and returns findings ranked by severity, with an "Obstacles encountered" section so its blind spots stay visible. |
-| `guard_secrets` | PreToolUse hook | Blocks any write that would put a real credential on disk — API keys, private keys, connection strings with passwords, writes to `.env` and friends. |
-| `guard_destructive` | PreToolUse hook | Blocks the shell commands that cannot be undone: `rm -rf` outside the project, a force-push to a protected branch, `git reset --hard` with work not yet pushed, `DROP`/`TRUNCATE`/unfiltered `DELETE` against a database, a disk written directly. |
-| `test_gate` | Stop hook | Opt-in. Runs the test suite before the session is allowed to end, and refuses to end it while tests fail. |
+| Plugin | After installing, try |
+|---|---|
+| [delivery-quality](plugins/delivery-quality) | Make a change, then ask Claude to verify it: the `verify-changes` skill runs the tests, reads the diff and says what it could not check. `/review-diff` gets a read-only review. The guards need nothing; the test gate is opt-in: `mkdir -p .claude && touch .claude/test-gate` |
+| [context-discipline](plugins/context-discipline) | Nothing to do for the compaction snapshot. Ask for a review of your `CLAUDE.md`, or give a large, vague task and watch it get scoped before any code. `/handoff` writes a note for the next session |
+| [skill-forge](plugins/skill-forge) | `python3 ~/.claude/plugins/cache/pacoromerodev/skill-forge/0.2.0/scripts/audit_skills.py .claude/skills` on your own skills (the path is where Claude Code installs it). The routing log is opt-in: `mkdir -p .claude && touch .claude/routing-log` |
+| [team-rollout](plugins/team-rollout) | Ask how to roll Claude out to a team, or have a `settings.json` or managed policy reviewed before it ships |
+| [api-patterns](plugins/api-patterns) | *Experimental.* Ask why prompt caching is not cutting your bill, how to know whether a prompt change helped, or how to fix retrieval that misses obvious matches |
 
-`/review-diff` launches the subagent. The skill answers to `/delivery-quality:verify-changes`, or fires on its own when a change needs verifying.
+### Status
 
-#### Enabling the test gate
+What each plugin costs in every session, and what it measured against the
+same prompts with no plugin loaded (2026-09-26, `claude-opus-5-5`, graded by
+`claude-sonnet-5`, three runs a side).
 
-The Stop hook stays inert until a project asks for it. Enable it per project:
+| Plugin | Version | Always-on context | Cases | Mean Δ against no plugin |
+|---|---|---|---|---|
+| delivery-quality | 0.3.0 | ~360 tokens | 8 | +0.38 |
+| team-rollout | 0.2.0 | ~230 tokens | 5 | +0.47 |
+| context-discipline | 0.2.0 | ~320 tokens | 6 | +0.28 |
+| skill-forge | 0.2.0 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
+| api-patterns | 0.2.0 | ~630 tokens | 10 | **−0.10** |
 
-```bash
-mkdir -p .claude && touch .claude/test-gate     # runner auto-detected
-```
-
-Maven, Gradle, npm, pytest, Go and Cargo are detected from the files present. For anything else, write the command yourself:
-
-```bash
-cat > .claude/test-gate.sh <<'EOF'
-#!/usr/bin/env bash
-./scripts/ci-test.sh --fast
-EOF
-chmod +x .claude/test-gate.sh
-```
-
-The gate never blocks the session outright. When tests fail it hands the failures back as context for the turn to continue with; when the suite hangs it kills it — after the project's timeout, or 940 seconds, whichever is smaller, so the report arrives before Claude Code's own hook timeout cuts it off — and says to find the hanging test rather than raise the limit. If the hook itself crashes, the session ends.
-
-#### What the secret guard blocks
-
-AWS access keys, Anthropic and OpenAI keys, GitHub and Slack tokens, Stripe live keys, Google API keys, private key blocks, JDBC and other connection strings carrying a password, and writes to `.env`, `credentials`, `id_rsa`, `.npmrc` and similar.
-
-Values that are obviously not real — anything containing `EXAMPLE`, `PLACEHOLDER`, `REDACTED`, `<angle brackets>` or `${VARS}` — pass through. If the guard itself fails, it exits clean: a broken hook must never block a session.
+Context cost is `claude plugin details <plugin>@pacoromerodev`. The numbers
+behind the Δ column are in each plugin's `evals/measurements.json`, and
+`python3 .github/scripts/check_eval_freshness.py` says which are no longer
+current because a case or the component it exercises changed.
 
 ---
 
@@ -112,7 +104,7 @@ component type to reach for.
 
 ## Requirements
 
-- Claude Code 2.x
+- Claude Code 2.x; CI validates with 2.1.282
 - Python 3.8+ on `PATH` for the hooks (no third-party packages)
 
 ## Where this came from
