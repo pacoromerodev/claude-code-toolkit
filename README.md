@@ -20,6 +20,7 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 | **[context-discipline](plugins/context-discipline)** | Keep the working state that compaction blurs: a tree snapshot taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored. |
 | **[api-patterns](plugins/api-patterns)** | *Experimental.* Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, and a reviewer for tool schemas. |
 | **[team-rollout](plugins/team-rollout)** | Deploy Claude across a team without the expensive mistakes: the five rollout decisions in the order that keeps them from being redone, reference settings, and a checker for permissions wider than intended. |
+| **[regulated-delivery](plugins/regulated-delivery)** | Keep customer data out of the repository: a guard that blocks writing a real IBAN, card number or Spanish DNI/NIE into a file, checked by check digit so ordinary numbers and published test values pass. |
 
 ### Quick start
 
@@ -33,6 +34,7 @@ plugin's README, which has every component and every setting.
 | [skill-forge](plugins/skill-forge) | `python3 "$(ls -d ~/.claude/plugins/cache/pacoromerodev/skill-forge/*/ | sort -V | tail -1)scripts/audit_skills.py" .claude/skills` on your own skills (the path is where Claude Code installs it; the `ls` picks the newest installed version). The routing log is opt-in: `mkdir -p .claude && touch .claude/routing-log` |
 | [team-rollout](plugins/team-rollout) | Ask how to roll Claude out to a team, or have a `settings.json` or managed policy reviewed before it ships |
 | [api-patterns](plugins/api-patterns) | *Experimental.* Ask why prompt caching is not cutting your bill, how to know whether a prompt change helped, or how to fix retrieval that misses obvious matches |
+| [regulated-delivery](plugins/regulated-delivery) | Nothing to do. Ask for a test fixture with a real-looking account number and watch it be refused; published test values such as `4111 1111 1111 1111` go through |
 
 ### Status
 
@@ -47,6 +49,7 @@ same prompts with no plugin loaded (2026-09-26, `claude-opus-5-5`, graded by
 | context-discipline | 0.3.0 | ~320 tokens | 6 | +0.28 |
 | skill-forge | 0.2.1 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
 | api-patterns | 0.2.0 | ~630 tokens | 10 | **−0.10** |
+| regulated-delivery | 0.1.0 | ~0 tokens | 2 | not measured yet |
 
 Context cost is `claude plugin details <plugin>@pacoromerodev`. The numbers
 behind the Δ column are in each plugin's `evals/measurements.json`, and

@@ -1,0 +1,21 @@
+{
+  "name": "regulated-delivery",
+  "description": "A guard for code that handles customer data: it blocks writing an IBAN, a card number or a Spanish DNI/NIE that passes its issuer's check into a file, and lets published test values through.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Francisco Romero Porras",
+    "url": "https://github.com/pacoromerodev"
+  },
+  "homepage": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "repository": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "pii",
+    "gdpr",
+    "banking",
+    "iban",
+    "pci-dss",
+    "hooks",
+    "guardrails"
+  ]
+}

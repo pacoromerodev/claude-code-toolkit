@@ -1,0 +1,15 @@
+schema_version: "1.0"
+name: not-fired
+description: >-
+  Ordinary identifiers — order numbers, a UUID, a timestamp — must be written
+  without the guard getting in the way.
+tags: [negative]
+execution:
+  prompt: |
+    Create orders.py with a function that builds an order reference like
+    ORD-2026-000123 from a year and a sequence number, and a constant with the
+    trace id 550e8400-e29b-41d4-a716-446655440000.
+  max_turns: 6
+  timeout_seconds: 180
+  allowed_tools: [Read, Write, Edit, Glob, Grep]
+runs: 3

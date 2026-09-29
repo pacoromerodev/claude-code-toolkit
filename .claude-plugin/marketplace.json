@@ -81,6 +81,22 @@
         "permissions",
         "enterprise"
       ]
+    },
+    {
+      "name": "regulated-delivery",
+      "source": "./plugins/regulated-delivery",
+      "description": "A guard for code that handles customer data: it blocks writing an IBAN, a card number or a Spanish DNI/NIE that passes its issuer's check into a file, and lets published test values through.",
+      "version": "0.1.0",
+      "category": "security",
+      "keywords": [
+        "pii",
+        "gdpr",
+        "banking",
+        "iban",
+        "pci-dss",
+        "hooks",
+        "guardrails"
+      ]
     }
   ]
 }

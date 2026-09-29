@@ -1,0 +1,1 @@
+{"tool_name":"Write","tool_input":{"file_path":"src/test/java/PaymentTest.java","content":"card = \"4111 1111 1111 1111\";\niban = \"GB82 WEST 1234 5698 7654 32\";\nes = \"ES9121000418450200051332\";\ndni = \"12345678Z\";\n"}}

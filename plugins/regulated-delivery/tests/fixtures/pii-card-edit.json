@@ -1,0 +1,1 @@
+{"tool_name":"Edit","tool_input":{"file_path":"src/Checkout.java","old_string":"String pan = null;","new_string":"String pan = \"4539 1488 0343 6467\";"}}
