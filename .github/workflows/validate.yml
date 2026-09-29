@@ -55,6 +55,9 @@ jobs:
       - name: Every plugin has a marketplace entry, with matching versions
         run: python3 .github/scripts/check_consistency.py
 
+      - name: Changelogs match their manifests
+        run: python3 .github/scripts/check_changelogs.py
+
       - name: Hooks point at scripts that exist
         run: python3 .github/scripts/check_hooks.py
 

@@ -114,6 +114,13 @@ def main(root=ROOT):
             problems.append(f"{rel}: no README.md")
         if not (directory / "CHANGELOG.md").is_file():
             problems.append(f"{rel}: no CHANGELOG.md")
+        # The manifest names a licence; the text itself has to travel with the
+        # plugin, because an install copies the plugin directory and nothing
+        # above it.
+        if not (directory / "LICENSE").is_file():
+            problems.append(
+                f"{rel}: no LICENSE — an installed copy carries no licence text"
+            )
         if not any(directory.glob("evals/*/case.yaml")) and not any(
             directory.glob("evals/*/prompt.md")
         ):

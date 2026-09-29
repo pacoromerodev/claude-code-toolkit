@@ -49,12 +49,25 @@ expect_exit "consistency good" "$?" 0
 out="$("$PY" "$SCRIPTS/check_consistency.py" "$FIXTURES/consistency/bad" 2>&1)"
 expect_exit "consistency bad" "$?" 1
 expect_text "consistency bad" "$out" "plugins/halfway: no .claude-plugin/plugin.json"
+expect_text "consistency bad" "$out" "plugins/demo: no LICENSE"
 # plugins/notes holds nothing plugin-shaped, so it is scratch, not a mistake.
 if [[ "$out" != *"plugins/notes"* ]]; then
   ok "consistency bad" "leaves a non-plugin directory alone"
 else
   bad "consistency bad" "reports plugins/notes, which is not a plugin"
 fi
+
+echo
+echo "== check_changelogs.py =="
+out="$("$PY" "$SCRIPTS/check_changelogs.py" "$FIXTURES/changelogs/good" 2>&1)"
+expect_exit "changelogs good" "$?" 0
+out="$("$PY" "$SCRIPTS/check_changelogs.py" "$FIXTURES/changelogs/bad" 2>&1)"
+expect_exit "changelogs bad" "$?" 1
+expect_text "changelogs bad" "$out" "pasted/CHANGELOG.md:3: ### Added comes before any version heading"
+expect_text "changelogs bad" "$out" "pasted/CHANGELOG.md:11: a second ### Added under [0.2.0]"
+expect_text "changelogs bad" "$out" "the newest release is [0.2.0] but plugin.json says '0.3.0'"
+expect_text "changelogs bad" "$out" "[0.2.0] follows [0.1.0]"
+expect_text "changelogs bad" "$out" "[next] is neither Unreleased nor x.y.z"
 
 echo
 echo "== check_names.py =="

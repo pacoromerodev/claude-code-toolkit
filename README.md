@@ -30,7 +30,7 @@ plugin's README, which has every component and every setting.
 |---|---|
 | [delivery-quality](plugins/delivery-quality) | Make a change, then ask Claude to verify it: the `verify-changes` skill runs the tests, reads the diff and says what it could not check. `/review-diff` gets a read-only review. The guards need nothing; the test gate is opt-in: `mkdir -p .claude && touch .claude/test-gate` |
 | [context-discipline](plugins/context-discipline) | Nothing to do for the compaction snapshot. Ask for a review of your `CLAUDE.md`, or give a large, vague task and watch it get scoped before any code. `/handoff` writes a note for the next session |
-| [skill-forge](plugins/skill-forge) | `python3 ~/.claude/plugins/cache/pacoromerodev/skill-forge/0.2.0/scripts/audit_skills.py .claude/skills` on your own skills (the path is where Claude Code installs it). The routing log is opt-in: `mkdir -p .claude && touch .claude/routing-log` |
+| [skill-forge](plugins/skill-forge) | `python3 "$(ls -d ~/.claude/plugins/cache/pacoromerodev/skill-forge/*/ | sort -V | tail -1)scripts/audit_skills.py" .claude/skills` on your own skills (the path is where Claude Code installs it; the `ls` picks the newest installed version). The routing log is opt-in: `mkdir -p .claude && touch .claude/routing-log` |
 | [team-rollout](plugins/team-rollout) | Ask how to roll Claude out to a team, or have a `settings.json` or managed policy reviewed before it ships |
 | [api-patterns](plugins/api-patterns) | *Experimental.* Ask why prompt caching is not cutting your bill, how to know whether a prompt change helped, or how to fix retrieval that misses obvious matches |
 
