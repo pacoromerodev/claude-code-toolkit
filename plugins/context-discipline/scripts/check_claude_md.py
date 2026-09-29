@@ -120,7 +120,7 @@ def audit(path, findings):
             "warning", hits[EMPHASIS_BUDGET][0], "emphasis",
             f"{len(hits)} emphasis markers ({sample})",
             "Emphasis is a budget. Past about ten, none of it signals anything "
-            "— keep it for the two or three rules that genuinely override."))
+            "— spend it only on the handful of rules that must win over the rest."))
 
     # --- vague standards ---
     for i, line in enumerate(lines):

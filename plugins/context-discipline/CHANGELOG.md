@@ -16,6 +16,11 @@ All notable changes to `context-discipline`. Format follows
   own, which is what this README always said they were for. Each has an
   `argument-hint` for the `/` menu.
 
+### Fixed
+- `check_claude_md.py` reworded its advice on emphasis: five words of it read
+  the same as the course notes, which the wording check found once the
+  message was quoted in `docs/demos/`.
+
 ## [0.2.0] — 2026-09-29
 
 ### Added

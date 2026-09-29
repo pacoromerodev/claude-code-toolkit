@@ -50,6 +50,7 @@ out="$("$PY" "$SCRIPTS/check_consistency.py" "$FIXTURES/consistency/bad" 2>&1)"
 expect_exit "consistency bad" "$?" 1
 expect_text "consistency bad" "$out" "plugins/halfway: no .claude-plugin/plugin.json"
 expect_text "consistency bad" "$out" "plugins/demo: no LICENSE"
+expect_text "consistency bad" "$out" "README.es.md: never links plugins/demo"
 # plugins/notes holds nothing plugin-shaped, so it is scratch, not a mistake.
 if [[ "$out" != *"plugins/notes"* ]]; then
   ok "consistency bad" "leaves a non-plugin directory alone"

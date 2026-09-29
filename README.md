@@ -1,6 +1,8 @@
 # claude-code-toolkit
 
-Installable Claude Code plugins: skills, subagents, hooks and commands for real software delivery workflows.
+[![validate](https://github.com/pacoromerodev/claude-code-toolkit/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/pacoromerodev/claude-code-toolkit/actions/workflows/validate.yml) · [Español](README.es.md)
+
+Installable Claude Code plugins: skills, subagents and hooks for real software delivery workflows.
 
 This is a **plugin marketplace**. Add it once and install any plugin from it.
 
@@ -25,7 +27,9 @@ This is a **plugin marketplace**. Add it once and install any plugin from it.
 ### Quick start
 
 Install one plugin, then try the thing it is for. Each link goes to the
-plugin's README, which has every component and every setting.
+plugin's README, which has every component and every setting. To see what
+the hooks and scripts print before installing anything, read
+[docs/demos/](docs/demos/), rendered from real runs.
 
 | Plugin | After installing, try |
 |---|---|
@@ -86,9 +90,10 @@ The components here follow a few rules that came out of building them, and each 
 │   ├── tests/                        # fixture tests for every hook and script
 │   └── evals/<case>/                 # plugin eval cases and their measurements
 ├── .github/scripts/                  # the CI checks, each with its own fixtures
-├── scripts/                          # local eval runner and routing check
+├── scripts/                          # local eval runner, routing check, demo renderer
 └── docs/
     ├── anatomy.md                    # which component type to reach for
+    ├── demos/                        # what each plugin's scripts print, from real runs
     └── history/                      # the audits and plans, in order
 ```
 
@@ -115,7 +120,7 @@ component type to reach for.
 
 ## Where this came from
 
-Five plugins are built. [ROADMAP.md](docs/history/ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded ([ROADMAP-v2.md](docs/history/ROADMAP-v2.md), *Measured in full* and the proposals after it). Every audit and plan behind the plugins is in [docs/history/](docs/history/README.md).
+Six plugins are built. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded. That result is why `regulated-delivery` is a hook and nothing else. Every audit and plan behind the plugins, with the measurements that decided each cut, is indexed in [docs/history/](docs/history/README.md).
 
 ## Origin
 

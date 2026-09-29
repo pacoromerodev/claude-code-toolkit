@@ -229,3 +229,19 @@ python3 .github/scripts/check_course_wording.py --update --notes <notes dir>
 
 It sees verbatim English only. A paraphrase, and anything translated out of
 the Spanish prose, stays a manual read before publication.
+
+## The Spanish README
+
+`README.es.md` translates `README.md` and nothing else: it takes no text from
+the notes, which are Spanish too, so the wording check cannot see a sentence
+copied from them. A change to `README.md` that adds, removes or renames a
+plugin changes `README.es.md` in the same commit; `check_consistency.py`
+fails when either page does not link every plugin. The plugin READMEs,
+CONTRIBUTING and `docs/` stay in English only.
+
+## Demo pages
+
+`docs/demos/` is rendered by `scripts/render_demos.py` from real runs of each
+plugin's scripts on its own fixtures. Edit the `DEMOS` table in that script,
+never the pages; `render_demos.py --check` fails CI when a page no longer
+matches what the code prints, and when a plugin has no demo.

@@ -16,6 +16,7 @@ python3 .github/scripts/check_eval_coverage.py --enforce
 python3 .github/scripts/check_course_wording.py --enforce
 python3 plugins/skill-forge/scripts/audit_skills.py plugins/*/skills
 python3 plugins/context-discipline/scripts/check_claude_md.py CLAUDE.md
+python3 scripts/render_demos.py --check
 ( for t in plugins/*/tests/run.sh .github/scripts/tests/run.sh scripts/tests/*.sh; do
     bash "$t" || exit 1
   done )

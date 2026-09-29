@@ -126,6 +126,18 @@ def main(root=ROOT):
         ):
             problems.append(f"{rel}: no eval suite under evals/")
 
+    # The front page and each translation of it (README.es.md) list every
+    # plugin. A translation is the page that falls behind first: a new plugin
+    # gets its row in the README it was written against, and nowhere else.
+    for page in sorted(root.glob("README*.md")):
+        text = page.read_text(encoding="utf-8")
+        for name in sorted(seen):
+            if f"plugins/{name}" not in text:
+                problems.append(
+                    f"{page.name}: never links plugins/{name}, so a reader of "
+                    f"that page does not know the plugin exists"
+                )
+
     for orphan in sorted(set(entries) - seen):
         problems.append(
             f"{orphan}: listed in marketplace.json but plugins/{orphan}/ does "
