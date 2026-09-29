@@ -179,6 +179,55 @@ argument against more always-on context still holds.
 - The README details only `delivery-quality`. Either one short section per
   plugin, or none, with every plugin linking to its own README.
 
+## Plan to go public — decided 2026-09-29
+
+The owner's decisions: the repository **goes public**, and **no evals are
+run** as part of getting there. Anything that needs a measurement is stated
+as unmeasured rather than decided. Each step below is one commit, validated
+by the block in `CLAUDE.md`; a new or tightened check ships with one fixture
+that must fail and one that must pass.
+
+### Branches
+
+| Branch | State | Action |
+|---|---|---|
+| `main` | `84da89f`, PRs #1–#17 merged (#6 was a CI proof, closed) | — |
+| `claude/peaceful-curie-cwduai` | This audit, open as pacoromerodev/claude-code-toolkit#18 | Merge once CI is green |
+| `claude/audit-and-fix` | `fc84f6d`, the initial commit and PR #1's base. **Confirmed in `main`'s history** | Delete — approved by the owner. **Pending**: needs `git push origin --delete claude/audit-and-fix` |
+
+### Answers already given
+
+- **Employer terms** (ROADMAP.md:255, checklist item 1): the owner confirms
+  none were ever added. The history scan below still runs, for secrets and
+  local paths, which do not depend on that answer.
+
+### Pending, in order
+
+| # | Step | Done when |
+|---|---|---|
+| P1 | **Freshness covers the component.** `eval_ledger.py`'s fingerprint also hashes the file of the component a case names in `tags:` (`skills/<name>/SKILL.md`, `agents/<name>.md`) | A freshness fixture whose `SKILL.md` is edited after measurement reads "changed since"; on this branch, the cases in R1 list as unmeasured |
+| P2 | **CLI version in the ledger** (R5). `record_measurement.py` and `run-evals.sh` store `claude --version` next to model and judge; the CI pin moves from 2.1.278 to 2.1.282 | `scripts/tests/run-evals.test.sh` asserts the field |
+| P3 | **Measured status in each plugin README**, from the ledger as it stands (Sonnet judge, 2026-09-26). `api-patterns` is labelled **experimental** there and in its marketplace description (R3 stays open) | README and `marketplace.json` agree; `check_consistency.py` passes |
+| P4 | **History scan** (checklist items 1–2): the patterns in `guard_secrets.py`, reused, over `git log -p --all`; GitHub secret scanning; `/home/` and `/Users/` paths; e-mails other than the public one; internal paths in `plugins/*/scripts` and `plugins/team-rollout/settings` | No hit, or each hit listed here with its resolution. Rewriting history, if ever needed, is the owner's decision |
+| P5 | **Actions pinned to a SHA** (R4), and `check_workflows.py` rejects any non-SHA ref | Bad and good workflow fixtures; `validate.yml` passes |
+| P6 | **`SECURITY.md`**: how to report a guard bypass. AUDIT.md documents bypasses Phase 9 fixed; link the fix | File present, linked from the README |
+| P7 | **Wording check covers the root `.md` files** (AUDIT, ROADMAP, ROADMAP-v2, this file), with an allowlist for course titles such as "Claude with the Anthropic API". Reword the few real hits ("one change at a time", "name and description are required") | `check_course_wording.py --enforce` exits 0 over the wider scope |
+| P8 | **Manual read** (checklist item 3; the check cannot see a paraphrase of Spanish prose): `rag-retriever/SKILL.md` and `plan-rollout/SKILL.md` against their courses | Result recorded in this file |
+| P9 | **Releases** (R2): delivery-quality 0.2.0 → 0.3.0 (commands removed), context-discipline, api-patterns and team-rollout 0.1.0 → 0.2.0, skill-forge if it has unreleased changes; marketplace `metadata.version` 0.1.0 → 0.2.0; a tag `<plugin>-v<version>` per release | One commit per plugin touching `plugin.json`, `marketplace.json` and `CHANGELOG.md` together |
+| P10 | **README for strangers** (checklist item 5, R8): one short section per plugin or links only; install steps tested from a clean clone; a status section linking the measurements | Followed end to end from a fresh clone |
+| P11 | **`TodoWrite` in `scope-task`** (R8): check the current tools reference, drop it if it is gone or needs no pre-approval | `audit_skills.py` clean |
+| P12 | **Publish** — the owner's step: final checklist here, repository visibility set to public, then from another account `/plugin marketplace add pacoromerodev/claude-code-toolkit` and `/plugin install delivery-quality@pacoromerodev` | The install works for someone who is not the owner |
+
+`anthropic-academy-es` **stays private**: it holds the lessons verbatim, and
+it must remain readable locally to regenerate the fingerprints.
+
+### Out of this plan — each needs an eval
+
+- R1: re-measure the cases this branch changed (P1 makes them visible).
+- R3: keep or retire `api-patterns`.
+- R6: a machine that can run the `needs-bash` cases.
+- R7: new components; CONTRIBUTING requires measured cases for them.
+
 ## On `anthropic-academy-es`
 
 Not changed; these are notes for it.
