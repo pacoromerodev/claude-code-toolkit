@@ -167,7 +167,7 @@ The differentiator. Nothing in the courses covers this; it is domain knowledge, 
 | Component | Type | Behaviour |
 |---|---|---|
 | `mcp-server-scaffold` | Skill | FastMCP server with the three primitives used correctly: tools for the model, resources for the application, prompts for the user — the distinction the intro course builds everything on |
-| `choose-transport` | Skill | stdio vs StreamableHTTP vs `stateless_http=True`, stated as a decision with consequences: stateless scales behind a load balancer but loses session ids, server→client requests, sampling, progress and subscriptions |
+| `choose-transport` | Skill | stdio vs StreamableHTTP vs `stateless_http=True`, stated as a decision with consequences: stateless scales out across instances but loses session ids, server→client requests, sampling, progress and subscriptions |
 | `mcp-roots-check` | Skill | Implements path restriction properly, because the SDK does not enforce roots — `list_roots()` tells you the boundary, `is_path_allowed` is yours to write |
 | `mcp-review` | Subagent | Reviews an MCP server for the real failure modes: tool descriptions too vague to match (the courses' stated number-one cause of tool-use failure), unbounded results, missing progress on long calls, secrets in resource URIs |
 | `/mcp-new` | Command | Scaffold plus Inspector run (`mcp dev server.py`) |
@@ -184,7 +184,7 @@ The largest body of source material — three API courses — and therefore the 
 
 | Component | Type | Behaviour |
 |---|---|---|
-| `eval-harness` | Skill + `scripts/` | Builds the dataset → model → grader → score pipeline. Code graders for anything verifiable (`json.loads`, `ast.parse`, regex: 10 or 0), a model grader asked for strengths, weaknesses and reasoning before the number — without that the score drifts to a flat 6 — and the average of both |
+| `eval-harness` | Skill + `scripts/` | Builds the dataset → model → grader → score pipeline. Code graders for anything verifiable (`json.loads`, `ast.parse`, regex: 10 or 0), a model grader that has to reason, then list what is good and what is weak, before the number — without that the score drifts to a flat 6 — and the average of both |
 | `prompt-cache-audit` | Skill | Checks a request for the cache rules that are silently violated: order is tools → system → messages, at most 4 breakpoints, 1024-token minimum, one-hour TTL, and `cache_read_input_tokens` as the only proof it worked |
 | `rag-retriever` | Skill + `scripts/` | Chunking choice, embeddings, BM25 for rare terms and identifiers, and multi-index fusion with RRF (`Σ 1/(k+rank)`, k≈60) |
 | `agent-or-workflow` | Skill | Forces the decision the courses insist on: known steps → workflow, because it is more precise and testable; unknown steps → agent. Names the patterns — chaining, routing, parallelisation, evaluator-optimizer |

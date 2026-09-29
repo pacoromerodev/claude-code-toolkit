@@ -4,8 +4,10 @@
 The concepts are free to reuse. The wording is not, and a paraphrase written
 from memory drifts towards the original without anyone noticing. This compares
 every short run of words in what this repository publishes — `plugins/**`,
-`docs/**`, the README and CONTRIBUTING — against the same runs taken from the
-notes, and reports the ones that match.
+`docs/**` and every Markdown file at the root — against the same runs taken
+from the notes, and reports the ones that match. A course's own title is not
+borrowed prose, and citing it is how the rest of the repository points at a
+source, so runs that only spell a course title are skipped.
 
 The notes are not in this repository and are not public, so what is committed
 is `data/course-shingles.txt`: truncated SHA-256 hashes, one per line, no
@@ -65,6 +67,23 @@ ENGLISH = {
 }
 
 
+# The 22 courses, by the slug the notes use. Their titles are public and are
+# cited by name all over the audits; a match on one is a citation.
+COURSES = (
+    "ai-capabilities-and-limitations", "ai-fluency-for-builders",
+    "ai-fluency-for-creative-work", "ai-fluency-for-educators",
+    "ai-fluency-for-nonprofits", "ai-fluency-for-small-businesses",
+    "ai-fluency-for-students", "ai-fluency-framework-foundations",
+    "claude-101", "claude-code-101", "claude-code-in-action",
+    "claude-in-amazon-bedrock", "claude-platform-101",
+    "claude-with-google-vertex", "claude-with-the-anthropic-api",
+    "deploying-claude-enterprise-with-confidence",
+    "introduction-to-agent-skills", "introduction-to-claude-cowork",
+    "introduction-to-model-context-protocol", "introduction-to-subagents",
+    "model-context-protocol-advanced-topics", "teaching-ai-fluency",
+)
+
+
 def shingles(text):
     """Every run of WINDOW words that reads like prose, and where it starts."""
     words, lines = [], []
@@ -81,6 +100,12 @@ def shingles(text):
             continue
         digest = hashlib.sha256(" ".join(run).encode("utf-8")).hexdigest()[:DIGEST]
         yield digest, lines[index], " ".join(run)
+
+
+def title_digests():
+    """The fingerprint of every run that lies inside a course title."""
+    return {digest for slug in COURSES
+            for digest, _, _ in shingles(slug.replace("-", " "))}
 
 
 def load_fingerprints(data):
@@ -157,10 +182,10 @@ def main(argv):
 
     hits = []
     scanned = 0
-    published = sorted(root.glob("plugins/**/*.md")) + sorted(
-        root.glob("docs/**/*.md")) + [
-        path for path in (root / "README.md", root / "CONTRIBUTING.md")
-        if path.is_file()]
+    fingerprints -= title_digests()
+    published = (sorted(root.glob("plugins/**/*.md"))
+                 + sorted(root.glob("docs/**/*.md"))
+                 + sorted(root.glob("*.md")))
     for path in published:
         scanned += 1
         for digest, line, run in shingles(path.read_text(encoding="utf-8")):

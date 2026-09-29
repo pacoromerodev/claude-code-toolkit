@@ -138,6 +138,15 @@ out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
   "$FIXTURES/course-wording/bad-docs" 2>&1)"
 expect_exit "wording in docs" "$?" 1
 expect_text "wording in docs" "$out" "docs/guide.md"
+# Every Markdown file at the root is published too.
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/bad-root" 2>&1)"
+expect_exit "wording in a root file" "$?" 1
+expect_text "wording in a root file" "$out" "NOTES.md"
+# A course's title is a citation, not borrowed prose.
+out="$("$PY" "$SCRIPTS/check_course_wording.py" --enforce --fingerprints "$fp" \
+  "$FIXTURES/course-wording/good-title" 2>&1)"
+expect_exit "wording: a course title is not a match" "$?" 0
 # --notes repeats, and a lesson one directory down is read: the English
 # originals live in per-course folders, and missing them is missing the source.
 fp2="$SANDBOX/fingerprints-both.txt"

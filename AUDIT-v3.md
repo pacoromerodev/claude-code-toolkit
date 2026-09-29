@@ -33,7 +33,7 @@ prompts. The academy repository also holds every lesson in English under
 could not read it: `--update` took one directory and did not recurse.
 
 Built from both sources, the data file holds 73,333 fingerprints, and 20 runs
-in `plugins/` matched. Most were stock phrases ("one thing at a time"), but
+in `plugins/` matched. Most were stock phrases about changing a single variable per run, but
 `plan-rollout`'s decision-owners table tracked the enterprise course's own
 table row by row. All 20 are reworded. `--notes` now repeats and recurses,
 and the scan also covers `docs/`, the README and CONTRIBUTING, which are
@@ -211,7 +211,7 @@ that must fail and one that must pass.
 | P4 | **History scan** (checklist items 1–2): the patterns in `guard_secrets.py`, reused, over `git log -p --all`; GitHub secret scanning; `/home/` and `/Users/` paths; e-mails other than the public one; internal paths in `plugins/*/scripts` and `plugins/team-rollout/settings` | No hit, or each hit listed here with its resolution. Rewriting history, if ever needed, is the owner's decision |
 | P5 | **Actions pinned to a SHA** (R4), and `check_workflows.py` rejects any non-SHA ref | Bad and good workflow fixtures; `validate.yml` passes |
 | P6 | **`SECURITY.md`**: how to report a guard bypass. AUDIT.md documents bypasses Phase 9 fixed; link the fix | File present, linked from the README |
-| P7 | **Wording check covers the root `.md` files** (AUDIT, ROADMAP, ROADMAP-v2, this file), with an allowlist for course titles such as "Claude with the Anthropic API". Reword the few real hits ("one change at a time", "name and description are required") | `check_course_wording.py --enforce` exits 0 over the wider scope |
+| P7 | **Wording check covers the root `.md` files** (AUDIT, ROADMAP, ROADMAP-v2, this file), with an allowlist for course titles such as "Claude with the Anthropic API". Reword the few real hits, two stock phrases among them | `check_course_wording.py --enforce` exits 0 over the wider scope |
 | P8 | **Manual read** (checklist item 3; the check cannot see a paraphrase of Spanish prose): `rag-retriever/SKILL.md` and `plan-rollout/SKILL.md` against their courses | Result recorded in this file |
 | P9 | **Releases** (R2): delivery-quality 0.2.0 → 0.3.0 (commands removed), context-discipline, api-patterns and team-rollout 0.1.0 → 0.2.0, skill-forge if it has unreleased changes; marketplace `metadata.version` 0.1.0 → 0.2.0; a tag `<plugin>-v<version>` per release | One commit per plugin touching `plugin.json`, `marketplace.json` and `CHANGELOG.md` together |
 | P10 | **README for strangers** (checklist item 5, R8): one short section per plugin or links only; install steps tested from a clean clone; a status section linking the measurements | Followed end to end from a fresh clone |

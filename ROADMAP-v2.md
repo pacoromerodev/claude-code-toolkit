@@ -167,7 +167,7 @@ Summarised:
   - **Case metadata.** Tag every case whose `allowed_tools` include Bash as
     `needs-bash`. Set `runs: 3` on positive cases.
 - **Backing.** `introduction-to-claude-cowork.md:168-177` (compare with and
-  without the skill, one change at a time).
+  without the skill, varying a single thing per run).
   `claude-with-the-anthropic-api.md:188` (define grading criteria before
   implementing) and `:197` (the grader states strengths, weaknesses and
   reasoning).
