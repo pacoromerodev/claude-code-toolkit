@@ -227,6 +227,12 @@ judge="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"][
 [[ "$judge" == "claude-test-judge" ]] \
   && ok "record --judge" "writes the judge beside the number" \
   || bad "record --judge" "recorded judge $judge"
+"$PY" "$SCRIPTS/record_measurement.py" --cli 9.9.9 "$ledger_dir" \
+  "$SANDBOX/good-result.json" >/dev/null 2>&1
+cli="$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["cases"]["some-case"].get("cli"))' "$ledger_dir/evals/measurements.json")"
+[[ "$cli" == "9.9.9" ]] \
+  && ok "record --cli" "writes the CLI version beside the number" \
+  || bad "record --cli" "recorded cli $cli"
 # The recorder fingerprints the component a case names, so a later edit to it
 # makes the number stale even when the case itself is untouched.
 mkdir -p "$ledger_dir/skills/some-skill"

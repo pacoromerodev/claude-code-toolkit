@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Write an eval run's scores into the plugin's ledger.
 
-    record_measurement.py [--model <id>] [--judge <id>] <plugin dir> <result.json> [...]
+    record_measurement.py [--model <id>] [--judge <id>] [--cli <version>]
+                          <plugin dir> <result.json> [...]
 
 Takes the JSON `claude plugin eval --json` writes and records, per case, what
 it scored with the plugin, what the no-plugin arm scored, the delta, how many
@@ -20,7 +21,8 @@ were almost certainly two models, with nothing in the ledger to tell them
 apart.
 
 The judge that graded the runs is recorded the same way, with --judge: a
-score is the judge's reading as much as the model's answer.
+score is the judge's reading as much as the model's answer. So is the Claude
+Code version that ran the eval, with --cli.
 
 `scripts/run-evals.sh` calls this. Exit 0 when the ledger is written.
 """
@@ -64,8 +66,9 @@ def take_option(argv, flag):
 def main(argv):
     model, argv = take_option(argv, "--model")
     judge, argv = take_option(argv, "--judge")
+    cli, argv = take_option(argv, "--cli")
     if len(argv) < 3:
-        print(__doc__.strip().splitlines()[2].strip())
+        print(" ".join(line.strip() for line in __doc__.strip().splitlines()[2:4]))
         return 1
 
     plugin_dir = Path(argv[1]).resolve()
@@ -104,6 +107,8 @@ def main(argv):
                 entry["model"] = model
             if judge:
                 entry["judge"] = judge
+            if cli:
+                entry["cli"] = cli
             if case_dir.is_dir():
                 entry["fingerprint"] = case_fingerprint(case_dir)
                 components = component_fingerprint(plugin_dir, case_dir)

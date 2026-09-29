@@ -74,6 +74,12 @@ if [[ -z "$MODEL" ]]; then
   exit 2
 fi
 
+# The CLI is part of the measurement: the same case scored differently across
+# versions before, and the result file does not say which one ran.
+CLI_VERSION="$("$CLAUDE_BIN" --version 2>/dev/null | awk 'NR==1{print $1}')"
+record_cli=()
+[[ -n "$CLI_VERSION" ]] && record_cli=(--cli "$CLI_VERSION")
+
 if [[ ${#PLUGINS[@]} -eq 0 ]]; then
   for dir in "$ROOT"/plugins/*/; do PLUGINS+=("$(basename "$dir")"); done
 fi
@@ -153,7 +159,8 @@ for plugin in "${PLUGINS[@]}"; do
     shopt -u nullglob
     if [[ ${#results[@]} -gt 0 ]]; then
       "${PYTHON:-python3}" "$ROOT/.github/scripts/record_measurement.py" \
-        --model "$MODEL" --judge "$JUDGE" "$plugin_dir" "${results[@]}" || true
+        --model "$MODEL" --judge "$JUDGE" ${record_cli[@]+"${record_cli[@]}"} \
+        "$plugin_dir" "${results[@]}" || true
     fi
   fi
 done
