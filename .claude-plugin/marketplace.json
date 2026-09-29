@@ -56,7 +56,7 @@
       "name": "api-patterns",
       "source": "./plugins/api-patterns",
       "description": "Experimental. Patterns for building on the Claude API that carry their own verification: an eval pipeline with graders that discriminate, a caching auditor for breakpoints that silently miss, hybrid retrieval fused with RRF, the workflow-or-agent decision, and a reviewer for tool schemas.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "api",
       "keywords": [
         "claude-api",

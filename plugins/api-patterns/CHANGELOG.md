@@ -6,6 +6,14 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-29
+
+### Added
+- Three cases: `cache-ttl-mismatch`, `hybrid-or-rerank` and `tool-never-chosen`,
+  the last for the subagent, which had none. Every skill in this plugin now has the
+  two positive cases and one negative that CONTRIBUTING has always
+  asked for.
+
 ### Changed
 - Marked **experimental** in the README, the manifest and the marketplace
   entry. Across its ten cases it scores below the no-plugin baseline (Δ −0.10,
@@ -17,13 +25,6 @@ All notable changes to `api-patterns`. Format follows
   found once the wording check read them (`eval-harness`, its providers
   reference, and this changelog).
 
-### Added
-- Three cases: `cache-ttl-mismatch`, `hybrid-or-rerank` and `tool-never-chosen`,
-  the last for the subagent, which had none. Every skill in this plugin now has the
-  two positive cases and one negative that CONTRIBUTING has always
-  asked for.
-
-### Changed
 - `tool-schema-review` says where the tools it reviews live — the `tools`
   array of a Messages call, or the functions a tool runner builds one from —
   and points at `mcp-review` for the other kind.
