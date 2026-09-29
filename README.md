@@ -123,6 +123,11 @@ Five plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains,
 
 Built on the 22 courses of [Anthropic Academy](https://academy.claude.com/) — Claude Code, the Claude API, MCP, Enterprise deployment and AI Fluency — and on applying them to day-to-day backend work.
 
+## Security
+
+The hooks run with your privileges. [SECURITY.md](SECURITY.md) says what they
+touch, what they are not, and how to report a way past one.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
