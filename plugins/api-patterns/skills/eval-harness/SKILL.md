@@ -30,10 +30,11 @@ one-off opinion.
 have a fast, cheap model write the first draft: ask for a JSON array, one
 object per case, with the fields your runner reads and one worked example of
 the shape. Say what a solvable case looks like for your task, or you get
-thirty variations of the same easy one. Parse it by prefilling the assistant
-turn with an opening fence and stopping on the closing one, then read the
-cases yourself — you are looking for the ones that are too easy, and for the
-edge case the model did not think to write.
+thirty variations of the same easy one. Ask for the array through structured
+outputs (`output_config.format` with the case schema) so it always parses;
+current models reject a prefilled assistant turn. Then read the cases
+yourself: you are looking for the ones that are too easy, and for the edge
+case the model did not think to write.
 
 ## 2. Graders
 

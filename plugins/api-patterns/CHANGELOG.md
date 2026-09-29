@@ -6,6 +6,18 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-09-29
+
+### Changed
+- `eval-harness` generates the dataset through structured outputs
+  (`output_config.format`) instead of a prefilled assistant turn, which Opus
+  5.5, Sonnet 5.5 and Fable 5.1 reject with a 400.
+- `eval-harness/references/providers.md` no longer says a prefill works on
+  Bedrock, drops `temperature` from the Converse example, and names the models
+  that reject a forced `tool_choice`.
+- `agent-or-workflow` tries a lower effort on the strongest model before a
+  smaller model, instead of starting from the cheapest one.
+
 ## [0.3.0] — 2026-09-29
 
 ### Added

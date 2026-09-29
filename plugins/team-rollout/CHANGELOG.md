@@ -6,6 +6,12 @@ All notable changes to `team-rollout`. Format follows
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-09-29
+
+### Fixed
+- `settings-review` said "four locations" beside a table of five; the eval
+  criterion that copied it now says five too.
+
 ## [0.2.1] — 2026-09-29
 
 ### Changed

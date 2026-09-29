@@ -15,7 +15,7 @@ response = client.converse(
     modelId=MODEL_ID,
     system=[{"text": "You classify support tickets."}],
     messages=[{"role": "user", "content": [{"text": "…"}]}],
-    inferenceConfig={"temperature": 0, "stopSequences": ["</answer>"]},
+    inferenceConfig={"maxTokens": 2048, "stopSequences": ["</answer>"]},
 )
 text = response["output"]["message"]["content"][0]["text"]
 ```
@@ -29,8 +29,9 @@ Four things to carry across:
 - **Streaming** is `converse_stream`, whose `stream` yields `messageStart`,
   then `contentBlockDelta` events carrying the text; a block closes with
   `contentBlockStop`, the message with `messageStop`, and `metadata` comes last.
-- **A prefilled assistant turn** works the same way: Claude continues from it
-  without repeating it, so the two halves have to be joined afterwards.
+- **No prefilled assistant turn.** The models that reject one on the
+  Anthropic API — Opus 4.6 and later, Sonnet 4.6 and later, Fable — reject it
+  here too. Ask for the format in the prompt instead.
 
 ### The error that wastes an afternoon
 
@@ -56,7 +57,7 @@ tools = [{
     }
 }]
 
-tool_choice = {"auto": {}}        # or {"any": {}}, or {"tool": {"name": "…"}}
+tool_choice = {"auto": {}}        # {"any": {}} and {"tool": …} fail on Opus 5.5, Sonnet 5.5, Fable 5.1
 ```
 
 A tool call comes back as a `toolUse` part with `toolUseId`, `name` and

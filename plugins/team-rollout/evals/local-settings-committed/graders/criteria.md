@@ -4,7 +4,7 @@ weight: 1
 ---
 
 A project file is a statement about the team, and a personal allow-list is
-the most common thing to find in the wrong one of the four locations. The fix
+the most common thing to find in the wrong one of the five locations. The fix
 is placement plus a deny list, which holds even when someone widens things
 below it.
 
