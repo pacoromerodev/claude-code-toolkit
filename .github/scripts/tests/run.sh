@@ -101,6 +101,7 @@ expect_text "workflows bad" "$out" "no permissions: block"
 expect_text "workflows bad" "$out" "checkout without persist-credentials: false"
 expect_text "workflows bad" "$out" "inside a run: block"
 expect_text "workflows bad" "$out" "@acme/tool is installed unpinned"
+expect_text "workflows bad" "$out" "actions/checkout is pinned to @v4, a tag its owner can move"
 
 # A workflow that runs Claude unattended: every M4 finding must appear.
 out="$("$PY" "$SCRIPTS/check_workflows.py" "$FIXTURES/workflows/unattended" 2>&1)"

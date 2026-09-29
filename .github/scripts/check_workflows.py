@@ -8,7 +8,10 @@
     next is a model with a shell
   - no `${{ ... }}` inside a `run:` block: that is textual substitution into
     the script, which is how an input becomes a command
-  - actions and the CLI pinned, so a green run stays reproducible
+  - actions and the CLI pinned, so a green run stays reproducible. An action
+    is pinned only by a full commit SHA: a tag such as `v4` is a name its
+    owner can move to other code, which is how a compromised action reaches
+    every workflow that trusted the tag
 
 And, for a step that actually runs Claude unattended, the three that decide
 how much it can do while nobody is watching: a turn cap, a tool grant narrower
@@ -28,6 +31,10 @@ RUN_KEY = re.compile(r"^(\s*)-?\s*run:\s*(.*)$")
 CHECKOUT = re.compile(r"^(\s*)-\s*uses:\s*actions/checkout@")
 NPM_INSTALL = re.compile(r"npm install -g (\S+)")
 FLOATING_ACTION = re.compile(r"uses:\s*([\w.-]+/[\w.-]+)@(main|master|latest)\b")
+# Any other ref that is not a full commit SHA: a tag, or a branch by another
+# name. Local actions (./path) and docker:// images have no @ref to check.
+ACTION_REF = re.compile(r"uses:\s*([\w.-]+/[\w./-]+)@([^\s#'\"]+)")
+FULL_SHA = re.compile(r"[0-9a-f]{40}")
 
 # A step that starts Claude, rather than one that merely mentions it.
 RUNS_CLAUDE = re.compile(r"(^|\s)(claude|npx @anthropic-ai/claude-code)\s")
@@ -149,6 +156,16 @@ def check(path, root, problems):
             problems.append(
                 f"{shown}:{index + 1}: {match.group(1)} is used at "
                 f"@{match.group(2)}, which is whatever it holds today"
+            )
+
+    for index, line in enumerate(lines):
+        match = ACTION_REF.search(line)
+        if (match and not FLOATING_ACTION.search(line)
+                and not FULL_SHA.fullmatch(match.group(2))):
+            problems.append(
+                f"{shown}:{index + 1}: {match.group(1)} is pinned to "
+                f"@{match.group(2)}, a tag its owner can move; pin the full "
+                f"commit SHA and keep the tag as a comment"
             )
 
     for index, line in enumerate(lines):
