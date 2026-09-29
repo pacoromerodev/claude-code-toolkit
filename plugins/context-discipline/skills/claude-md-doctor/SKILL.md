@@ -62,7 +62,7 @@ raises. A rule that leaves the next move open gets worked around.
 ### Spend emphasis like a budget
 
 IMPORTANT, CRITICAL, ALWAYS, NEVER — past about ten, none of them signal
-anything. Keep them for the two or three rules that genuinely override normal
+anything. Keep them for the handful of rules that genuinely override normal
 judgement, and write the rest as plain statements.
 
 ### Cut length

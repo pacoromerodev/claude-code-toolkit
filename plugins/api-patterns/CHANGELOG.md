@@ -6,6 +6,14 @@ All notable changes to `api-patterns`. Format follows
 
 ## [Unreleased]
 
+### Changed
+- `tool-schema-review` no longer has `Bash`. It reviews what the model sees —
+  name, description, schema — and never runs anything, so the tool was a
+  grant with no use.
+- Reworded four runs of five words that also appear in the English lessons,
+  found once the wording check read them (`eval-harness`, its providers
+  reference, and this changelog).
+
 ### Added
 - Three cases: `cache-ttl-mismatch`, `hybrid-or-rerank` and `tool-never-chosen`,
   the last for the subagent, which had none. Every skill in this plugin now has the
@@ -63,8 +71,8 @@ All notable changes to `api-patterns`. Format follows
 ## [0.1.0] — 2026-09-20
 
 ### Added
-- `eval-harness` skill: dataset → model → grader → score, with the rule that
-  decides whether a model grader discriminates at all — reasoning before the
+- `eval-harness` skill: dataset → model → grader → score. It carries the rule
+  deciding whether a model grader discriminates at all — reasoning before the
   number, strengths then weaknesses then score. Code graders are 10-or-0.
   Grader prompts in `references/graders.md`, loaded on demand.
 - `prompt-cache-audit` skill + `scripts/check_caching.py`: finds breakpoints

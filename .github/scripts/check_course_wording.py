@@ -3,19 +3,27 @@
 
 The concepts are free to reuse. The wording is not, and a paraphrase written
 from memory drifts towards the original without anyone noticing. This compares
-every short run of words in `plugins/**` against the same runs taken from the
+every short run of words in what this repository publishes — `plugins/**`,
+`docs/**`, the README and CONTRIBUTING — against the same runs taken from the
 notes, and reports the ones that match.
 
 The notes are not in this repository and are not public, so what is committed
 is `data/course-shingles.txt`: truncated SHA-256 hashes, one per line, no
-text. It is regenerated deliberately, from a local checkout:
+text. It is regenerated deliberately, from a local checkout of the academy
+repository, and from two sources in it:
 
-    python3 .github/scripts/check_course_wording.py --update --notes ../academy/web/src
+    python3 .github/scripts/check_course_wording.py --update \
+        --notes ../anthropic-academy-es/web/src \
+        --notes ../anthropic-academy-es/cursos/_bundles
+
+`web/src` is the Spanish notes. `cursos/` holds the lessons themselves, in
+the original English, and is the source that matters: a sentence lifted from
+a course is lifted from there. `--notes` may be given more than once, and a
+directory is read recursively.
 
 What it can and cannot see:
 
-  - it sees English reused verbatim, which is where the risk is: the notes'
-    prose is Spanish, and their English is mostly prompts and code blocks
+  - it sees English reused verbatim, from the lessons or from the notes
   - it does not see a paraphrase, and it cannot see a Spanish passage rendered
     into English. That one stays a manual read before publication
 
@@ -27,7 +35,8 @@ entirely, five alone also flagged "or when the user asks to" in six skill
 descriptions, and requiring three content words leaves the real one alone.
 
 Usage: check_course_wording.py [--enforce] [--fingerprints <file>] [root]
-       check_course_wording.py --update --notes <dir> [--fingerprints <file>]
+       check_course_wording.py --update --notes <dir> [--notes <dir> ...]
+                               [--fingerprints <file>]
 """
 import hashlib
 import re
@@ -84,11 +93,14 @@ def load_fingerprints(data):
     }
 
 
-def update(notes_dir, data):
-    notes = sorted(Path(notes_dir).glob("*.md"))
-    if not notes:
-        print(f"No .md files in {notes_dir}")
-        return 1
+def update(notes_dirs, data):
+    notes = []
+    for notes_dir in notes_dirs:
+        found = sorted(Path(notes_dir).glob("**/*.md"))
+        if not found:
+            print(f"No .md files in {notes_dir}")
+            return 1
+        notes.extend(found)
 
     digests = set()
     for note in notes:
@@ -100,13 +112,19 @@ def update(notes_dir, data):
         f"# Truncated SHA-256 of every {WINDOW}-word run in the course notes.\n"
         "# No text: a hash cannot be read back into the sentence it came from.\n"
         f"# {len(notes)} note(s), {len(digests)} run(s), written {date.today()}.\n"
-        "# Regenerate: check_course_wording.py --update --notes <dir>\n"
+        "# Regenerate: check_course_wording.py --update --notes <dir> [--notes <dir> ...]\n"
         + "".join(f"{digest}\n" for digest in sorted(digests)),
         encoding="utf-8",
     )
     print(f"Wrote {len(digests)} fingerprint(s) from {len(notes)} note(s) to "
           f"{data}")
     return 0
+
+
+def options(argv, flag):
+    """Every value given for a flag that may repeat."""
+    return [argv[index + 1] for index, arg in enumerate(argv[:-1])
+            if arg == flag]
 
 
 def option(argv, flag, fallback=None):
@@ -120,7 +138,7 @@ def main(argv):
     data = Path(option(argv, "--fingerprints", DATA))
 
     if "--update" in argv:
-        notes = option(argv, "--notes")
+        notes = options(argv, "--notes")
         if not notes:
             print("--update needs --notes <directory of course notes>")
             return 1
@@ -139,7 +157,11 @@ def main(argv):
 
     hits = []
     scanned = 0
-    for path in sorted(root.glob("plugins/**/*.md")):
+    published = sorted(root.glob("plugins/**/*.md")) + sorted(
+        root.glob("docs/**/*.md")) + [
+        path for path in (root / "README.md", root / "CONTRIBUTING.md")
+        if path.is_file()]
+    for path in published:
         scanned += 1
         for digest, line, run in shingles(path.read_text(encoding="utf-8")):
             if digest in fingerprints:

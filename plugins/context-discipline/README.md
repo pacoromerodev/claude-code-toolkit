@@ -39,7 +39,7 @@ Four decisions worth knowing:
   file written inside a working tree gets committed and cloned, and would then
   be read back as if this session had produced it. Nothing to gitignore.
 - **Only the session that was compacted gets its snapshot back**, and only
-  through `SessionStart` with the `compact` matcher. `PostCompact` receives the
+  through a `SessionStart` hook matched on `compact`. `PostCompact` receives the
   summary but has no way to add context, so a hook there is discarded.
 - **A snapshot over 24 hours old is not restored**, and one from another
   session is never restored at all.

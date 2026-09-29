@@ -7,5 +7,7 @@
     "url": "https://github.com/pacoromerodev"
   },
   "homepage": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "repository": "https://github.com/pacoromerodev/claude-code-toolkit",
+  "license": "MIT",
   "keywords": ["context", "compaction", "hooks", "claude-md", "planning"]
 }

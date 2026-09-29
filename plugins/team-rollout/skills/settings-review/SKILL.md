@@ -46,8 +46,8 @@ and are never narrowed afterwards, because nothing prompts again to remind you.
 when a project file widens things, which is why credentials, history files and
 production config belong in it.
 
-**An allowlist that allows everything.** A plugin runs code with the user's
-privileges and its hooks stack with everyone else's, so the list of
+**An allowlist that allows everything.** Installing a plugin executes its code
+as the user, and its hooks stack with everyone else's, so the list of
 marketplaces people may install from is a supply-chain decision. Two keys, and
 they do different jobs:
 

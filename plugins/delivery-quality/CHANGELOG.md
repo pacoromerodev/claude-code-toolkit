@@ -6,6 +6,13 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- `verify-changes` pointed at `.github/scripts/check_workflows.py` "in this
+  repository". Installed in someone else's project, that file does not exist;
+  the workflow checks are now read by hand, as the list already describes.
+- `code-reviewer` assumed the base branch was `main`. It now uses the base the
+  task names, else the remote's default branch, and says which it used.
+
 ### Removed
 - The command files that only restated their skill with defaults attached. A
   command's description is always-on context and the skill's is what the model

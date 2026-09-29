@@ -80,44 +80,35 @@ The components here follow a few rules that came out of building them, and each 
 
 ```
 .
-├── .claude-plugin/
-│   └── marketplace.json          # the catalogue this repo exposes
-└── plugins/
-    └── delivery-quality/
-        ├── .claude-plugin/plugin.json
-        ├── skills/verify-changes/SKILL.md
-        ├── agents/code-reviewer.md
-        ├── commands/review-diff.md
-        ├── hooks/hooks.json
-        └── scripts/{guard_secrets,guard_destructive,test_gate}.py
+├── .claude-plugin/marketplace.json   # the catalogue this repo exposes
+├── plugins/<name>/
+│   ├── .claude-plugin/plugin.json
+│   ├── README.md, CHANGELOG.md
+│   ├── skills/<skill>/SKILL.md       # plus references/ where a skill needs them
+│   ├── agents/*.md, commands/*.md
+│   ├── hooks/hooks.json, scripts/*.py
+│   ├── tests/                        # fixture tests for every hook and script
+│   └── evals/<case>/                 # plugin eval cases and their measurements
+├── .github/scripts/                  # the CI checks, each with its own fixtures
+├── scripts/                          # local eval runner and routing check
+└── docs/anatomy.md                   # which component type to reach for
 ```
 
-Adding a plugin means creating `plugins/<name>/` with its own `plugin.json` and adding an entry to `marketplace.json`. Validate both before committing:
-
-```bash
-claude plugin validate plugins/<name>
-claude plugin validate .
-```
-
-`${CLAUDE_PLUGIN_ROOT}` resolves to the installed plugin's directory — always use it in hook commands, never a relative path.
+`${CLAUDE_PLUGIN_ROOT}` resolves to the installed plugin's directory — always
+use it in hook commands, never a relative path. [CONTRIBUTING.md](CONTRIBUTING.md)
+has the full layout of a plugin and the steps for adding one.
 
 ---
 
 ## Development
 
-```bash
-claude plugin validate .                        # marketplace manifest
-claude plugin validate plugins/<name>           # plugin manifest
-python3 .github/scripts/check_consistency.py    # entries and versions agree
-python3 .github/scripts/check_stdlib_only.py    # no third-party imports
-plugins/<name>/tests/run.sh                     # hook fixture tests
-```
-
-CI runs all of these on every pull request. Eval suites are separate — they
-cost money and need a credential — and run from the `evals` workflow or by
-hand. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules a change is
-reviewed against, and [docs/anatomy.md](docs/anatomy.md) for which component
-type to reach for.
+The commands a change must pass before it is committed are in
+[CLAUDE.md](CLAUDE.md), and CI runs the same set on every pull request. Eval
+suites are separate: they cost money or plan usage and need a logged-in CLI,
+so there is no eval workflow. Run them by hand with `scripts/run-evals.sh`
+before a release. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules a
+change is reviewed against, and [docs/anatomy.md](docs/anatomy.md) for which
+component type to reach for.
 
 ## Requirements
 
@@ -130,7 +121,7 @@ Five plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains,
 
 ## Origin
 
-Built on the 22 courses of [Anthropic Academy](https://anthropic.skilljar.com/) — Claude Code, the Claude API, MCP, Enterprise deployment and AI Fluency — and on applying them to day-to-day backend work.
+Built on the 22 courses of [Anthropic Academy](https://academy.claude.com/) — Claude Code, the Claude API, MCP, Enterprise deployment and AI Fluency — and on applying them to day-to-day backend work.
 
 ## License
 

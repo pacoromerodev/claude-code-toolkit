@@ -1,18 +1,20 @@
 # Which component do I reach for?
 
-Claude Code offers five ways to extend it, and they fail in different ways when
-you pick the wrong one. This is the decision, written once so plugin READMEs
-can link here instead of repeating it.
+Claude Code offers five ways to extend its behaviour, and a sixth to give it
+new tools. They fail in different ways when you pick the wrong one. This is
+the decision, written once so plugin READMEs can link here instead of
+repeating it.
 
-## The five
+## The six
 
 | | Loaded | Triggered by | Costs context |
 |---|---|---|---|
 | **CLAUDE.md** | Every session, always | Nothing — it is simply present | Always, in full |
-| **Skill** | Name and description at startup; body on demand | Semantic match against the description | Only when it fires |
-| **Command** | On demand | You typing `/name` | Only when run |
-| **Subagent** | Its own separate context | The main thread delegating | Only its summary comes back |
-| **Hook** | Never — it is code | An event, deterministically | Nothing |
+| **Skill** | Name and description at startup; body on demand | Semantic match against the description | Its description always; the body when it fires |
+| **Command** | Description at startup; body on demand | You typing `/name`, or the model choosing it | Its description always; the body when run |
+| **Subagent** | Its own separate context | The main thread delegating | Its description always; then only its summary |
+| **Hook** | Never — it is code | An event, deterministically | Nothing, unless its output is added to context (`SessionStart`, `UserPromptSubmit`) |
+| **MCP server** | Its tools, at startup or through tool search | The model calling a tool | Its tool definitions, and every result |
 
 ## Choosing
 
@@ -38,9 +40,14 @@ you have to remember it exists. A skill is found for you; a command is typed.
 main thread. If no — you want the conclusion, not the forty files it read to
 reach it — a subagent. That is the whole decision rule.
 
+**Does it need a system Claude cannot otherwise reach?** An MCP server — a
+database, a ticket tracker, an internal API. If the system has a CLI Claude
+can already run, a skill that says how to use it is usually cheaper: every
+MCP tool definition and every result it returns is context.
+
 ## Subagents, specifically
 
-A subagent gets a fresh context and returns only a summary. That is the benefit
+A subagent starts from an empty context and hands back only a summary. That is the benefit
 and the cost in one sentence: the main thread is spared the noise, and loses
 the ability to see what happened.
 
@@ -62,8 +69,8 @@ person reading the summary.
 
 ## Skills, specifically
 
-Only the name and description load at startup. The body loads when the skill
-fires, and files under `references/` load only when the body points at them.
+At startup a skill costs its name and description, nothing more. The body
+arrives when the skill fires, and files under `references/` load only when the body points at them.
 Scripts under `scripts/` are executed without being read into context at all —
 which is how a skill can carry a thousand lines of logic for the price of a
 description.
@@ -111,7 +118,7 @@ where the reinjection belongs.
 A plugin is the installable unit: skills, subagents, commands, hooks and MCP
 servers in one directory, distributed through a marketplace.
 
-**A plugin runs code with your privileges, and its hooks stack with everyone
+**Installing a plugin executes its code as you, and its hooks stack with everyone
 else's.** Read one before installing it. For an organisation, run a private
 marketplace and pin it with `strictKnownMarketplaces` rather than trusting
 whatever a developer adds.
