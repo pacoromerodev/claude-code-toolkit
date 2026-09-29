@@ -15,6 +15,11 @@ All notable changes to `delivery-quality`. Format follows
   for a review reach the subagent directly, as they already did. It has an
   `argument-hint` for the `/` menu.
 
+### Security
+- `code-reviewer` treats what it reads as the thing under review, never as
+  instructions: text in a diff, file or commit message that tells a reviewer
+  to approve or skip something is reported as a Security finding.
+
 ## [0.3.1] — 2026-09-29
 
 ### Changed

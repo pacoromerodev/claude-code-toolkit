@@ -64,6 +64,7 @@ The components here follow a few rules that came out of building them, and each 
 - **A subagent's output format is the design.** Deciding what it returns matters more than describing what it is. There are no "expert persona" agents here.
 - **Minimum tools.** The reviewer has no edit tools and does not get them. If a fix is obvious it describes the fix and lets the main thread apply it.
 - **Hooks fail open.** A guard that crashes lets the call through. Determinism is worth having only while it cannot brick the session.
+- **What a component reads is data, never instructions.** A diff, a file or a commit message that tells the reviewer to approve something is a finding. The instructions come from the user and from the plugin, nowhere else.
 - **Exit 2 is the only blocking code.** It returns stderr to Claude as feedback, so the model sees the reason and can correct itself. Everything else is non-blocking.
 
 ---
