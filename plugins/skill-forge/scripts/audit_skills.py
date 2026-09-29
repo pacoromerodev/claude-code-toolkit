@@ -200,6 +200,10 @@ def audit_one(path, findings):
 
     name = data.get("name", "")
     description = data.get("description", "")
+    # A skill the model may not invoke is typed, like a command: its
+    # description is the line in the / menu, never something a prompt is
+    # matched against, so the rules about triggers do not apply to it.
+    typed_only = data.get("disable-model-invocation", "").lower() == "true"
 
     # --- name ---
     # Claude Code loads a skill with no `name`; what it loses is a stable way
@@ -243,13 +247,13 @@ def audit_one(path, findings):
                 f"truncates at {DESCRIPTION_MAX}",
                 "Everything past the cut is invisible to the model deciding "
                 "whether to fire this skill. Put the trigger first."))
-        if len(description) < 40:
+        if len(description) < 40 and not typed_only:
             findings.append(Finding(
                 "warning", label,
                 f"`description` is only {len(description)} characters",
                 "Too short to match on. Say what it does AND when to use it."))
         lowered = description.lower()
-        if not any(hint in lowered for hint in TRIGGER_HINTS):
+        if not typed_only and not any(hint in lowered for hint in TRIGGER_HINTS):
             findings.append(Finding(
                 "warning", label,
                 "`description` never says when to use the skill",
@@ -336,7 +340,8 @@ def audit_one(path, findings):
                 "Nothing ships that path, so whoever follows the instruction "
                 "finds nothing. Ship the file, or say the thing inline."))
 
-    return {"name": name or label, "description": description, "label": label}
+    return {"name": name or label, "description": description, "label": label,
+            "typed_only": typed_only}
 
 
 def neighbours(target):
@@ -436,6 +441,10 @@ def audit_agent(path, findings):
 
     name = data.get("name", "")
     description = data.get("description", "")
+    # A skill the model may not invoke is typed, like a command: its
+    # description is the line in the / menu, never something a prompt is
+    # matched against, so the rules about triggers do not apply to it.
+    typed_only = data.get("disable-model-invocation", "").lower() == "true"
 
     if not name:
         findings.append(Finding(
@@ -559,7 +568,9 @@ def main():
         for path in found:
             audited += 1
             result = audit_one(path, findings)
-            if result:
+            # A typed-only skill competes with nothing for a prompt, so it
+            # takes no part in the overlap check.
+            if result and not result["typed_only"]:
                 skills.append(result)
 
     # An agent audited here is already in `skills`; drop the copy neighbours()

@@ -42,10 +42,10 @@ same prompts with no plugin loaded (2026-09-26, `claude-opus-5-5`, graded by
 
 | Plugin | Version | Always-on context | Cases | Mean Δ against no plugin |
 |---|---|---|---|---|
-| delivery-quality | 0.3.1 | ~360 tokens | 8 | +0.38 |
+| delivery-quality | 0.4.0 | ~360 tokens | 8 | +0.38 |
 | team-rollout | 0.2.0 | ~230 tokens | 5 | +0.47 |
-| context-discipline | 0.2.0 | ~320 tokens | 6 | +0.28 |
-| skill-forge | 0.2.0 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
+| context-discipline | 0.3.0 | ~320 tokens | 6 | +0.28 |
+| skill-forge | 0.2.1 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
 | api-patterns | 0.2.0 | ~630 tokens | 10 | **−0.10** |
 
 Context cost is `claude plugin details <plugin>@pacoromerodev`. The numbers
@@ -77,7 +77,7 @@ The components here follow a few rules that came out of building them, and each 
 │   ├── .claude-plugin/plugin.json
 │   ├── README.md, CHANGELOG.md
 │   ├── skills/<skill>/SKILL.md       # plus references/ where a skill needs them
-│   ├── agents/*.md, commands/*.md
+│   ├── agents/*.md
 │   ├── hooks/hooks.json, scripts/*.py
 │   ├── tests/                        # fixture tests for every hook and script
 │   └── evals/<case>/                 # plugin eval cases and their measurements

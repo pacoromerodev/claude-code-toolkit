@@ -59,7 +59,6 @@ plugins/<name>/
 ├── CHANGELOG.md                   # required
 ├── skills/<skill>/SKILL.md
 ├── agents/<agent>.md
-├── commands/<command>.md
 ├── hooks/hooks.json
 ├── scripts/*.py
 ├── tests/{run.sh,fixtures/*.json}
@@ -68,6 +67,12 @@ plugins/<name>/
 
 Then add the entry to `.claude-plugin/marketplace.json` with a matching `name`,
 `source` and `version`.
+
+Something a person types and the model must not start on its own is a skill
+with `disable-model-invocation: true` and an `argument-hint`, not a file under
+`commands/`: Claude Code still loads that directory, but skills are the format
+it documents for both, and the eval coverage and the auditor treat such a skill
+as typed.
 
 In hook commands use `${CLAUDE_PLUGIN_ROOT}`, never a relative path — the
 plugin runs from wherever it was installed, not from this repository.

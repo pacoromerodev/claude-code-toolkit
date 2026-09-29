@@ -14,7 +14,7 @@
       "name": "delivery-quality",
       "source": "./plugins/delivery-quality",
       "description": "Verification before you trust a change: a verify skill that runs the tests and reads the diff, a read-only review subagent, guards against writing secrets and running destructive commands, and a test gate on session stop.",
-      "version": "0.3.1",
+      "version": "0.4.0",
       "category": "quality",
       "keywords": [
         "review",
@@ -29,7 +29,7 @@
       "name": "skill-forge",
       "source": "./plugins/skill-forge",
       "description": "Find out why skills do not fire: a mechanical auditor for the faults that stop a skill or subagent loading or matching, and an opt-in log of which components fire in real use and which prompts fired nothing.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "category": "authoring",
       "keywords": [
         "skills",
@@ -43,7 +43,7 @@
       "name": "context-discipline",
       "source": "./plugins/context-discipline",
       "description": "Keep the working state that compaction blurs: a snapshot of the tree taken before compaction and handed back after it, a skill for scoping work before writing it, and an auditor for the CLAUDE.md rules that get ignored.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "category": "workflow",
       "keywords": [
         "context",

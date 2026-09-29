@@ -1,5 +1,8 @@
 ---
+name: review-diff
 description: Review uncommitted changes, a branch or named files with the read-only code-reviewer subagent, and relay its Blocking / Worth fixing / Noted report. Use when the user asks to review, look over or check a change, wants a second opinion on it, or is about to commit or share it.
+argument-hint: "[branch, directory or file; default: git diff HEAD]"
+disable-model-invocation: true
 ---
 
 Launch the `code-reviewer` subagent on the current uncommitted change.

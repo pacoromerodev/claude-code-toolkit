@@ -6,6 +6,15 @@ All notable changes to `delivery-quality`. Format follows
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-09-29
+
+### Changed
+- `/review-diff` is a skill with `disable-model-invocation: true` instead of a
+  file under `commands/`. It is still typed, under the same name, and still
+  launches `code-reviewer`; the model no longer starts it on its own, and asks
+  for a review reach the subagent directly, as they already did. It has an
+  `argument-hint` for the `/` menu.
+
 ## [0.3.1] — 2026-09-29
 
 ### Changed

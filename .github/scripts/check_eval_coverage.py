@@ -13,7 +13,9 @@ that nothing fires. So:
     tags: [negative]                         a negative case for its plugin
 
 Two positive cases per skill, one per subagent, and at least one negative case
-in every plugin. Two, not one, because a single prompt worded like the
+in every plugin. A skill with `disable-model-invocation: true` is typed, like a
+command: no prompt can fire it, so it has no routing to measure and, like a
+command, it may be the subject of a case without having to be. Two, not one, because a single prompt worded like the
 description proves only that the description matches itself.
 
 Usage: check_eval_coverage.py [--enforce] [repository root]
@@ -27,6 +29,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 NAME = re.compile(r"^name:\s*(.+?)\s*$", re.M)
 TAGS = re.compile(r"^tags:\s*\[(.*?)\]\s*$", re.M)
+TYPED_ONLY = re.compile(r"^disable-model-invocation:\s*[\"']?true[\"']?\s*$", re.M | re.I)
 
 POSITIVE_PER_SKILL = 2
 POSITIVE_PER_AGENT = 1
@@ -44,6 +47,14 @@ def frontmatter_name(path, fallback):
     return match.group(1).strip("\"'") if match else fallback
 
 
+def typed_only(path):
+    """True when the model may not invoke the skill: only a person types it."""
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---") or text.count("---") < 2:
+        return False
+    return bool(TYPED_ONLY.search(text.split("---", 2)[1]))
+
+
 def case_tags(path):
     text = path.read_text(encoding="utf-8")
     match = TAGS.search(text)
@@ -58,7 +69,10 @@ def plugin_report(plugin):
     for directory in sorted((plugin / "skills").glob("*/")):
         skill_file = directory / "SKILL.md"
         if skill_file.is_file():
-            skills[frontmatter_name(skill_file, directory.name)] = "skill"
+            skills[frontmatter_name(skill_file, directory.name)] = (
+                "typed" if typed_only(skill_file) else "skill")
+    typed = {name for name, kind in skills.items() if kind == "typed"}
+    skills = {name: kind for name, kind in skills.items() if kind == "skill"}
     agents = {
         frontmatter_name(path, path.stem): "subagent"
         for path in sorted((plugin / "agents").glob("*.md"))
@@ -66,6 +80,7 @@ def plugin_report(plugin):
     # A command may be the subject of a case; it just does not have to be.
     commands = {path.stem: "command"
                 for path in sorted((plugin / "commands").glob("*.md"))}
+    commands.update({name: "command" for name in typed})
 
     counts = {name: 0 for name in list(skills) + list(agents) + list(commands)}
     negatives = 0

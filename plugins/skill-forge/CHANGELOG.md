@@ -6,6 +6,15 @@ All notable changes to `skill-forge`. Format follows
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-09-29
+
+### Fixed
+- `audit_skills.py` asked a skill with `disable-model-invocation: true` to say
+  when to use it, and counted its description in the overlap check. No prompt
+  is matched against such a skill: its description is the line in the `/`
+  menu. Both rules now skip it, and a skill the model may invoke is held to
+  them as before.
+
 ## [0.2.0] — 2026-09-25
 
 ### Removed

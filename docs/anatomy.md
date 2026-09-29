@@ -33,8 +33,10 @@ The description decides whether it fires, which makes the description the
 component — not the body. Write it to answer both *what this does* and *when to
 use it*, and test that with evals, including a case where it must stay quiet.
 
-**Do you want to run it explicitly, on demand?** A command. The cost is that
-you have to remember it exists. A skill is found for you; a command is typed.
+**Do you want to run it explicitly, on demand?** A command: today, a skill
+with `disable-model-invocation: true`, which only a person can start from the
+`/` menu. The cost is that you have to remember it exists. A skill is found
+for you; a command is typed.
 
 **Is the intermediate work something you need to see?** If yes, keep it in the
 main thread. If no — you want the conclusion, not the forty files it read to

@@ -68,6 +68,7 @@ finds "missing SKILL.md"                 "has no SKILL.md"
 finds "missing frontmatter"              "no YAML frontmatter"
 finds "body over the line limit"         "over the 500 limit"
 finds "description with no trigger"      "never says when to use"
+finds "a skill the model may invoke still needs its trigger" "typed-not-declared: \`description\` never says when to use"
 finds "description opening with 'this skill'" 'opens with "this skill"'
 finds "unreferenced reference file"      "never mentioned in SKILL.md"
 finds "a body pointing at a file nobody ships" "points at \`docs/anatomy.md\`"
