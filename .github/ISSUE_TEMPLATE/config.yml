@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A way past a guard, or a hook doing something it does not say
+    url: https://github.com/pacoromerodev/claude-code-toolkit/security/advisories/new
+    about: Report it privately, not in a public issue. SECURITY.md says what to include.

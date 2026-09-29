@@ -46,7 +46,8 @@ CI runs them on Python 3.8 and 3.12.
 ## Reporting
 
 Report privately through GitHub: **Security → Report a vulnerability** on
-this repository. Do not open a public issue for a working bypass.
+this repository. Do not open a public issue for a working bypass. The issue form links
+there as well.
 
 Include the plugin and its version (from `/plugin` or the plugin's
 `.claude-plugin/plugin.json`), your Claude Code version, the tool input or

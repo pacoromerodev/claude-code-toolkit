@@ -1,0 +1,24 @@
+name: A change or a new component
+description: Something a plugin should do, or do differently.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every component here has to show it helps: an eval case where it beats
+        the same prompt with no plugin loaded, or a fixture a script must pass.
+        CONTRIBUTING.md has the rules a change is reviewed against.
+  - type: textarea
+    id: failure
+    attributes:
+      label: The failure it fixes
+      description: What goes wrong today without it, as concretely as you can.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: How we would know it works
+      description: The prompt that should come out better, or the input a check should catch.
+    validations:
+      required: true
