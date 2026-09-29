@@ -229,17 +229,38 @@ Each step one commit on `claude/peaceful-curie-cwduai`, each through the
 | P2 | Done. `cli` is recorded; CI installs 2.1.282, on which all six manifests validate |
 | P3 | Done. Every plugin README has a *Measured* section; `api-patterns` is labelled experimental in four places |
 | P4 | **No secret, no internal path.** The 20 patterns of `guard_secrets.py` over all 93 commits found 13 distinct values, every one a deliberately fake key in a test fixture, an eval scaffold or a documentation example. `/home/user` is the fixtures' generic path, `/Users/alice` an example. GitHub's scanner takes pasted snippets only, and 1 MB of added lines is not practical through it; not run. **One decision for the owner:** 140 commits carry a personal e-mail address as author. It becomes public with the history. Keeping it is a choice; replacing it means rewriting every commit, which only the owner can decide |
-| P5 | Done. checkout and setup-node at v4.4.0, setup-python at v5.6.0, by SHA; any other ref fails the check. Newer majors exist (v7); Dependabot will propose them |
+| P5 | Done. Pinned by SHA at checkout and setup-node v4.4.0, setup-python v5.6.0; any other ref fails the check. Dependabot then proposed v7 (checkout 7.0.1, setup-node and setup-python 7.0.0), each still by SHA, and all three were merged green (#23–#25) |
 | P6 | Done. `SECURITY.md`, linked from the README. **For the owner:** enable *private vulnerability reporting* in the repository's security settings, or its reporting instruction leads nowhere |
 | P7 | Done. Nine runs in five root files reworded; the 22 course titles are allowed as citations |
 | P8 | Done, and clean. `rag-retriever`'s contextual-retrieval section reuses the idea with its own prompt, structure and example. `plan-rollout`'s postures, spend rules and new-capability questions follow the enterprise course's structure in this plugin's words, and its worked example (a scheduled-task surface) is not the course's (a Slack integration) |
-| P9 | Done. delivery-quality 0.3.0; context-discipline, api-patterns, team-rollout 0.2.0; marketplace 0.2.0. Tags `<plugin>-v<version>` wait for the merge, so they point at commits on `main` |
+| P9 | Done. delivery-quality 0.3.0, then 0.3.1; context-discipline, api-patterns, team-rollout 0.2.0; marketplace 0.2.0. Tags are `<plugin>-v<version>`, one hyphen, created by the owner on `main`; the seven older tags, which used two hyphens, were recreated in that form, and skill-forge 0.2.0 got the tag it never had. Every tag is signed with the owner's GitHub no-reply address |
 | P10 | Done. README has a quick start and a status table (version, always-on context, measured Δ). Installed from a clean clone into an empty home: all five plugins install and report their new versions |
 | P11 | Done. Claude Code 2.1.284 ships both `TodoWrite` and the task tools; neither asks for permission, so the entry did nothing. Removed |
 | P12 | Waiting, by the owner's decision: the repository stays private until the remaining improvements are in |
 
 `anthropic-academy-es` **stays private**: it holds the lessons verbatim, and
 it must remain readable locally to regenerate the fingerprints.
+
+### After the plan — 2026-09-29
+
+What reviewing `main` after the merges turned up, each fixed in its own
+commit:
+
+- **CI cancelled the head of `main`.** Three Dependabot merges landed within
+  seconds, their runs started out of order, and the run for the oldest
+  commit cancelled the newest one's. Pull requests keep one concurrency
+  group per branch and cancel superseded runs; everything else gets a group
+  per commit (#26). Turning `cancel-in-progress` off alone would not do: a
+  newer pending run still replaces an older pending one.
+- **Two lists of pre-commit checks.** CONTRIBUTING's copy had drifted the way
+  `CLAUDE.md`'s once did. It now points at `CLAUDE.md` and names only the
+  two checks CI runs beyond it.
+- **`verify-changes` accepted a tag as a pin.** It now asks for a SHA, the
+  rule this repository's own CI enforces. Released as delivery-quality 0.3.1.
+- **Working history at the root.** The audits and roadmaps moved to
+  `docs/history/`, with an index.
+- **No issue forms.** A bug form and an idea form; blank issues are off, and
+  a contact link sends guard bypasses to the private advisory form.
 
 ### Out of this plan — each needs an eval
 

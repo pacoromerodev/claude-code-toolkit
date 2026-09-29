@@ -18,7 +18,7 @@ everything here is built around that fact.
 Until 2026-09-25 this plugin also shipped a skill for writing skills, a skill
 wrapping the auditor, and a subagent that drafts descriptions. All three
 scored exactly what the model scores with no plugin loaded, across every eval
-case, so they were removed (see `ROADMAP-v2.md`, *Proposed for removal:
+case, so they were removed (see `docs/history/ROADMAP-v2.md` in the repository, *Proposed for removal:
 skill-forge*). What remains is what an eval cannot measure and the model
 cannot do on its own: a linter that runs as a script, and a log of real use.
 

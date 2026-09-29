@@ -42,7 +42,7 @@ same prompts with no plugin loaded (2026-09-26, `claude-opus-5-5`, graded by
 
 | Plugin | Version | Always-on context | Cases | Mean Δ against no plugin |
 |---|---|---|---|---|
-| delivery-quality | 0.3.0 | ~360 tokens | 8 | +0.38 |
+| delivery-quality | 0.3.1 | ~360 tokens | 8 | +0.38 |
 | team-rollout | 0.2.0 | ~230 tokens | 5 | +0.47 |
 | context-discipline | 0.2.0 | ~320 tokens | 6 | +0.28 |
 | skill-forge | 0.2.0 | ~0 tokens | 1 | +0.00 (it is a linter and a log; nothing to beat) |
@@ -83,7 +83,9 @@ The components here follow a few rules that came out of building them, and each 
 │   └── evals/<case>/                 # plugin eval cases and their measurements
 ├── .github/scripts/                  # the CI checks, each with its own fixtures
 ├── scripts/                          # local eval runner and routing check
-└── docs/anatomy.md                   # which component type to reach for
+└── docs/
+    ├── anatomy.md                    # which component type to reach for
+    └── history/                      # the audits and plans, in order
 ```
 
 `${CLAUDE_PLUGIN_ROOT}` resolves to the installed plugin's directory — always
@@ -109,7 +111,7 @@ component type to reach for.
 
 ## Where this came from
 
-Five plugins are built. [ROADMAP.md](ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded ([ROADMAP-v2.md](ROADMAP-v2.md), *Measured in full* and the proposals after it).
+Five plugins are built. [ROADMAP.md](docs/history/ROADMAP.md) records what each one contains, which course material it draws on, and the corrections the work turned up along the way. Two more, `java-spring` and `mcp-builder`, were retired on 2026-09-25, and `skill-forge` was cut down to its auditor and its routing log: across every eval case, what was removed scored exactly what the model scores with no plugin loaded ([ROADMAP-v2.md](docs/history/ROADMAP-v2.md), *Measured in full* and the proposals after it). Every audit and plan behind the plugins is in [docs/history/](docs/history/README.md).
 
 ## Origin
 

@@ -74,23 +74,21 @@ plugin runs from wherever it was installed, not from this repository.
 
 ## Before opening a pull request
 
+Run the block under *Before you commit* in [CLAUDE.md](CLAUDE.md). It is the
+one list of what a change must pass, and CI runs the same checks, with the
+same `--enforce` flags. It is kept in one place because two copies drifted:
+this file once listed the wording check without `--enforce`, which reports
+and exits 0 on a match that CI fails on.
+
+CI also runs two checks that list omits, each for a reason:
+
 ```bash
-claude plugin validate .                      # marketplace manifest
-claude plugin validate plugins/<name>         # plugin manifest
-python3 .github/scripts/check_consistency.py  # entries and versions agree
-python3 .github/scripts/check_stdlib_only.py  # no third-party imports
-python3 .github/scripts/check_eval_cases.py   # every eval case can pass
-python3 .github/scripts/check_hooks.py        # hooks point at scripts that exist
-python3 .github/scripts/check_names.py        # no two components share a name
-python3 .github/scripts/check_workflows.py    # workflows scoped, pinned, no interpolated shell
-python3 .github/scripts/check_course_wording.py # no sentence lifted from the notes
-python3 .github/scripts/check_eval_coverage.py --enforce  # two cases per skill, one negative
-python3 .github/scripts/check_eval_freshness.py  # which cases have no current measurement
-python3 .github/scripts/validate_settings_schema.py  # settings match the published schema
-plugins/<name>/tests/run.sh                   # fixture tests
+python3 .github/scripts/check_eval_freshness.py      # report-only: which cases have no current measurement
+python3 -m pip install jsonschema && \
+python3 .github/scripts/validate_settings_schema.py  # needs a dependency the hooks may not have
 ```
 
-CI runs all of these. Eval suites are not part of the pull-request gate —
+Eval suites are not part of the pull-request gate —
 they cost money and need a credential — so run them by hand before a release:
 
 ```bash

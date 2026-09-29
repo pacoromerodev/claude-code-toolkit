@@ -1,0 +1,45 @@
+name: Something does not work
+description: A skill, subagent, command, hook or script that misbehaves.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A guard that lets through what it should block is a security report:
+        use **Security → Report a vulnerability** instead of this form.
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Plugin
+      options: [delivery-quality, context-discipline, skill-forge, team-rollout, api-patterns]
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: The skill, subagent, command, hook or script, by name.
+      placeholder: guard_destructive
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: The plugin version (from /plugin) and `claude --version`.
+      placeholder: delivery-quality 0.3.0, Claude Code 2.1.284
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: What you did
+      description: The prompt, or for a hook the tool call it saw. Redact anything real.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+    validations:
+      required: true
